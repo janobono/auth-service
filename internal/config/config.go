@@ -15,7 +15,7 @@ type Config struct {
 }
 
 type ServerConfig struct {
-	Port int
+	Address string
 }
 
 type DbConfig struct {
@@ -31,7 +31,7 @@ func InitConfig() *Config {
 
 	return &Config{
 		ServerConfig: ServerConfig{
-			Port: getEnvInt("PORT", "8080", true),
+			Address: getEnv("ADDRESS", ":50052", true),
 		},
 		DbConfig: DbConfig{
 			DBUrl:      getEnv("DB_URL", "localhost:5432/app", true),

@@ -35,3 +35,7 @@ go.work.sum
 .DS_Store
 .AppleDouble
 .LSOverride
+
+# project specific
+api/*.go
+internal/repository/*.go

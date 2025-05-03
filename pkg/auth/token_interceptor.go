@@ -10,48 +10,90 @@ import (
 	"google.golang.org/grpc/status"
 )
 
+const UserDetailKey = "userDetail"
 const bearerPrefix = "Bearer "
 
-// TokenValidator interface that defines the ValidateToken method
-type TokenValidator interface {
-	ValidateToken(token string) bool
+type UserDetail struct {
+	Id          int64
+	Email       string
+	FirstName   string
+	LastName    string
+	Confirmed   bool
+	Enabled     bool
+	Authorities []string
 }
 
-// TokenInterceptor is the gRPC interceptor that checks Bearer token validation
-type TokenInterceptor struct {
-	TokenValidator TokenValidator
+type SecuredMethod struct {
+	Method      string
+	Authorities []string
 }
 
-// CheckToken checks the token for specific methods
-func (tokenInterceptor *TokenInterceptor) CheckToken(secureMethods map[string]bool) grpc.UnaryServerInterceptor {
+type TokenDecoder interface {
+	DecodeToken(token string) (UserDetail, error)
+}
+
+type AuthorizationInterceptor struct {
+	TokenDecoder TokenDecoder
+}
+
+func (interceptor *AuthorizationInterceptor) CheckToken(secureMethods *[]SecuredMethod) grpc.UnaryServerInterceptor {
 	return func(
 		ctx context.Context,
 		req interface{},
 		info *grpc.UnaryServerInfo,
 		handler grpc.UnaryHandler,
 	) (interface{}, error) {
-		// Check if the method needs authentication
-		if secureMethods[info.FullMethod] {
-			// Extract the token from the metadata
+		securedMethod := findSecuredMethod(secureMethods, info.FullMethod)
+
+		if securedMethod != nil {
 			md, ok := metadata.FromIncomingContext(ctx)
 			if !ok {
 				return nil, status.Errorf(codes.Unauthenticated, "missing metadata")
 			}
 
-			// Retrieve the token
 			authHeader := md["authorization"]
 			if len(authHeader) == 0 || !strings.HasPrefix(authHeader[0], bearerPrefix) {
 				return nil, status.Errorf(codes.Unauthenticated, "missing or invalid Bearer token")
 			}
 
-			// Here, you can validate the token
 			token := authHeader[0][len(bearerPrefix):]
-			if !tokenInterceptor.TokenValidator.ValidateToken(token) {
+			userDetail, err := interceptor.TokenDecoder.DecodeToken(token)
+			if err != nil {
 				return nil, status.Errorf(codes.Unauthenticated, "invalid token")
 			}
+
+			if len(securedMethod.Authorities) > 0 && !hasAnyAuthority(securedMethod.Authorities, userDetail.Authorities) {
+				return nil, status.Errorf(codes.PermissionDenied, "insufficient permissions")
+			}
+
+			ctx = context.WithValue(ctx, UserDetailKey, userDetail)
 		}
 
-		// Proceed with the handler if no error occurred
 		return handler(ctx, req)
 	}
+}
+
+func findSecuredMethod(methods *[]SecuredMethod, methodName string) *SecuredMethod {
+	for _, method := range *methods {
+		if method.Method == methodName {
+			return &method
+		}
+	}
+	return nil
+}
+
+func hasAnyAuthority(methodAuthorities, userAuthorities []string) bool {
+	set := make(map[string]bool)
+
+	for _, item := range methodAuthorities {
+		set[item] = true
+	}
+
+	for _, item := range userAuthorities {
+		if _, found := set[item]; found {
+			return true
+		}
+	}
+
+	return false
 }

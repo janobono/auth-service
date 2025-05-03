@@ -6,7 +6,10 @@ default: build
 
 clean:
 	@echo "  >  Cleaning build cache"
-	@-rm -rf bin && go clean ./... && rm ./internal/repository/*.go && rm ./api/*.go
+	@go clean ./...
+	@rm -rf bin
+	@rm -f ./internal/repository/*.go
+	@rm -f ./api/*.go
 
 generate:
 	@echo "  >  Generate source files"
