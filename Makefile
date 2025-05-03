@@ -6,9 +6,14 @@ default: build
 
 clean:
 	@echo "  >  Cleaning build cache"
-	@-rm -rf bin && go clean ./...
+	@-rm -rf bin && go clean ./... && rm ./internal/repository/*.go && rm ./api/*.go
 
-build:
+generate:
+	@echo "  >  Generate source files"
+	@sqlc generate
+	@protoc --go_out=. --go_opt=paths=source_relative \--go-grpc_out=. --go-grpc_opt=paths=source_relative api/authservice.proto
+
+build: generate
 	@for b in $(BINARIES); do \
   		echo "  >  Building binary" $$b ;\
 		go build -o bin/$$b ./cmd/$$b/main.go ;\
