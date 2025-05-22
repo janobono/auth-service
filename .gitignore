@@ -38,4 +38,4 @@ go.work.sum
 
 # project specific
 api/*.go
-internal/repository/*.go
+internal/db/repository/*.go

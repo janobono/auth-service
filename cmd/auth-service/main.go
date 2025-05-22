@@ -1,16 +1,12 @@
 package main
 
 import (
-	"fmt"
 	"github.com/janobono/auth-service/internal/config"
-	"github.com/janobono/auth-service/internal/db"
+	"github.com/janobono/auth-service/internal/server"
 )
 
 func main() {
-	appConfig := config.InitConfig()
-
-	pool := db.InitDb(appConfig.DbConfig)
-	defer pool.Close()
-
-	fmt.Println("auth-service")
+	gRPCServerConfig := config.InitConfig()
+	gRPCServer := server.New(gRPCServerConfig)
+	gRPCServer.Start()
 }

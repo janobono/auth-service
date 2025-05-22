@@ -6,7 +6,7 @@ import (
 )
 
 func ToDf(text string) string {
-	if text == "" {
+	if IsBlank(text) {
 		return ""
 	}
 
@@ -24,7 +24,7 @@ func ToDf(text string) string {
 }
 
 func ToScDf(text string) string {
-	if text == "" {
+	if IsBlank(text) {
 		return ""
 	}
 	return strings.ToLower(ToDf(text))

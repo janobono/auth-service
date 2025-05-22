@@ -12,6 +12,7 @@ import (
 type Config struct {
 	ServerConfig ServerConfig
 	DbConfig     DbConfig
+	AppConfig    AppConfig
 }
 
 type ServerConfig struct {
@@ -26,37 +27,46 @@ type DbConfig struct {
 	DBMinConns int
 }
 
+type AppConfig struct {
+	TokenIssuer    string
+	TokenExpiresIn int
+}
+
 func InitConfig() *Config {
 	godotenv.Load()
 
 	return &Config{
 		ServerConfig: ServerConfig{
-			Address: getEnv("ADDRESS", ":50052", true),
+			Address: getEnv("ADDRESS"),
 		},
 		DbConfig: DbConfig{
-			DBUrl:      getEnv("DB_URL", "localhost:5432/app", true),
-			DBUser:     getEnv("DB_USER", "app", true),
-			DBPassword: getEnv("DB_PASSWORD", "app", true),
-			DBMaxConns: getEnvInt("DB_MAX_CONNS", "5", true),
-			DBMinConns: getEnvInt("DB_MIN_CONNS", "2", true),
+			DBUrl:      getEnv("DB_URL"),
+			DBUser:     getEnv("DB_USER"),
+			DBPassword: getEnv("DB_PASSWORD"),
+			DBMaxConns: getEnvInt("DB_MAX_CONNS"),
+			DBMinConns: getEnvInt("DB_MIN_CONNS"),
+		},
+		AppConfig: AppConfig{
+			TokenIssuer:    getEnv("TOKEN_ISSUER"),
+			TokenExpiresIn: getEnvInt("TOKEN_EXPIRES_IN"),
 		},
 	}
 }
 
-func getEnv(key, defaultValue string, required bool) string {
-	result := defaultValue
+func getEnv(key string) string {
+	result := ""
 	if env, ok := os.LookupEnv(key); ok {
 		result = env
 	}
 
-	if required && util.IsBlank(result) {
+	if util.IsBlank(result) {
 		log.Fatalf("configuration property %s not set", key)
 	}
 	return result
 }
 
-func getEnvInt(key, defaultValue string, required bool) int {
-	s := getEnv(key, defaultValue, required)
+func getEnvInt(key string) int {
+	s := getEnv(key)
 	result, err := strconv.Atoi(s)
 	if err != nil {
 		log.Fatalf("configuration property %s wrong format %v", key, err)

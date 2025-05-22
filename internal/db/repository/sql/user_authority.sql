@@ -6,8 +6,3 @@ values ($1, $2);
 delete
 from sa_user_authority
 where user_id = $1;
-
--- name: GetUserAuthorities :many
-select *
-from sa_user_authority
-where user_id = $1;

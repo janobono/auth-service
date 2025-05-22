@@ -7,7 +7,7 @@ import (
 )
 
 func TestJwt(t *testing.T) {
-	jwtToken, err := NewJwtToken(JwtConfigProperties{
+	jwtToken, err := NewJwtToken(&JwtConfigProperties{
 		Issuer:     "test",
 		Expiration: 60,
 	})
@@ -21,7 +21,7 @@ func TestJwt(t *testing.T) {
 		Authorities: []string{"admin"},
 	}
 
-	token, err := jwtToken.GenerateToken(jwtContent, time.Now().Unix())
+	token, err := jwtToken.GenerateToken(&jwtContent, time.Now().Unix())
 	if err != nil {
 		t.Fatalf("Error generating token: %s", err)
 	}

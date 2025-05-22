@@ -2,6 +2,7 @@ package auth
 
 import (
 	"context"
+	"github.com/janobono/auth-service/api"
 	"strings"
 
 	"google.golang.org/grpc"
@@ -10,33 +11,29 @@ import (
 	"google.golang.org/grpc/status"
 )
 
-const UserDetailKey = "userDetail"
+const userDetailKey = "userDetail"
 const bearerPrefix = "Bearer "
-
-type UserDetail struct {
-	Id          int64
-	Email       string
-	FirstName   string
-	LastName    string
-	Confirmed   bool
-	Enabled     bool
-	Authorities []string
-}
 
 type SecuredMethod struct {
 	Method      string
 	Authorities []string
 }
 
-type TokenDecoder interface {
-	DecodeToken(token string) (UserDetail, error)
+type UserDetailDecoder interface {
+	Decode(token string) (*api.UserDetail, error)
 }
 
-type AuthorizationInterceptor struct {
-	TokenDecoder TokenDecoder
+type BearerTokenInterceptor struct {
+	UserDetailDecoder UserDetailDecoder
 }
 
-func (interceptor *AuthorizationInterceptor) CheckToken(secureMethods *[]SecuredMethod) grpc.UnaryServerInterceptor {
+func NewBearerTokenInterceptor(userDetailDecoder UserDetailDecoder) *BearerTokenInterceptor {
+	return &BearerTokenInterceptor{
+		UserDetailDecoder: userDetailDecoder,
+	}
+}
+
+func (bti *BearerTokenInterceptor) CheckToken(secureMethods *[]SecuredMethod) grpc.UnaryServerInterceptor {
 	return func(
 		ctx context.Context,
 		req interface{},
@@ -57,20 +54,24 @@ func (interceptor *AuthorizationInterceptor) CheckToken(secureMethods *[]Secured
 			}
 
 			token := authHeader[0][len(bearerPrefix):]
-			userDetail, err := interceptor.TokenDecoder.DecodeToken(token)
+			userDetail, err := bti.UserDetailDecoder.Decode(token)
 			if err != nil {
 				return nil, status.Errorf(codes.Unauthenticated, "invalid token")
 			}
 
-			if len(securedMethod.Authorities) > 0 && !hasAnyAuthority(securedMethod.Authorities, userDetail.Authorities) {
+			if len(securedMethod.Authorities) > 0 && !hasAnyAuthority(&securedMethod.Authorities, &userDetail.Authorities) {
 				return nil, status.Errorf(codes.PermissionDenied, "insufficient permissions")
 			}
 
-			ctx = context.WithValue(ctx, UserDetailKey, userDetail)
+			ctx = context.WithValue(ctx, userDetailKey, userDetail)
 		}
 
 		return handler(ctx, req)
 	}
+}
+
+func GetUserDetail(ctx context.Context) *api.UserDetail {
+	return ctx.Value(userDetailKey).(*api.UserDetail)
 }
 
 func findSecuredMethod(methods *[]SecuredMethod, methodName string) *SecuredMethod {
@@ -82,14 +83,14 @@ func findSecuredMethod(methods *[]SecuredMethod, methodName string) *SecuredMeth
 	return nil
 }
 
-func hasAnyAuthority(methodAuthorities, userAuthorities []string) bool {
+func hasAnyAuthority(methodAuthorities, userAuthorities *[]string) bool {
 	set := make(map[string]bool)
 
-	for _, item := range methodAuthorities {
+	for _, item := range *methodAuthorities {
 		set[item] = true
 	}
 
-	for _, item := range userAuthorities {
+	for _, item := range *userAuthorities {
 		if _, found := set[item]; found {
 			return true
 		}

@@ -1,0 +1,20 @@
+include:
+  - infra.yaml
+services:
+  auth-service:
+    image: auth-service:latest
+    ports:
+      - "50052:50052"
+    restart: unless-stopped
+    environment:
+      - TZ=Europe/Bratislava
+      - ADDRESS=:50052
+      - DB_URL=pg:5432/app
+      - DB_USER=app
+      - DB_PASSWORD=app
+      - DB_MAX_CONNS=5
+      - DB_MIN_CONNS=2
+      - TOKEN_ISSUER=simple
+      - TOKEN_EXPIRES_IN=120
+    depends_on:
+      - pg

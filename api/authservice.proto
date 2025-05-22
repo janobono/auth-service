@@ -11,40 +11,16 @@ option java_outer_classname = "AuthServiceProto";
 package authservice;
 
 service AuthService {
-  rpc ChangeEmail (ChangeEmailData) returns (google.protobuf.StringValue) {}
-  rpc ChangePassword (ChangePasswordData) returns (google.protobuf.StringValue) {}
-  rpc ChangeUserDetails (ChangeUserDetailsData) returns (google.protobuf.StringValue) {}
-  rpc Confirm (google.protobuf.StringValue) returns (google.protobuf.StringValue) {}
-  rpc ResetPassword (google.protobuf.StringValue) returns (google.protobuf.Empty) {}
   rpc SignIn (SignInData) returns (google.protobuf.StringValue) {}
   rpc SignUp (SignUpData) returns (google.protobuf.StringValue) {}
-  rpc GetUserDetail (google.protobuf.Empty) returns (UserDetail) {}
 }
 
 service UserService {
   rpc SearchUsers (SearchCriteriaData) returns (UsersPage) {}
-  rpc AddUser (AddUserData) returns (UserDetail) {}
+  rpc AddUser (UserData) returns (UserDetail) {}
   rpc GetUser (google.protobuf.Int64Value) returns (UserDetail) {}
-  rpc SetUser (SetUserData) returns (UserDetail) {}
+  rpc SetUser (UserDataWithId) returns (UserDetail) {}
   rpc DeleteUser (google.protobuf.Int64Value) returns (google.protobuf.Empty) {}
-  rpc SetAuthorities (SetAuthoritiesData) returns (UserDetail) {}
-  rpc SetConfirmed (google.protobuf.BoolValue) returns (UserDetail) {}
-  rpc SetEnabled (google.protobuf.BoolValue) returns (UserDetail) {}
-}
-
-message ChangeEmailData {
-  string email = 1;
-  string password = 2;
-}
-
-message ChangePasswordData {
-  string oldPassword = 1;
-  string newPassword = 2;
-}
-
-message ChangeUserDetailsData {
-  string firstName = 1;
-  string lastName = 2;
 }
 
 message SignInData {
@@ -78,30 +54,23 @@ message UserDetail {
 }
 
 message UsersPage {
-  int32 totalElements = 1;
-  int32 totalPages = 2;
-  bool first = 3;
-  bool last = 4;
-  int32 page = 5;
-  int32 size = 6;
-  repeated UserDetail content = 7;
-  bool empty = 8;
+  int64 totalPages = 1;
+  int32 page = 2;
+  int32 size = 3;
+  repeated UserDetail content = 4;
 }
 
-message AddUserData {
+message UserData {
   string email = 1;
-  string firstName = 2;
-  string lastName = 3;
-  bool confirmed = 4;
-  bool enabled = 5;
-  repeated string authorities = 6;
+  string password = 2;
+  string firstName = 3;
+  string lastName = 4;
+  bool confirmed = 5;
+  bool enabled = 6;
+  repeated string authorities = 7;
 }
 
-message SetUserData {
-  string firstName = 1;
-  string lastName = 2;
-}
-
-message SetAuthoritiesData {
-  repeated string authorities = 1;
+message UserDataWithId {
+  int64 id = 1;
+  UserData userData = 2;
 }

@@ -3,6 +3,7 @@ package util
 import (
 	"crypto/rand"
 	"crypto/rsa"
+	"errors"
 	"fmt"
 	"github.com/golang-jwt/jwt/v5"
 )
@@ -25,7 +26,7 @@ type JwtToken struct {
 	Issuer     string
 }
 
-func NewJwtToken(jwtConfigProperties JwtConfigProperties) (*JwtToken, error) {
+func NewJwtToken(jwtConfigProperties *JwtConfigProperties) (*JwtToken, error) {
 	privateKey, err := rsa.GenerateKey(rand.Reader, 2048)
 	if err != nil {
 		return nil, fmt.Errorf("failed to generate RSA key pair: %w", err)
@@ -43,7 +44,7 @@ func NewJwtToken(jwtConfigProperties JwtConfigProperties) (*JwtToken, error) {
 	}, nil
 }
 
-func (t *JwtToken) GenerateToken(jwtContent JwtContent, issuedAt int64) (string, error) {
+func (t *JwtToken) GenerateToken(jwtContent *JwtContent, issuedAt int64) (string, error) {
 	claims := jwt.MapClaims{
 		"iss": t.Issuer,
 		"iat": issuedAt,
@@ -62,7 +63,7 @@ func (t *JwtToken) GenerateToken(jwtContent JwtContent, issuedAt int64) (string,
 	return signedToken, nil
 }
 
-func (t *JwtToken) ParseToken(tokenString string) (JwtContent, error) {
+func (t *JwtToken) ParseToken(tokenString string) (*JwtContent, error) {
 	token, err := jwt.Parse(tokenString, func(token *jwt.Token) (interface{}, error) {
 		if token.Method != t.Algorithm {
 			return nil, fmt.Errorf("unexpected signing method: %v", token.Header["alg"])
@@ -71,12 +72,12 @@ func (t *JwtToken) ParseToken(tokenString string) (JwtContent, error) {
 	})
 
 	if err != nil {
-		return JwtContent{}, fmt.Errorf("failed to parse token: %w", err)
+		return nil, fmt.Errorf("failed to parse token: %w", err)
 	}
 
 	claims, ok := token.Claims.(jwt.MapClaims)
 	if !ok || !token.Valid {
-		return JwtContent{}, fmt.Errorf("invalid token")
+		return nil, errors.New("invalid token")
 	}
 
 	id := int64(0)
@@ -91,7 +92,7 @@ func (t *JwtToken) ParseToken(tokenString string) (JwtContent, error) {
 		}
 	}
 
-	return JwtContent{
+	return &JwtContent{
 		ID:          id,
 		Authorities: authorities,
 	}, nil

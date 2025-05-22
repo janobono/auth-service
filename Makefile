@@ -1,4 +1,5 @@
 BINARIES = auth-service auth-service-client
+PROTO_FILES := $(wildcard api/*.proto)
 
 .PHONY: test
 
@@ -8,13 +9,17 @@ clean:
 	@echo "  >  Cleaning build cache"
 	@go clean ./...
 	@rm -rf bin
-	@rm -f ./internal/repository/*.go
+	@rm -f ./internal/db/repository/*.go
 	@rm -f ./api/*.go
 
 generate:
 	@echo "  >  Generate source files"
 	@sqlc generate
-	@protoc --go_out=. --go_opt=paths=source_relative \--go-grpc_out=. --go-grpc_opt=paths=source_relative api/authservice.proto
+	@for file in $(PROTO_FILES); do \
+		protoc --go_out=. --go_opt=paths=source_relative \
+			--go-grpc_out=. --go-grpc_opt=paths=source_relative \
+			$$file ; \
+	done
 
 build: generate
 	@for b in $(BINARIES); do \
