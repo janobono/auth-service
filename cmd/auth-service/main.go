@@ -6,7 +6,7 @@ import (
 )
 
 func main() {
-	gRPCServerConfig := config.InitConfig()
-	gRPCServer := server.New(gRPCServerConfig)
-	gRPCServer.Start()
+	serverConfig := config.InitConfig()
+	app := server.NewServer(serverConfig)
+	app.Start()
 }

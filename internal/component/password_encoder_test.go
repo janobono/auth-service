@@ -1,4 +1,4 @@
-package util
+package component
 
 import (
 	"gotest.tools/v3/assert"
@@ -13,10 +13,13 @@ func TestCompare(t *testing.T) {
 	}
 
 	t.Run("ToScDf", func(t *testing.T) {
-		simple, err := Encode("simple")
+		passwordEncoder := NewPasswordEncoder()
+		simple, err := passwordEncoder.Encode("simple")
 		if err != nil {
 			t.Fatalf("Error creating password: %s", err)
 		}
+
+		t.Log(simple)
 
 		tests := []testCase{
 			{password: "simple", encodedPassword: "simple", expected: false},
@@ -24,7 +27,7 @@ func TestCompare(t *testing.T) {
 		}
 
 		for _, test := range tests {
-			err := Compare(test.password, test.encodedPassword)
+			err := passwordEncoder.Compare(test.password, test.encodedPassword)
 			if test.expected {
 				assert.NilError(t, err)
 			} else {

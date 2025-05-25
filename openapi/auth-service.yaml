@@ -1,0 +1,1520 @@
+openapi: 3.0.1
+info:
+  title: Auth Service
+  version: 1.0.0
+servers:
+- description: Generated server url
+  url: http://localhost:8080/api
+security:
+- bearerAuth: []
+paths:
+  /attributes:
+    get:
+      operationId: getAttributes
+      parameters:
+      - explode: true
+        in: query
+        name: page
+        required: false
+        schema:
+          default: 0
+          type: integer
+        style: form
+      - explode: true
+        in: query
+        name: size
+        required: false
+        schema:
+          default: 20
+          type: integer
+        style: form
+      - explode: true
+        in: query
+        name: sort
+        required: false
+        schema:
+          default: key ASC
+          type: string
+        style: form
+      - explode: true
+        in: query
+        name: searchField
+        required: false
+        schema:
+          type: string
+        style: form
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AttributePage'
+          description: OK
+        "4XX":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorMessage'
+          description: Client error
+        "5XX":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorMessage'
+          description: Server error
+      tags:
+      - attribute-controller
+    post:
+      operationId: addAttribute
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AttributeData'
+        required: true
+      responses:
+        "201":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AttributeDetail'
+          description: Created
+        "4XX":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorMessage'
+          description: Client error
+        "5XX":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorMessage'
+          description: Server error
+      tags:
+      - attribute-controller
+  /attributes/{id}:
+    delete:
+      operationId: deleteAttribute
+      parameters:
+      - explode: false
+        in: path
+        name: id
+        required: true
+        schema:
+          type: string
+        style: simple
+      responses:
+        "200":
+          description: OK
+        "4XX":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorMessage'
+          description: Client error
+        "5XX":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorMessage'
+          description: Server error
+      tags:
+      - attribute-controller
+    get:
+      operationId: getAttribute
+      parameters:
+      - explode: false
+        in: path
+        name: id
+        required: true
+        schema:
+          type: string
+        style: simple
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AttributeDetail'
+          description: OK
+        "4XX":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorMessage'
+          description: Client error
+        "5XX":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorMessage'
+          description: Server error
+      tags:
+      - attribute-controller
+    put:
+      operationId: setAttribute
+      parameters:
+      - explode: false
+        in: path
+        name: id
+        required: true
+        schema:
+          type: string
+        style: simple
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AttributeData'
+        required: true
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AttributeDetail'
+          description: OK
+        "4XX":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorMessage'
+          description: Client error
+        "5XX":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorMessage'
+          description: Server error
+      tags:
+      - attribute-controller
+  /auth/change-email:
+    post:
+      operationId: changeEmail
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ChangeEmail'
+        required: true
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AuthenticationResponse'
+          description: OK
+        "4XX":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorMessage'
+          description: Client error
+        "5XX":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorMessage'
+          description: Server error
+      tags:
+      - auth-controller
+  /auth/change-password:
+    post:
+      operationId: changePassword
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ChangePassword'
+        required: true
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AuthenticationResponse'
+          description: OK
+        "4XX":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorMessage'
+          description: Client error
+        "5XX":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorMessage'
+          description: Server error
+      tags:
+      - auth-controller
+  /auth/change-user-attributes:
+    post:
+      operationId: changeUserAttributes
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ChangeUserAttributes'
+        required: true
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AuthenticationResponse'
+          description: OK
+        "4XX":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorMessage'
+          description: Client error
+        "5XX":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorMessage'
+          description: Server error
+      tags:
+      - auth-controller
+  /auth/confirm:
+    post:
+      operationId: confirm
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Confirmation'
+        required: true
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AuthenticationResponse'
+          description: OK
+        "4XX":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorMessage'
+          description: Client error
+        "5XX":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorMessage'
+          description: Server error
+      tags:
+      - auth-controller
+  /auth/reset-password:
+    post:
+      operationId: resetPassword
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ResetPassword'
+        required: true
+      responses:
+        "200":
+          description: OK
+        "4XX":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorMessage'
+          description: Client error
+        "5XX":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorMessage'
+          description: Server error
+      tags:
+      - auth-controller
+  /auth/sign-in:
+    post:
+      operationId: signIn
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SignIn'
+        required: true
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AuthenticationResponse'
+          description: OK
+        "4XX":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorMessage'
+          description: Client error
+        "5XX":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorMessage'
+          description: Server error
+      tags:
+      - auth-controller
+  /auth/sign-up:
+    post:
+      operationId: signUp
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SignUp'
+        required: true
+      responses:
+        "201":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AuthenticationResponse'
+          description: Created
+        "4XX":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorMessage'
+          description: Client error
+        "5XX":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorMessage'
+          description: Server error
+      tags:
+      - auth-controller
+  /auth/user-detail:
+    get:
+      operationId: getUserDetail
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UserDetail'
+          description: OK
+        "4XX":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorMessage'
+          description: Client error
+        "5XX":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorMessage'
+          description: Server error
+      tags:
+      - auth-controller
+  /authorities:
+    get:
+      operationId: getAuthorities
+      parameters:
+      - explode: true
+        in: query
+        name: page
+        required: false
+        schema:
+          default: 0
+          type: integer
+        style: form
+      - explode: true
+        in: query
+        name: size
+        required: false
+        schema:
+          default: 20
+          type: integer
+        style: form
+      - explode: true
+        in: query
+        name: sort
+        required: false
+        schema:
+          default: authority ASC
+          type: string
+        style: form
+      - explode: true
+        in: query
+        name: searchField
+        required: false
+        schema:
+          type: string
+        style: form
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AuthorityPage'
+          description: OK
+        "4XX":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorMessage'
+          description: Client error
+        "5XX":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorMessage'
+          description: Server error
+      tags:
+      - authority-controller
+    post:
+      operationId: addAuthority
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AuthorityData'
+        required: true
+      responses:
+        "201":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AuthorityDetail'
+          description: Created
+        "4XX":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorMessage'
+          description: Client error
+        "5XX":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorMessage'
+          description: Server error
+      tags:
+      - authority-controller
+  /authorities/{id}:
+    delete:
+      operationId: deleteAuthority
+      parameters:
+      - explode: false
+        in: path
+        name: id
+        required: true
+        schema:
+          type: string
+        style: simple
+      responses:
+        "200":
+          description: OK
+        "4XX":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorMessage'
+          description: Client error
+        "5XX":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorMessage'
+          description: Server error
+      tags:
+      - authority-controller
+    get:
+      operationId: getAuthority
+      parameters:
+      - explode: false
+        in: path
+        name: id
+        required: true
+        schema:
+          type: string
+        style: simple
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AuthorityDetail'
+          description: OK
+        "4XX":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorMessage'
+          description: Client error
+        "5XX":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorMessage'
+          description: Server error
+      tags:
+      - authority-controller
+    put:
+      operationId: setAuthority
+      parameters:
+      - explode: false
+        in: path
+        name: id
+        required: true
+        schema:
+          type: string
+        style: simple
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AuthorityData'
+        required: true
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AuthorityDetail'
+          description: OK
+        "4XX":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorMessage'
+          description: Client error
+        "5XX":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorMessage'
+          description: Server error
+      tags:
+      - authority-controller
+  /captcha:
+    get:
+      operationId: getCaptcha
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Captcha'
+          description: OK
+        "4XX":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorMessage'
+          description: Client error
+        "5XX":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorMessage'
+          description: Server error
+      tags:
+      - captcha-controller
+  /livez:
+    get:
+      operationId: livez
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HealthStatus'
+          description: OK
+        "4XX":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorMessage'
+          description: Client error
+        "5XX":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorMessage'
+          description: Server error
+      tags:
+      - health-controller
+  /readyz:
+    get:
+      operationId: readyz
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HealthStatus'
+          description: OK
+        "4XX":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorMessage'
+          description: Client error
+        "5XX":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorMessage'
+          description: Server error
+      tags:
+      - health-controller
+  /users:
+    get:
+      operationId: getUsers
+      parameters:
+      - explode: true
+        in: query
+        name: page
+        required: false
+        schema:
+          default: 0
+          type: integer
+        style: form
+      - explode: true
+        in: query
+        name: size
+        required: false
+        schema:
+          default: 20
+          type: integer
+        style: form
+      - explode: true
+        in: query
+        name: sort
+        required: false
+        schema:
+          default: email ASC
+          type: string
+        style: form
+      - explode: true
+        in: query
+        name: searchField
+        required: false
+        schema:
+          type: string
+        style: form
+      - explode: true
+        in: query
+        name: email
+        required: false
+        schema:
+          type: string
+        style: form
+      - explode: true
+        in: query
+        name: attributes
+        required: false
+        schema:
+          items:
+            type: string
+          type: array
+        style: form
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UserPage'
+          description: OK
+        "4XX":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorMessage'
+          description: Client error
+        "5XX":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorMessage'
+          description: Server error
+      tags:
+      - user-controller
+    post:
+      operationId: addUser
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UserData'
+        required: true
+      responses:
+        "201":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UserDetail'
+          description: Created
+        "4XX":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorMessage'
+          description: Client error
+        "5XX":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorMessage'
+          description: Server error
+      tags:
+      - user-controller
+  /users/{id}:
+    delete:
+      operationId: deleteUser
+      parameters:
+      - explode: false
+        in: path
+        name: id
+        required: true
+        schema:
+          type: string
+        style: simple
+      responses:
+        "200":
+          description: OK
+        "4XX":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorMessage'
+          description: Client error
+        "5XX":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorMessage'
+          description: Server error
+      tags:
+      - user-controller
+    get:
+      operationId: getUser
+      parameters:
+      - explode: false
+        in: path
+        name: id
+        required: true
+        schema:
+          type: string
+        style: simple
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UserDetail'
+          description: OK
+        "4XX":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorMessage'
+          description: Client error
+        "5XX":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorMessage'
+          description: Server error
+      tags:
+      - user-controller
+    put:
+      operationId: setUser
+      parameters:
+      - explode: false
+        in: path
+        name: id
+        required: true
+        schema:
+          type: string
+        style: simple
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UserData'
+        required: true
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UserDetail'
+          description: OK
+        "4XX":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorMessage'
+          description: Client error
+        "5XX":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorMessage'
+          description: Server error
+      tags:
+      - user-controller
+  /users/{id}/authorities:
+    patch:
+      operationId: setAuthorities
+      parameters:
+      - explode: false
+        in: path
+        name: id
+        required: true
+        schema:
+          type: string
+        style: simple
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UserAuthoritiesData'
+        required: true
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UserDetail'
+          description: OK
+        "4XX":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorMessage'
+          description: Client error
+        "5XX":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorMessage'
+          description: Server error
+      tags:
+      - user-controller
+  /users/{id}/confirm:
+    patch:
+      operationId: setConfirmed
+      parameters:
+      - explode: false
+        in: path
+        name: id
+        required: true
+        schema:
+          type: string
+        style: simple
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/BooleanValue'
+        required: true
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UserDetail'
+          description: OK
+        "4XX":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorMessage'
+          description: Client error
+        "5XX":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorMessage'
+          description: Server error
+      tags:
+      - user-controller
+  /users/{id}/enable:
+    patch:
+      operationId: setEnabled
+      parameters:
+      - explode: false
+        in: path
+        name: id
+        required: true
+        schema:
+          format: int64
+          type: integer
+        style: simple
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/BooleanValue'
+        required: true
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UserDetail'
+          description: OK
+        "4XX":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorMessage'
+          description: Client error
+        "5XX":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorMessage'
+          description: Server error
+      tags:
+      - user-controller
+components:
+  responses:
+    client-error:
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorMessage'
+      description: Client error
+    server-error:
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorMessage'
+      description: Server error
+  schemas:
+    AttributeData:
+      example:
+        hidden: true
+        label: label
+        key: key
+        required: true
+      properties:
+        key:
+          type: string
+        label:
+          type: string
+        required:
+          type: boolean
+        hidden:
+          type: boolean
+      required:
+      - key
+      - label
+      type: object
+    AttributeDetail:
+      example:
+        hidden: true
+        id: id
+        label: label
+        key: key
+        required: true
+      properties:
+        id:
+          type: string
+        key:
+          type: string
+        label:
+          type: string
+        required:
+          type: boolean
+        hidden:
+          type: boolean
+      type: object
+    AttributePage:
+      allOf:
+      - $ref: '#/components/schemas/Page'
+      - properties:
+          content:
+            items:
+              $ref: '#/components/schemas/AttributeDetail'
+            type: array
+        type: object
+      example:
+        size: 5
+        totalPages: 6
+        page: 1
+        sort: sort
+        content:
+        - hidden: true
+          id: id
+          label: label
+          key: key
+          required: true
+        - hidden: true
+          id: id
+          label: label
+          key: key
+          required: true
+        totalElements: 0
+    AttributeValueData:
+      example:
+        value: value
+        key: key
+      properties:
+        key:
+          maxLength: 255
+          minLength: 0
+          type: string
+        value:
+          maxLength: 255
+          minLength: 0
+          type: string
+      required:
+      - key
+      - value
+      type: object
+    AttributeValueDetail:
+      example:
+        value: value
+        key: key
+      properties:
+        key:
+          type: string
+        value:
+          type: string
+      type: object
+    AuthenticationResponse:
+      example:
+        accessToken: accessToken
+        refreshToken: refreshToken
+      properties:
+        refreshToken:
+          type: string
+        accessToken:
+          type: string
+      type: object
+    AuthorityData:
+      example:
+        authority: authority
+        label: label
+      properties:
+        authority:
+          type: string
+        label:
+          type: string
+      required:
+      - authority
+      - label
+      type: object
+    AuthorityDetail:
+      example:
+        authority: authority
+        id: id
+        label: label
+      properties:
+        id:
+          type: string
+        authority:
+          type: string
+        label:
+          type: string
+      type: object
+    AuthorityPage:
+      allOf:
+      - $ref: '#/components/schemas/Page'
+      - properties:
+          content:
+            items:
+              $ref: '#/components/schemas/AuthorityDetail'
+            type: array
+        type: object
+      example:
+        size: 5
+        totalPages: 6
+        page: 1
+        sort: sort
+        content:
+        - authority: authority
+          id: id
+          label: label
+        - authority: authority
+          id: id
+          label: label
+        totalElements: 0
+    BooleanValue:
+      example:
+        value: true
+      properties:
+        value:
+          type: boolean
+      required:
+      - value
+      type: object
+    Captcha:
+      example:
+        captchaImage: captchaImage
+        captchaToken: captchaToken
+      properties:
+        captchaToken:
+          type: string
+        captchaImage:
+          type: string
+      type: object
+    ChangeEmail:
+      example:
+        password: password
+        captchaText: captchaText
+        captchaToken: captchaToken
+        email: email
+      properties:
+        email:
+          format: email
+          maxLength: 255
+          minLength: 0
+          type: string
+        password:
+          maxLength: 255
+          minLength: 0
+          type: string
+        captchaText:
+          type: string
+        captchaToken:
+          type: string
+      required:
+      - captchaText
+      - captchaToken
+      - email
+      - password
+      type: object
+    ChangePassword:
+      example:
+        oldPassword: oldPassword
+        newPassword: newPassword
+        captchaText: captchaText
+        captchaToken: captchaToken
+      properties:
+        oldPassword:
+          maxLength: 255
+          minLength: 0
+          type: string
+        newPassword:
+          maxLength: 255
+          minLength: 0
+          type: string
+        captchaText:
+          type: string
+        captchaToken:
+          type: string
+      required:
+      - captchaText
+      - captchaToken
+      - newPassword
+      - oldPassword
+      type: object
+    ChangeUserAttributes:
+      example:
+        attributes:
+        - value: value
+          key: key
+        - value: value
+          key: key
+        captchaText: captchaText
+        captchaToken: captchaToken
+      properties:
+        attributes:
+          items:
+            $ref: '#/components/schemas/AttributeValueData'
+          type: array
+        captchaText:
+          type: string
+        captchaToken:
+          type: string
+      required:
+      - attributes
+      - captchaText
+      - captchaToken
+      type: object
+    Confirmation:
+      example:
+        token: token
+      properties:
+        token:
+          type: string
+      required:
+      - token
+      type: object
+    ErrorCode:
+      enum:
+      - UNKNOWN
+      - NOT_FOUND
+      - UNAUTHORIZED
+      - FORBIDDEN
+      - AUTHORITY_NOT_FOUND
+      - INVALID_CAPTCHA
+      - INVALID_CREDENTIALS
+      - UNSUPPORTED_VALIDATION_TOKEN
+      - USER_NOT_FOUND
+      - USER_EMAIL_IS_USED
+      - USER_NOT_CONFIRMED
+      - USER_NOT_ENABLED
+      type: string
+    ErrorMessage:
+      example:
+        code: UNKNOWN
+        message: message
+        timestamp: 2000-01-23T04:56:07.000+00:00
+      properties:
+        code:
+          $ref: '#/components/schemas/ErrorCode'
+        message:
+          type: string
+        timestamp:
+          format: date-time
+          type: string
+      type: object
+    HealthStatus:
+      example:
+        status: status
+      properties:
+        status:
+          type: string
+      type: object
+    Page:
+      properties:
+        totalElements:
+          format: int64
+          type: integer
+        totalPages:
+          format: int32
+          type: integer
+        page:
+          format: int32
+          type: integer
+        size:
+          format: int32
+          type: integer
+        sort:
+          type: string
+      type: object
+    ResetPassword:
+      example:
+        captchaText: captchaText
+        captchaToken: captchaToken
+        email: email
+      properties:
+        email:
+          format: email
+          maxLength: 255
+          minLength: 0
+          type: string
+        captchaText:
+          type: string
+        captchaToken:
+          type: string
+      required:
+      - captchaText
+      - captchaToken
+      - email
+      type: object
+    SignIn:
+      example:
+        password: password
+        email: email
+      properties:
+        email:
+          format: email
+          maxLength: 255
+          minLength: 0
+          type: string
+        password:
+          maxLength: 255
+          minLength: 0
+          type: string
+      required:
+      - email
+      - password
+      type: object
+    SignUp:
+      example:
+        password: password
+        attributes:
+        - value: value
+          key: key
+        - value: value
+          key: key
+        captchaText: captchaText
+        captchaToken: captchaToken
+        email: email
+      properties:
+        email:
+          format: email
+          maxLength: 255
+          minLength: 0
+          type: string
+        password:
+          maxLength: 255
+          minLength: 0
+          type: string
+        attributes:
+          items:
+            $ref: '#/components/schemas/AttributeValueData'
+          type: array
+        captchaText:
+          type: string
+        captchaToken:
+          type: string
+      required:
+      - attributes
+      - captchaText
+      - captchaToken
+      - email
+      - password
+      type: object
+    UserAuthoritiesData:
+      example:
+        authorities:
+        - authorities
+        - authorities
+      properties:
+        authorities:
+          items:
+            type: string
+          type: array
+      required:
+      - authorities
+      type: object
+    UserData:
+      example:
+        attributes:
+        - value: value
+          key: key
+        - value: value
+          key: key
+        confirmed: true
+        email: email
+        enabled: true
+        authorities:
+        - authorities
+        - authorities
+      properties:
+        email:
+          format: email
+          maxLength: 255
+          minLength: 0
+          type: string
+        confirmed:
+          type: boolean
+        enabled:
+          type: boolean
+        attributes:
+          items:
+            $ref: '#/components/schemas/AttributeValueData'
+          type: array
+        authorities:
+          items:
+            type: string
+          type: array
+      required:
+      - attributes
+      - authorities
+      - confirmed
+      - email
+      - enabled
+      type: object
+    UserDetail:
+      example:
+        attributes:
+        - value: value
+          key: key
+        - value: value
+          key: key
+        id: 0
+        confirmed: true
+        email: email
+        enabled: true
+        authorities:
+        - authority: authority
+          id: id
+          label: label
+        - authority: authority
+          id: id
+          label: label
+      properties:
+        id:
+          format: int64
+          type: integer
+        email:
+          type: string
+        confirmed:
+          type: boolean
+        enabled:
+          type: boolean
+        attributes:
+          items:
+            $ref: '#/components/schemas/AttributeValueDetail'
+          type: array
+        authorities:
+          items:
+            $ref: '#/components/schemas/AuthorityDetail'
+          type: array
+      type: object
+    UserPage:
+      allOf:
+      - $ref: '#/components/schemas/Page'
+      - properties:
+          content:
+            items:
+              $ref: '#/components/schemas/UserDetail'
+            type: array
+        type: object
+      example:
+        size: 5
+        totalPages: 6
+        page: 1
+        sort: sort
+        content:
+        - attributes:
+          - value: value
+            key: key
+          - value: value
+            key: key
+          id: 0
+          confirmed: true
+          email: email
+          enabled: true
+          authorities:
+          - authority: authority
+            id: id
+            label: label
+          - authority: authority
+            id: id
+            label: label
+        - attributes:
+          - value: value
+            key: key
+          - value: value
+            key: key
+          id: 0
+          confirmed: true
+          email: email
+          enabled: true
+          authorities:
+          - authority: authority
+            id: id
+            label: label
+          - authority: authority
+            id: id
+            label: label
+        totalElements: 0
+  securitySchemes:
+    bearerAuth:
+      bearerFormat: JWT
+      scheme: bearer
+      type: http

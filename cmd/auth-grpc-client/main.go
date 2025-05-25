@@ -4,7 +4,7 @@ import (
 	"context"
 	"flag"
 	"fmt"
-	"github.com/janobono/auth-service/api"
+	"github.com/janobono/auth-service/gen/authgrpc"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials/insecure"
 	"log"
@@ -29,10 +29,10 @@ func main() {
 	}
 	defer conn.Close()
 
-	client := api.NewAuthServiceClient(conn)
+	client := authgrpc.NewAuthClient(conn)
 
 	// Make the SignIn call
-	resp, err := client.SignIn(context.Background(), &api.SignInData{
+	resp, err := client.SignIn(context.Background(), &authgrpc.SignInData{
 		Email:    *email,
 		Password: *password,
 	})
@@ -40,5 +40,5 @@ func main() {
 		log.Fatalf("login failed: %v", err)
 	}
 
-	fmt.Println("JWT token:", resp.GetValue())
+	fmt.Println("JWT access token:", resp.AccessToken)
 }

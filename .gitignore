@@ -29,13 +29,13 @@ go.work
 go.work.sum
 
 # env file
-.env
+.env.local
 
 # mac
 .DS_Store
 .AppleDouble
 .LSOverride
 
-# project specific
-api/*.go
-internal/db/repository/*.go
+# Generated sources
+/gen
+openapitools.json

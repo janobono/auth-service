@@ -1,0 +1,73 @@
+syntax = "proto3";
+
+import "google/protobuf/empty.proto";
+import "google/protobuf/wrappers.proto";
+
+option go_package = "github.com/janobono/auth-service/gen/authgrpc";
+
+package auth;
+
+service Auth {
+  rpc GetUser (google.protobuf.Empty) returns (UserDetail) {}
+  rpc Refresh (google.protobuf.StringValue) returns (AuthResponse) {}
+  rpc SignIn (SignInData) returns (AuthResponse) {}
+}
+
+service Captcha {
+  rpc IsValid (CaptchaData) returns (google.protobuf.BoolValue) {}
+}
+
+service User {
+  rpc SearchUsers (SearchCriteria) returns (UserPage) {}
+  rpc GetUser (google.protobuf.StringValue) returns (UserDetail) {}
+}
+
+message AuthResponse {
+  string refresh_token = 1;
+  string access_token = 2;
+}
+
+message CaptchaData {
+  string text = 1;
+  string token = 2;
+}
+
+message PageData {
+  int32 page = 1;
+  int32 size = 2;
+  string sort = 3;
+}
+
+message PageDetail {
+  int32 page = 1;
+  int32 size = 2;
+  string sort = 3;
+  int32 total_pages = 4;
+  int64 total_elements = 5;
+}
+
+message SearchCriteria {
+  PageData page = 1;
+  string search_field = 2;
+  string email = 3;
+  repeated string attribute_keys = 4;
+}
+
+message SignInData {
+  string email = 1;
+  string password = 2;
+}
+
+message UserDetail {
+  string id = 1;
+  string email = 2;
+  bool confirmed = 3;
+  bool enabled = 4;
+  repeated string authorities = 5;
+  map<string, string> attributes = 6;
+}
+
+message UserPage {
+  PageDetail page = 1;
+  repeated UserDetail content = 2;
+}
