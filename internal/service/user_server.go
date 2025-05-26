@@ -29,16 +29,9 @@ func NewUserServer(dataSource *db.DataSource, jwtService JwtService, passwordEnc
 }
 
 func (us *userServer) SearchUsers(ctx context.Context, searchCriteria *authgrpc.SearchCriteria) (*authgrpc.UserPage, error) {
-	searchUsersParams := dal.SearchUsersParams{
-		Page:          searchCriteria.Page.Page, // TODO default values
-		Size:          searchCriteria.Page.Size,
-		Sort:          searchCriteria.Page.Sort, // TODO check and change
-		SearchField:   searchCriteria.SearchField,
-		Email:         searchCriteria.Email,
-		AttributeKeys: searchCriteria.AttributeKeys,
-	}
+	searchUsersParams := toSearchParams(searchCriteria)
 
-	count, err := us.dataSource.DalQueries.CountUsersByCriteria(ctx, searchUsersParams)
+	count, err := us.dataSource.DalQueries.CountUsersByCriteria(ctx, *searchUsersParams)
 	if err != nil {
 		return nil, status.Errorf(codes.Internal, "Count users failed")
 	}
@@ -46,29 +39,26 @@ func (us *userServer) SearchUsers(ctx context.Context, searchCriteria *authgrpc.
 	var content []*authgrpc.UserDetail
 
 	if count > 0 {
-		rows, err := us.dataSource.DalQueries.SearchUsersByCriteria(ctx, searchUsersParams)
+		users, err := us.dataSource.DalQueries.SearchUsersByCriteria(ctx, *searchUsersParams)
 		if err != nil {
 			return nil, status.Errorf(codes.Internal, "Search users failed")
 		}
-		for _, row := range rows {
-			content = append(content, &authgrpc.UserDetail{
-				Id:          row.ID.String(),
-				Email:       row.Email,
-				Confirmed:   row.Confirmed,
-				Enabled:     row.Enabled,
-				Authorities: authorities,
-				Attributes:  attributes,
-			})
+		for _, user := range users {
+			userDetail, err := us.getUserDetail(ctx, &user)
+			if err != nil {
+				return nil, err
+			}
+			content = append(content, userDetail)
 		}
 	}
 
 	return &authgrpc.UserPage{
 		Page: &authgrpc.PageDetail{
-			Page:          searchCriteria.Page.Page,
-			Size:          searchCriteria.Page.Size,
-			Sort:          searchCriteria.Page.Sort,
-			TotalPages:    totalPages,
-			TotalElements: totalElements,
+			Page:          searchUsersParams.Page,
+			Size:          searchUsersParams.Size,
+			Sort:          sort(searchCriteria),
+			TotalPages:    util.TotalPages(searchUsersParams.Size, count),
+			TotalElements: count,
 		},
 		Content: content,
 	}, nil
@@ -85,16 +75,16 @@ func (us *userServer) GetUser(ctx context.Context, id *wrapperspb.StringValue) (
 		return nil, status.Errorf(codes.Internal, "Get user failed")
 	}
 
-	return us.getUserDetail(&user)
+	return us.getUserDetail(ctx, &user)
 }
 
-func (us *userServer) getUserDetail(user *repository.User) (*authgrpc.UserDetail, error) {
-	userAttributes, err := us.dataSource.Queries.GetUserAttributes(context.Background(), user.ID)
+func (us *userServer) getUserDetail(ctx context.Context, user *repository.User) (*authgrpc.UserDetail, error) {
+	userAttributes, err := us.dataSource.Queries.GetUserAttributes(ctx, user.ID)
 	if err != nil {
 		return nil, status.Errorf(codes.Internal, "Get user attributes failed")
 	}
 
-	userAuthorities, err := us.dataSource.Queries.GetUserAuthorities(context.Background(), user.ID)
+	userAuthorities, err := us.dataSource.Queries.GetUserAuthorities(ctx, user.ID)
 	if err != nil {
 		return nil, status.Errorf(codes.Internal, "Get user authorities failed")
 	}
@@ -117,4 +107,37 @@ func (us *userServer) getUserDetail(user *repository.User) (*authgrpc.UserDetail
 		Attributes:  attributes,
 		Authorities: authorities,
 	}, nil
+}
+
+func toSearchParams(searchCriteria *authgrpc.SearchCriteria) *dal.SearchUsersParams {
+	result := &dal.SearchUsersParams{
+		Page: 0,
+		Size: 20,
+		Sort: sort(searchCriteria),
+	}
+
+	if searchCriteria == nil {
+		return result
+	}
+
+	result.SearchField = searchCriteria.SearchField
+	result.Email = searchCriteria.Email
+	result.AttributeKeys = searchCriteria.AttributeKeys
+
+	if searchCriteria.Page == nil {
+		return result
+	}
+
+	result.Page = util.AbsInt32(searchCriteria.Page.Page)
+	result.Size = util.AbsInt32(searchCriteria.Page.Size)
+
+	return result
+}
+
+func sort(searchCriteria *authgrpc.SearchCriteria) string {
+	if searchCriteria == nil || searchCriteria.Page == nil || util.IsBlank(searchCriteria.Page.Sort) {
+		return "id asc"
+	}
+
+	return searchCriteria.Page.Sort
 }
