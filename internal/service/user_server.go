@@ -6,6 +6,7 @@ import (
 	"github.com/janobono/auth-service/gen/db/repository"
 	"github.com/janobono/auth-service/internal/component"
 	"github.com/janobono/auth-service/internal/db"
+	"github.com/janobono/auth-service/internal/db/dal"
 	"github.com/janobono/auth-service/pkg/util"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
@@ -28,8 +29,49 @@ func NewUserServer(dataSource *db.DataSource, jwtService JwtService, passwordEnc
 }
 
 func (us *userServer) SearchUsers(ctx context.Context, searchCriteria *authgrpc.SearchCriteria) (*authgrpc.UserPage, error) {
-	// TODO : Implement
-	return nil, status.Errorf(codes.Unimplemented, "Unimplemented")
+	searchUsersParams := dal.SearchUsersParams{
+		Page:          searchCriteria.Page.Page, // TODO default values
+		Size:          searchCriteria.Page.Size,
+		Sort:          searchCriteria.Page.Sort, // TODO check and change
+		SearchField:   searchCriteria.SearchField,
+		Email:         searchCriteria.Email,
+		AttributeKeys: searchCriteria.AttributeKeys,
+	}
+
+	count, err := us.dataSource.DalQueries.CountUsersByCriteria(ctx, searchUsersParams)
+	if err != nil {
+		return nil, status.Errorf(codes.Internal, "Count users failed")
+	}
+
+	var content []*authgrpc.UserDetail
+
+	if count > 0 {
+		rows, err := us.dataSource.DalQueries.SearchUsersByCriteria(ctx, searchUsersParams)
+		if err != nil {
+			return nil, status.Errorf(codes.Internal, "Search users failed")
+		}
+		for _, row := range rows {
+			content = append(content, &authgrpc.UserDetail{
+				Id:          row.ID.String(),
+				Email:       row.Email,
+				Confirmed:   row.Confirmed,
+				Enabled:     row.Enabled,
+				Authorities: authorities,
+				Attributes:  attributes,
+			})
+		}
+	}
+
+	return &authgrpc.UserPage{
+		Page: &authgrpc.PageDetail{
+			Page:          searchCriteria.Page.Page,
+			Size:          searchCriteria.Page.Size,
+			Sort:          searchCriteria.Page.Sort,
+			TotalPages:    totalPages,
+			TotalElements: totalElements,
+		},
+		Content: content,
+	}, nil
 }
 
 func (us *userServer) GetUser(ctx context.Context, id *wrapperspb.StringValue) (*authgrpc.UserDetail, error) {

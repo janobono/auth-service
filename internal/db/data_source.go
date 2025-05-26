@@ -10,6 +10,7 @@ import (
 	"github.com/jackc/pgx/v5/stdlib"
 	"github.com/janobono/auth-service/gen/db/repository"
 	"github.com/janobono/auth-service/internal/config"
+	"github.com/janobono/auth-service/internal/db/dal"
 	"log/slog"
 
 	"github.com/golang-migrate/migrate/v4"
@@ -18,8 +19,9 @@ import (
 )
 
 type DataSource struct {
-	pool    *pgxpool.Pool
-	Queries *repository.Queries
+	pool       *pgxpool.Pool
+	Queries    *repository.Queries
+	DalQueries *dal.Queries
 }
 
 func NewDataSource(dbConfig *config.DbConfig) *DataSource {
@@ -75,7 +77,7 @@ func NewDataSource(dbConfig *config.DbConfig) *DataSource {
 
 	slog.Info("Migrations applied")
 
-	return &DataSource{pool, repository.New(pool)}
+	return &DataSource{pool, repository.New(pool), dal.New(pool)}
 }
 
 func (ds *DataSource) Close() {
@@ -92,6 +94,28 @@ func (ds *DataSource) ExecTx(ctx context.Context, fn func(*repository.Queries) (
 	}
 
 	q := ds.Queries.WithTx(tx)
+
+	result, err := fn(q)
+	if err != nil {
+		if rbErr := tx.Rollback(ctx); rbErr != nil {
+			return nil, fmt.Errorf("rollback failed: %v, original error: %w", rbErr, err)
+		}
+		return nil, err
+	}
+
+	return result, tx.Commit(ctx)
+}
+
+func (ds *DataSource) ExecTxDal(ctx context.Context, fn func(*dal.Queries) (interface{}, error)) (interface{}, error) {
+	tx, err := ds.pool.BeginTx(ctx, pgx.TxOptions{
+		IsoLevel:   pgx.ReadCommitted,
+		AccessMode: pgx.ReadWrite,
+	})
+	if err != nil {
+		return nil, err
+	}
+
+	q := ds.DalQueries.WithTx(tx)
 
 	result, err := fn(q)
 	if err != nil {
