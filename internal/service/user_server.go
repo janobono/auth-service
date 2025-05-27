@@ -111,9 +111,9 @@ func (us *userServer) getUserDetail(ctx context.Context, user *repository.User) 
 
 func toSearchParams(searchCriteria *authgrpc.SearchCriteria) *dal.SearchUsersParams {
 	result := &dal.SearchUsersParams{
+		Sort: sort(searchCriteria),
 		Page: 0,
 		Size: 20,
-		Sort: sort(searchCriteria),
 	}
 
 	if searchCriteria == nil {
@@ -124,12 +124,10 @@ func toSearchParams(searchCriteria *authgrpc.SearchCriteria) *dal.SearchUsersPar
 	result.Email = searchCriteria.Email
 	result.AttributeKeys = searchCriteria.AttributeKeys
 
-	if searchCriteria.Page == nil {
-		return result
+	if searchCriteria.Page != nil {
+		result.Page = util.AbsInt32(searchCriteria.Page.Page)
+		result.Size = util.AbsInt32(searchCriteria.Page.Size)
 	}
-
-	result.Page = util.AbsInt32(searchCriteria.Page.Page)
-	result.Size = util.AbsInt32(searchCriteria.Page.Size)
 
 	return result
 }
