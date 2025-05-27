@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"github.com/janobono/auth-service/gen/authgrpc"
+	"github.com/janobono/auth-service/internal/config"
 	"github.com/janobono/auth-service/internal/server"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials/insecure"
@@ -15,12 +16,43 @@ import (
 )
 
 func TestIntegrationSomething(t *testing.T) {
-	s := server.New(TestConfig)
+	freePorts, err := getFreePorts(2)
+	if err != nil {
+		t.Fatalf("failed to get free ports: %v", err)
+	}
+
+	serverConfig := &config.ServerConfig{
+		Prod:        false,
+		GRPCAddress: (*freePorts)[0],
+		HTTPAddress: (*freePorts)[1],
+		ContextPath: "/api",
+		DbConfig:    DbConfig,
+		MailConfig:  MailConfig,
+		SecurityConfig: &config.SecurityConfig{
+			AuthorityAdmin:           "admin",
+			AuthorityManager:         "manager",
+			DefaultUsername:          "simple@auth.org",
+			DefaultPassword:          "$2a$10$gRKMsjTON2A4b5PDIgjej.EZPvzVaKRj52Mug/9bfQBzAYmVF0Cae",
+			TokenIssuer:              "simple",
+			AccessTokenExpiresIn:     time.Duration(30) * time.Minute,
+			AccessTokenJwkExpiresIn:  time.Duration(720) * time.Minute,
+			RefreshTokenExpiresIn:    time.Duration(10080) * time.Minute,
+			RefreshTokenJwkExpiresIn: time.Duration(20160) * time.Minute,
+			ContentTokenExpiresIn:    time.Duration(10080) * time.Minute,
+			ContentTokenJwkExpiresIn: time.Duration(20160) * time.Minute,
+		},
+		AppConfig: &config.AppConfig{
+			MailConfirmation: true,
+			ConfirmationUrl:  "http://localhost:3000/confirm",
+		},
+	}
+
+	s := server.NewServer(serverConfig)
 	go s.Start()
 	time.Sleep(500 * time.Millisecond)
 
 	conn, err := grpc.NewClient(
-		"localhost"+TestConfig.GRPCAddress,
+		"localhost"+serverConfig.GRPCAddress,
 		grpc.WithTransportCredentials(insecure.NewCredentials()),
 	)
 	if err != nil {
@@ -59,12 +91,17 @@ func createTestGrpcClientConn(target string) (*grpc.ClientConn, error) {
 	)
 }
 
-func getFreePort() (string, error) {
-	l, err := net.Listen("tcp", ":0")
-	if err != nil {
-		return "", err
+func getFreePorts(count int) (*[]string, error) {
+	var ports []string
+	for i := 0; i < count; i++ {
+		l, err := net.Listen("tcp", ":0")
+		if err != nil {
+			return nil, err
+		}
+		defer l.Close()
+
+		addr := l.Addr().(*net.TCPAddr)
+		ports = append(ports, fmt.Sprintf(":%d", addr.Port))
 	}
-	defer l.Close()
-	addr := l.Addr().(*net.TCPAddr)
-	return fmt.Sprintf(":%d", addr.Port), nil
+	return &ports, nil
 }

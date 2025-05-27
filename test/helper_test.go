@@ -16,7 +16,8 @@ import (
 )
 
 var (
-	TestConfig *config.ServerConfig
+	DbConfig   *config.DbConfig
+	MailConfig *config.MailConfig
 )
 
 func TestMain(m *testing.M) {
@@ -27,9 +28,7 @@ func TestMain(m *testing.M) {
 		log.Fatalf("could not start container: %v", err)
 	}
 
-	TestConfig = &config.ServerConfig{
-		DbConfig: *cfg,
-	}
+	DbConfig = cfg
 
 	code := m.Run()
 
@@ -40,7 +39,7 @@ func TestMain(m *testing.M) {
 
 func startPostgresContainer(ctx context.Context) (tc.Container, *config.DbConfig, error) {
 	req := tc.ContainerRequest{
-		Image:        "postgres:alpine",
+		Image:        "public.ecr.aws/docker/library/postgres:alpine",
 		ExposedPorts: []string{"5432/tcp"},
 		Env: map[string]string{
 			"POSTGRES_PASSWORD": "app",
@@ -75,5 +74,6 @@ func startPostgresContainer(ctx context.Context) (tc.Container, *config.DbConfig
 		Password:       "app",
 		MaxConnections: 5,
 		MinConnections: 2,
+		MigrationsUrl:  "file://../db/migrations",
 	}, nil
 }

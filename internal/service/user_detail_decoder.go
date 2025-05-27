@@ -4,20 +4,19 @@ import (
 	"context"
 	"github.com/janobono/auth-service/gen/authgrpc"
 	"github.com/janobono/auth-service/internal/db"
-	"github.com/janobono/auth-service/pkg/security"
 	"github.com/janobono/auth-service/pkg/util"
 )
 
-type userDetailDecoder struct {
+type UserDetailDecoder struct {
 	dataSource *db.DataSource
-	jwtService JwtService
+	jwtService *JwtService
 }
 
-func NewUserDetailDecoder(dataSource *db.DataSource, jwtService JwtService) security.UserDetailDecoder {
-	return &userDetailDecoder{dataSource, jwtService}
+func NewUserDetailDecoder(dataSource *db.DataSource, jwtService *JwtService) *UserDetailDecoder {
+	return &UserDetailDecoder{dataSource, jwtService}
 }
 
-func (ud *userDetailDecoder) DecodeGrpcUserDetail(accessToken string) (*authgrpc.UserDetail, error) {
+func (ud *UserDetailDecoder) DecodeGrpcUserDetail(accessToken string) (*authgrpc.UserDetail, error) {
 	jwtToken, err := ud.jwtService.GetAccessJwtToken()
 	if err != nil {
 		return nil, err

@@ -10,13 +10,7 @@ import (
 	"time"
 )
 
-type JwtService interface {
-	GetAccessJwtToken() (*component.JwtToken, error)
-	GetRefreshJwtToken() (*component.JwtToken, error)
-	GetConfirmJwtToken() (*component.JwtToken, error)
-}
-
-type jwtService struct {
+type JwtService struct {
 	securityConfig *config.SecurityConfig
 	dataSource     *db.DataSource
 	jwkService     *JwkService
@@ -27,15 +21,15 @@ type jwtService struct {
 	confirmToken *component.JwtToken
 }
 
-func NewJwtService(securityConfig *config.SecurityConfig, dataSource *db.DataSource) JwtService {
-	return &jwtService{
+func NewJwtService(securityConfig *config.SecurityConfig, dataSource *db.DataSource) *JwtService {
+	return &JwtService{
 		securityConfig: securityConfig,
 		dataSource:     dataSource,
 		jwkService:     NewJwkService(dataSource),
 	}
 }
 
-func (j *jwtService) GetAccessJwtToken() (*component.JwtToken, error) {
+func (j *JwtService) GetAccessJwtToken() (*component.JwtToken, error) {
 	return j.getJwtToken(
 		"access",
 		j.securityConfig.AccessTokenExpiresIn,
@@ -44,7 +38,7 @@ func (j *jwtService) GetAccessJwtToken() (*component.JwtToken, error) {
 	)
 }
 
-func (j *jwtService) GetRefreshJwtToken() (*component.JwtToken, error) {
+func (j *JwtService) GetRefreshJwtToken() (*component.JwtToken, error) {
 	return j.getJwtToken(
 		"refresh",
 		j.securityConfig.RefreshTokenExpiresIn,
@@ -53,7 +47,7 @@ func (j *jwtService) GetRefreshJwtToken() (*component.JwtToken, error) {
 	)
 }
 
-func (j *jwtService) GetConfirmJwtToken() (*component.JwtToken, error) {
+func (j *JwtService) GetConfirmJwtToken() (*component.JwtToken, error) {
 	return j.getJwtToken(
 		"confirm",
 		j.securityConfig.ContentTokenExpiresIn,
@@ -62,7 +56,7 @@ func (j *jwtService) GetConfirmJwtToken() (*component.JwtToken, error) {
 	)
 }
 
-func (j *jwtService) getJwtToken(
+func (j *JwtService) getJwtToken(
 	use string,
 	tokenExpiration, jwkExpiration time.Duration,
 	cached **component.JwtToken,

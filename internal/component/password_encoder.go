@@ -5,19 +5,14 @@ import (
 	"golang.org/x/crypto/bcrypt"
 )
 
-type PasswordEncoder interface {
-	Encode(password string) (string, error)
-	Compare(password, encodedPassword string) error
+type PasswordEncoder struct {
 }
 
-type passwordEncoder struct {
+func NewPasswordEncoder() *PasswordEncoder {
+	return &PasswordEncoder{}
 }
 
-func NewPasswordEncoder() PasswordEncoder {
-	return &passwordEncoder{}
-}
-
-func (p *passwordEncoder) Encode(password string) (string, error) {
+func (p *PasswordEncoder) Encode(password string) (string, error) {
 	encodedPassword, err := bcrypt.GenerateFromPassword([]byte(password), bcrypt.DefaultCost)
 	if err != nil {
 		return "", errors.New("unable to encrypt password")
@@ -25,6 +20,6 @@ func (p *passwordEncoder) Encode(password string) (string, error) {
 	return string(encodedPassword), nil
 }
 
-func (p *passwordEncoder) Compare(password, encodedPassword string) error {
+func (p *PasswordEncoder) Compare(password, encodedPassword string) error {
 	return bcrypt.CompareHashAndPassword([]byte(encodedPassword), []byte(password))
 }

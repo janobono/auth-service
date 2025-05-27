@@ -15,17 +15,17 @@ import (
 type GrpcServer struct {
 	config            *config.ServerConfig
 	dataSource        *db.DataSource
-	jwtService        service.JwtService
-	userDetailDecoder security.UserDetailDecoder
-	passwordEncoder   component.PasswordEncoder
+	jwtService        *service.JwtService
+	userDetailDecoder *service.UserDetailDecoder
+	passwordEncoder   *component.PasswordEncoder
 }
 
 func NewGrpcServer(
 	config *config.ServerConfig,
 	dataSource *db.DataSource,
-	jwtService service.JwtService,
-	userDetailDecoder security.UserDetailDecoder,
-	passwordEncoder component.PasswordEncoder,
+	jwtService *service.JwtService,
+	userDetailDecoder *service.UserDetailDecoder,
+	passwordEncoder *component.PasswordEncoder,
 ) *GrpcServer {
 	return &GrpcServer{config, dataSource, jwtService, userDetailDecoder, passwordEncoder}
 }
@@ -39,7 +39,7 @@ func (s *GrpcServer) Start() *grpc.Server {
 		panic(err)
 	}
 
-	grpcTokenInterceptor := security.NewGrpcTokenInterceptor(s.userDetailDecoder).InterceptToken(&[]security.GrpcSecuredMethod{
+	grpcTokenInterceptor := service.NewGrpcTokenInterceptor(s.userDetailDecoder).InterceptToken(&[]security.GrpcSecuredMethod{
 		{
 			Method:      authgrpc.Captcha_IsValid_FullMethodName,
 			Authorities: []string{},

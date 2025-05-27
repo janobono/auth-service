@@ -65,6 +65,7 @@ After successful build there is just a simple client just to test if everything 
 | DB_PASSWORD                           | app                                                          | Database password                                                                     |
 | DB_MAX_CONNECTIONS                    | 5                                                            | Database connection pooling max connections                                           |
 | DB_MIN_CONNECTIONS                    | 2                                                            | Database connection pooling min connections                                           |
+| DB_MIGRATIONS_URL                     | file://./db/migrations                                       | Database migrations directory url                                                     |
 |                                       |                                                              |                                                                                       |
 | MAIL_HOST                             | localhost                                                    | SMTP service host                                                                     |
 | MAIL_PORT                             | 1025                                                         | SMTP service port                                                                     |

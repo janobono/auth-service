@@ -9,10 +9,10 @@ import (
 
 type captchaServer struct {
 	authgrpc.UnimplementedCaptchaServer
-	passwordEncoder component.PasswordEncoder
+	passwordEncoder *component.PasswordEncoder
 }
 
-func NewCaptchaServer(passwordEncoder component.PasswordEncoder) authgrpc.CaptchaServer {
+func NewCaptchaServer(passwordEncoder *component.PasswordEncoder) authgrpc.CaptchaServer {
 	return &captchaServer{
 		passwordEncoder: passwordEncoder,
 	}

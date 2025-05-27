@@ -64,7 +64,7 @@ func NewDataSource(dbConfig *config.DbConfig) *DataSource {
 		panic(err)
 	}
 
-	m, err := migrate.NewWithDatabaseInstance("file://./db/migrations", "postgres", driver)
+	m, err := migrate.NewWithDatabaseInstance(dbConfig.MigrationsUrl, "postgres", driver)
 	if err != nil {
 		slog.Error("Unable to initialize migrations", "error", err)
 		panic(err)

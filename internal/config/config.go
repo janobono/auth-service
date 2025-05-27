@@ -27,6 +27,7 @@ type DbConfig struct {
 	Password       string
 	MaxConnections int
 	MinConnections int
+	MigrationsUrl  string
 }
 
 type MailConfig struct {
@@ -74,6 +75,7 @@ func InitConfig() *ServerConfig {
 			Password:       getEnv("DB_PASSWORD"),
 			MaxConnections: getEnvInt("DB_MAX_CONNECTIONS"),
 			MinConnections: getEnvInt("DB_MIN_CONNECTIONS"),
+			MigrationsUrl:  getEnv("DB_MIGRATIONS_URL"),
 		},
 		MailConfig: &MailConfig{
 			Host:        getEnv("MAIL_HOST"),

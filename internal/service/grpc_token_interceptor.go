@@ -1,7 +1,9 @@
-package security
+package service
 
 import (
 	"context"
+	"github.com/janobono/auth-service/gen/authgrpc"
+	"github.com/janobono/auth-service/pkg/security"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/metadata"
@@ -9,22 +11,25 @@ import (
 	"strings"
 )
 
-type grpcTokenInterceptor struct {
-	userDetailDecoder UserDetailDecoder
+const userDetailKey = "userDetail"
+const bearerPrefix = "Bearer "
+
+type GrpcTokenInterceptor struct {
+	userDetailDecoder *UserDetailDecoder
 }
 
-func NewGrpcTokenInterceptor(userDetailDecoder UserDetailDecoder) GrpcTokenInterceptor {
-	return &grpcTokenInterceptor{userDetailDecoder}
+func NewGrpcTokenInterceptor(userDetailDecoder *UserDetailDecoder) *GrpcTokenInterceptor {
+	return &GrpcTokenInterceptor{userDetailDecoder}
 }
 
-func (g *grpcTokenInterceptor) InterceptToken(methods *[]GrpcSecuredMethod) grpc.UnaryServerInterceptor {
+func (g *GrpcTokenInterceptor) InterceptToken(methods *[]security.GrpcSecuredMethod) grpc.UnaryServerInterceptor {
 	return func(
 		ctx context.Context,
 		req interface{},
 		info *grpc.UnaryServerInfo,
 		handler grpc.UnaryHandler,
 	) (interface{}, error) {
-		securedMethod := findGrpcSecuredMethod(methods, info.FullMethod)
+		securedMethod := security.FindGrpcSecuredMethod(methods, info.FullMethod)
 
 		if securedMethod != nil {
 			md, ok := metadata.FromIncomingContext(ctx)
@@ -43,7 +48,7 @@ func (g *grpcTokenInterceptor) InterceptToken(methods *[]GrpcSecuredMethod) grpc
 				return nil, status.Errorf(codes.Unauthenticated, "invalid token")
 			}
 
-			if len(securedMethod.Authorities) > 0 && !HasAnyAuthority(&securedMethod.Authorities, &userDetail.Authorities) {
+			if len(securedMethod.Authorities) > 0 && !security.HasAnyAuthority(&securedMethod.Authorities, &userDetail.Authorities) {
 				return nil, status.Errorf(codes.PermissionDenied, "insufficient permissions")
 			}
 
@@ -52,4 +57,12 @@ func (g *grpcTokenInterceptor) InterceptToken(methods *[]GrpcSecuredMethod) grpc
 
 		return handler(ctx, req)
 	}
+}
+
+func GetGrpcUserDetail(ctx context.Context) *authgrpc.UserDetail {
+	value := ctx.Value(userDetailKey)
+	if value == nil {
+		return nil
+	}
+	return value.(*authgrpc.UserDetail)
 }

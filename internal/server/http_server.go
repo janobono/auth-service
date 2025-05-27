@@ -6,7 +6,6 @@ import (
 	"github.com/janobono/auth-service/internal/config"
 	"github.com/janobono/auth-service/internal/db"
 	"github.com/janobono/auth-service/internal/service"
-	"github.com/janobono/auth-service/pkg/security"
 	"log/slog"
 	"net/http"
 
@@ -16,17 +15,17 @@ import (
 type HttpServer struct {
 	config            *config.ServerConfig
 	dataSource        *db.DataSource
-	jwtService        service.JwtService
-	userDetailDecoder security.UserDetailDecoder
-	passwordEncoder   component.PasswordEncoder
+	jwtService        *service.JwtService
+	userDetailDecoder *service.UserDetailDecoder
+	passwordEncoder   *component.PasswordEncoder
 }
 
 func NewHttpServer(
 	config *config.ServerConfig,
 	dataSource *db.DataSource,
-	jwtService service.JwtService,
-	userDetailDecoder security.UserDetailDecoder,
-	passwordEncoder component.PasswordEncoder,
+	jwtService *service.JwtService,
+	userDetailDecoder *service.UserDetailDecoder,
+	passwordEncoder *component.PasswordEncoder,
 ) *HttpServer {
 	return &HttpServer{config, dataSource, jwtService, userDetailDecoder, passwordEncoder}
 }

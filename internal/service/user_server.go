@@ -16,11 +16,11 @@ import (
 type userServer struct {
 	authgrpc.UnimplementedUserServer
 	dataSource      *db.DataSource
-	jwtService      JwtService
-	passwordEncoder component.PasswordEncoder
+	jwtService      *JwtService
+	passwordEncoder *component.PasswordEncoder
 }
 
-func NewUserServer(dataSource *db.DataSource, jwtService JwtService, passwordEncoder component.PasswordEncoder) authgrpc.UserServer {
+func NewUserServer(dataSource *db.DataSource, jwtService *JwtService, passwordEncoder *component.PasswordEncoder) authgrpc.UserServer {
 	return &userServer{
 		dataSource:      dataSource,
 		jwtService:      jwtService,

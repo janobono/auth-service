@@ -9,7 +9,6 @@ import (
 	"github.com/janobono/auth-service/gen/db/repository"
 	"github.com/janobono/auth-service/internal/component"
 	"github.com/janobono/auth-service/internal/db"
-	"github.com/janobono/auth-service/pkg/security"
 	"github.com/janobono/auth-service/pkg/util"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
@@ -20,11 +19,11 @@ import (
 type authServer struct {
 	authgrpc.UnimplementedAuthServer
 	dataSource      *db.DataSource
-	jwtService      JwtService
-	passwordEncoder component.PasswordEncoder
+	jwtService      *JwtService
+	passwordEncoder *component.PasswordEncoder
 }
 
-func NewAuthServer(dataSource *db.DataSource, jwtService JwtService, passwordEncoder component.PasswordEncoder) authgrpc.AuthServer {
+func NewAuthServer(dataSource *db.DataSource, jwtService *JwtService, passwordEncoder *component.PasswordEncoder) authgrpc.AuthServer {
 	return &authServer{
 		dataSource:      dataSource,
 		jwtService:      jwtService,
@@ -33,7 +32,7 @@ func NewAuthServer(dataSource *db.DataSource, jwtService JwtService, passwordEnc
 }
 
 func (as *authServer) GetUser(ctx context.Context, empty *emptypb.Empty) (*authgrpc.UserDetail, error) {
-	userDetail := security.GetGrpcUserDetail(ctx)
+	userDetail := GetGrpcUserDetail(ctx)
 	if userDetail == nil {
 		return nil, status.Errorf(codes.Internal, "Empty context")
 	}

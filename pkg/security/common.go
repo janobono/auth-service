@@ -1,19 +1,8 @@
 package security
 
-import (
-	"context"
-	"github.com/janobono/auth-service/gen/authgrpc"
-)
-
-const userDetailKey = "userDetail"
-const bearerPrefix = "Bearer "
-
-func GetGrpcUserDetail(ctx context.Context) *authgrpc.UserDetail {
-	value := ctx.Value(userDetailKey)
-	if value == nil {
-		return nil
-	}
-	return value.(*authgrpc.UserDetail)
+type GrpcSecuredMethod struct {
+	Method      string
+	Authorities []string
 }
 
 func HasAnyAuthority(methodAuthorities, userAuthorities *[]string) bool {
@@ -32,7 +21,7 @@ func HasAnyAuthority(methodAuthorities, userAuthorities *[]string) bool {
 	return false
 }
 
-func findGrpcSecuredMethod(methods *[]GrpcSecuredMethod, methodName string) *GrpcSecuredMethod {
+func FindGrpcSecuredMethod(methods *[]GrpcSecuredMethod, methodName string) *GrpcSecuredMethod {
 	for _, method := range *methods {
 		if method.Method == methodName {
 			return &method
