@@ -4,7 +4,7 @@ FROM public.ecr.aws/docker/library/node:lts-alpine AS openapi
 RUN apk add openjdk17-jre && npm install @openapitools/openapi-generator-cli -g
 
 WORKDIR /src
-COPY openapi ./openapi
+COPY contract/openapi ./openapi
 
 RUN openapi-generator-cli generate \
     --generator-name go-gin-server \
@@ -22,7 +22,7 @@ RUN go install google.golang.org/protobuf/cmd/protoc-gen-go@latest && \
     go install google.golang.org/grpc/cmd/protoc-gen-go-grpc@latest
 
 WORKDIR /src
-COPY proto ./proto
+COPY contract/proto ./proto
 
 RUN mkdir -p gen/authgrpc && \
     for file in proto/*.proto; do \
@@ -38,7 +38,7 @@ FROM public.ecr.aws/docker/library/golang:alpine AS sqlc
 RUN go install github.com/sqlc-dev/sqlc/cmd/sqlc@latest
 
 WORKDIR /src
-COPY sqlc.yaml .
+COPY db/sqlc.yaml .
 COPY db db/
 
 RUN mkdir -p gen/db/repository && sqlc generate
@@ -65,7 +65,7 @@ WORKDIR /app
 
 # Copy binary from builder
 COPY --from=builder /app/bin/auth-service .
-COPY db/migrations db/migrations
+COPY migrations db/migrations
 
 # Default command
 ENTRYPOINT ["/app/auth-service"]

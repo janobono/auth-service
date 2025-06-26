@@ -1,9 +1,9 @@
 # auth-service
 
-Simple Auth Service created in Golang.
+Auth Service written in Golang.
 
-- [openapi contract](openapi/auth-service.yaml)
-- [gRPC contract](proto/auth-service.proto)
+- [openapi contract](contract/openapi/auth-service.yaml)
+- [gRPC contract](contract/proto/auth-service.proto)
 - [sql schema](db/schema.sql)
 
 ## build
@@ -48,7 +48,7 @@ If you have make and golang installed, you can use prepared targets.
 After successful build there is just a simple client just to test if everything is OK.
 
 ```shell
-./bin/auth-grpc-client -addr localhost:50052 -email simple@auth.org -password simple
+./bin/auth-proto-client -addr localhost:50052 -email simple@auth.org -password simple
 ```
 
 ## environment variables
@@ -65,7 +65,7 @@ After successful build there is just a simple client just to test if everything 
 | DB_PASSWORD                           | app                                                          | Database password                                                                     |
 | DB_MAX_CONNECTIONS                    | 5                                                            | Database connection pooling max connections                                           |
 | DB_MIN_CONNECTIONS                    | 2                                                            | Database connection pooling min connections                                           |
-| DB_MIGRATIONS_URL                     | file://./db/migrations                                       | Database migrations directory url                                                     |
+| DB_MIGRATIONS_URL                     | file://./migrations                                          | Database migrations directory url                                                     |
 |                                       |                                                              |                                                                                       |
 | MAIL_HOST                             | localhost                                                    | SMTP service host                                                                     |
 | MAIL_PORT                             | 1025                                                         | SMTP service port                                                                     |
@@ -74,8 +74,8 @@ After successful build there is just a simple client just to test if everything 
 | MAIL_AUTH_ENABLED                     | false                                                        | Enabled/Disable mail authentication                                                   |
 | MAIL_TLS_ENABLED                      | false                                                        | Enabled/Disable mail TLS                                                              |
 |                                       |                                                              |                                                                                       |
-| SECURITY_AUTHORITY_ADMIN              | admin                                                        | Default admin authority                                                               |
-| SECURITY_AUTHORITY_MANAGER            | manager                                                      | Default manager authority                                                             |
+| SECURITY_READ_AUTHORITIES             | manager,employee                                             | Default read authorities                                                              |
+| SECURITY_WRITE_AUTHORITIES            | admin                                                        | Default write authorities                                                             |
 | SECURITY_DEFAULT_USERNAME             | simple@auth.org                                              | Default user created at first start - remove after your admin account is created      |
 | SECURITY_DEFAULT_PASSWORD             | $2a$10$gRKMsjTON2A4b5PDIgjej.EZPvzVaKRj52Mug/9bfQBzAYmVF0Cae | Default user password created at first start                                          |
 | SECURITY_TOKEN_ISSUER                 | simple                                                       | token issuer                                                                          |
@@ -85,6 +85,13 @@ After successful build there is just a simple client just to test if everything 
 | SECURITY_REFRESH_TOKEN_JWK_EXPIRES_IN | 20160                                                        | refresh token jwt key expiration in minutes                                           |
 | SECURITY_CONTENT_TOKEN_EXPIRES_IN     | 10080                                                        | content token expiration in minutes                                                   |
 | SECURITY_CONTENT_TOKEN_JWK_EXPIRES_IN | 20160                                                        | content token jwt key expiration in minutes                                           |
+|                                       |                                                              |                                                                                       |
+| CORS_ALLOWED_ORIGINS                  | http://localhost:3000                                        | Allowed origins for CORS                                                              |
+| CORS_ALLOWED_METHODS                  | GET,POST,PUT,PATCH,DELETE                                    | Allowed HTTP methods                                                                  |
+| CORS_ALLOWED_HEADERS                  | Origin,Content-Type,Accept,Authorization                     | Allowed HTTP headers                                                                  |
+| CORS_EXPOSED_HEADERS                  | Content-length                                               | Exposed headers in CORS                                                               |
+| CORS_ALLOW_CREDENTIALS                | true                                                         | Whether credentials are allowed in CORS                                               |
+| CORS_MAX_AGE                          | 12                                                           | Max age (in hours) for CORS preflight response caching                                |
 |                                       |                                                              |                                                                                       |
 | APP_MAIL_CONFIRMATION                 | true                                                         | Enable/Disable sending confirmation token as a part of the signUp process             |
 | APP_CONFIRMATION_URL                  | http://localhost:3000/confirm                                | If confirmation is enabled this url with token si part of the signUp information mail |

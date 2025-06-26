@@ -2,44 +2,50 @@ package server
 
 import (
 	"errors"
-	"github.com/janobono/auth-service/internal/component"
+	"github.com/gin-contrib/cors"
+	"github.com/janobono/auth-service/generated/openapi"
 	"github.com/janobono/auth-service/internal/config"
-	"github.com/janobono/auth-service/internal/db"
-	"github.com/janobono/auth-service/internal/service"
+	"github.com/janobono/auth-service/internal/server/impl"
 	"log/slog"
 	"net/http"
-
-	"github.com/gin-gonic/gin"
 )
 
 type HttpServer struct {
-	config            *config.ServerConfig
-	dataSource        *db.DataSource
-	jwtService        *service.JwtService
-	userDetailDecoder *service.UserDetailDecoder
-	passwordEncoder   *component.PasswordEncoder
+	config   *config.ServerConfig
+	services *Services
 }
 
-func NewHttpServer(
-	config *config.ServerConfig,
-	dataSource *db.DataSource,
-	jwtService *service.JwtService,
-	userDetailDecoder *service.UserDetailDecoder,
-	passwordEncoder *component.PasswordEncoder,
-) *HttpServer {
-	return &HttpServer{config, dataSource, jwtService, userDetailDecoder, passwordEncoder}
+func NewHttpServer(config *config.ServerConfig, services *Services) *HttpServer {
+	return &HttpServer{config, services}
 }
 
 func (s *HttpServer) Start() *http.Server {
 	slog.Info("Starting http server...")
 
-	// TODO implement
-
-	router := gin.Default()
-
-	router.GET("/ping", func(c *gin.Context) {
-		c.String(http.StatusOK, "pong")
+	handleFunctions := openapi.ApiHandleFunctions{
+		AttributeControllerAPI: impl.NewAttributeController(s.services.AttributeService),
+		AuthControllerAPI:      impl.NewAuthController(s.services.AuthService),
+		AuthorityControllerAPI: impl.NewAuthorityController(s.services.AuthorityService),
+		HealthControllerAPI:    impl.NewHealthController(),
+		JwksControllerAPI:      impl.NewJwksController(s.services.JwkService),
+		UserControllerAPI:      impl.NewUserController(s.services.UserService),
+	}
+	router := impl.NewRouter(impl.RouterContext{
+		HandleFunctions:  handleFunctions,
+		ContextPath:      s.config.ContextPath,
+		ReadAuthorities:  s.config.SecurityConfig.ReadAuthorities,
+		WriteAuthorities: s.config.SecurityConfig.WriteAuthorities,
+		HttpHandlers:     s.services.HttpHandlers,
 	})
+
+	router.Use(cors.New(cors.Config{
+		AllowOrigins:     s.config.CorsConfig.AllowedOrigins,
+		AllowMethods:     s.config.CorsConfig.AllowedMethods,
+		AllowHeaders:     s.config.CorsConfig.AllowedHeaders,
+		ExposeHeaders:    s.config.CorsConfig.ExposedHeaders,
+		AllowCredentials: s.config.CorsConfig.AllowCredentials,
+		MaxAge:           s.config.CorsConfig.MaxAge,
+	}))
 
 	httpServer := &http.Server{
 		Addr:    s.config.HTTPAddress,

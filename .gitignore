@@ -37,5 +37,5 @@ go.work.sum
 .LSOverride
 
 # Generated sources
-/gen
+/generated
 openapitools.json

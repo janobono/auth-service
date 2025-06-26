@@ -2,16 +2,28 @@ package server
 
 import (
 	"context"
-	"github.com/janobono/auth-service/internal/component"
 	"github.com/janobono/auth-service/internal/config"
 	"github.com/janobono/auth-service/internal/db"
+	"github.com/janobono/auth-service/internal/repository"
 	"github.com/janobono/auth-service/internal/service"
+	"github.com/janobono/go-util/security"
+	"golang.org/x/crypto/bcrypt"
 	"log/slog"
 	"os"
 	"os/signal"
 	"syscall"
 	"time"
 )
+
+type Services struct {
+	HttpHandlers          security.HttpHandlers[*service.UserDetail]
+	UserDetailInterceptor security.UserDetailDecoder[*service.UserDetail]
+	AttributeService      service.AttributeService
+	AuthService           service.AuthService
+	AuthorityService      service.AuthorityService
+	JwkService            service.JwkService
+	UserService           service.UserService
+}
 
 type Server struct {
 	config *config.ServerConfig
@@ -30,12 +42,27 @@ func (s *Server) Start() {
 
 	initDefaultCredentials(s.config, dataSource)
 
-	passwordEncoder := component.NewPasswordEncoder()
-	jwtService := service.NewJwtService(s.config.SecurityConfig, dataSource)
-	userDetailDecoder := service.NewUserDetailDecoder(dataSource, jwtService)
+	passwordEncoder := security.NewPasswordEncoder(bcrypt.DefaultCost)
 
-	grpcServer := NewGrpcServer(s.config, dataSource, jwtService, userDetailDecoder, passwordEncoder).Start()
-	httpServer := NewHttpServer(s.config, dataSource, jwtService, userDetailDecoder, passwordEncoder).Start()
+	attributeRepository := repository.NewAttributeRepository(dataSource)
+	authorityRepository := repository.NewAuthorityRepository(dataSource)
+	jwkRepository := repository.NewJwkRepository(dataSource)
+	userRepository := repository.NewUserRepository(dataSource)
+
+	jwtService := service.NewJwtService(s.config.SecurityConfig, jwkRepository)
+
+	services := &Services{
+		HttpHandlers:          service.NewHttpHandlers(jwtService, userRepository),
+		UserDetailInterceptor: service.NewUserDetailDecoder(jwtService, userRepository),
+		AttributeService:      service.NewAttributeService(attributeRepository),
+		AuthService:           service.NewAuthService(passwordEncoder, jwtService, userRepository),
+		AuthorityService:      service.NewAuthorityService(authorityRepository),
+		JwkService:            service.NewJwkService(jwkRepository),
+		UserService:           service.NewUserService(userRepository),
+	}
+
+	grpcServer := NewGrpcServer(s.config, services).Start()
+	httpServer := NewHttpServer(s.config, services).Start()
 
 	stop := make(chan os.Signal, 1)
 	signal.Notify(stop, os.Interrupt, syscall.SIGTERM)

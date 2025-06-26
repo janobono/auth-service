@@ -1,5 +1,5 @@
 /bin
-/gen
+/generated
 .git
 .env.local
 .gitignore

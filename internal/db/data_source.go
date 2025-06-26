@@ -8,9 +8,8 @@ import (
 	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgxpool"
 	"github.com/jackc/pgx/v5/stdlib"
-	"github.com/janobono/auth-service/gen/db/repository"
+	"github.com/janobono/auth-service/generated/sqlc"
 	"github.com/janobono/auth-service/internal/config"
-	"github.com/janobono/auth-service/internal/db/dal"
 	"log/slog"
 
 	"github.com/golang-migrate/migrate/v4"
@@ -19,9 +18,8 @@ import (
 )
 
 type DataSource struct {
-	pool       *pgxpool.Pool
-	Queries    *repository.Queries
-	DalQueries *dal.Queries
+	Pool    *pgxpool.Pool
+	Queries *sqlc.Queries
 }
 
 func NewDataSource(dbConfig *config.DbConfig) *DataSource {
@@ -77,15 +75,15 @@ func NewDataSource(dbConfig *config.DbConfig) *DataSource {
 
 	slog.Info("Migrations applied")
 
-	return &DataSource{pool, repository.New(pool), dal.New(pool)}
+	return &DataSource{pool, sqlc.New(pool)}
 }
 
 func (ds *DataSource) Close() {
-	ds.pool.Close()
+	ds.Pool.Close()
 }
 
-func (ds *DataSource) ExecTx(ctx context.Context, fn func(*repository.Queries) (interface{}, error)) (interface{}, error) {
-	tx, err := ds.pool.BeginTx(ctx, pgx.TxOptions{
+func (ds *DataSource) ExecTx(ctx context.Context, fn func(*sqlc.Queries) (interface{}, error)) (interface{}, error) {
+	tx, err := ds.Pool.BeginTx(ctx, pgx.TxOptions{
 		IsoLevel:   pgx.ReadCommitted,
 		AccessMode: pgx.ReadWrite,
 	})
@@ -94,28 +92,6 @@ func (ds *DataSource) ExecTx(ctx context.Context, fn func(*repository.Queries) (
 	}
 
 	q := ds.Queries.WithTx(tx)
-
-	result, err := fn(q)
-	if err != nil {
-		if rbErr := tx.Rollback(ctx); rbErr != nil {
-			return nil, fmt.Errorf("rollback failed: %v, original error: %w", rbErr, err)
-		}
-		return nil, err
-	}
-
-	return result, tx.Commit(ctx)
-}
-
-func (ds *DataSource) ExecTxDal(ctx context.Context, fn func(*dal.Queries) (interface{}, error)) (interface{}, error) {
-	tx, err := ds.pool.BeginTx(ctx, pgx.TxOptions{
-		IsoLevel:   pgx.ReadCommitted,
-		AccessMode: pgx.ReadWrite,
-	})
-	if err != nil {
-		return nil, err
-	}
-
-	q := ds.DalQueries.WithTx(tx)
 
 	result, err := fn(q)
 	if err != nil {

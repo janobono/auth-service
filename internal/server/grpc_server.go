@@ -1,33 +1,22 @@
 package server
 
 import (
-	"github.com/janobono/auth-service/gen/authgrpc"
-	"github.com/janobono/auth-service/internal/component"
+	"github.com/janobono/auth-service/generated/proto"
 	"github.com/janobono/auth-service/internal/config"
-	"github.com/janobono/auth-service/internal/db"
-	"github.com/janobono/auth-service/internal/service"
-	"github.com/janobono/auth-service/pkg/security"
+	"github.com/janobono/auth-service/internal/server/impl"
+	"github.com/janobono/go-util/security"
 	"google.golang.org/grpc"
 	"log/slog"
 	"net"
 )
 
 type GrpcServer struct {
-	config            *config.ServerConfig
-	dataSource        *db.DataSource
-	jwtService        *service.JwtService
-	userDetailDecoder *service.UserDetailDecoder
-	passwordEncoder   *component.PasswordEncoder
+	config   *config.ServerConfig
+	services *Services
 }
 
-func NewGrpcServer(
-	config *config.ServerConfig,
-	dataSource *db.DataSource,
-	jwtService *service.JwtService,
-	userDetailDecoder *service.UserDetailDecoder,
-	passwordEncoder *component.PasswordEncoder,
-) *GrpcServer {
-	return &GrpcServer{config, dataSource, jwtService, userDetailDecoder, passwordEncoder}
+func NewGrpcServer(config *config.ServerConfig, services *Services) *GrpcServer {
+	return &GrpcServer{config, services}
 }
 
 func (s *GrpcServer) Start() *grpc.Server {
@@ -39,26 +28,22 @@ func (s *GrpcServer) Start() *grpc.Server {
 		panic(err)
 	}
 
-	grpcTokenInterceptor := service.NewGrpcTokenInterceptor(s.userDetailDecoder).InterceptToken(&[]security.GrpcSecuredMethod{
-		{
-			Method:      authgrpc.Captcha_IsValid_FullMethodName,
-			Authorities: []string{},
-		},
-		{
-			Method:      authgrpc.User_SearchUsers_FullMethodName,
-			Authorities: []string{s.config.SecurityConfig.AuthorityAdmin, s.config.SecurityConfig.AuthorityManager},
-		},
-		{
-			Method:      authgrpc.User_GetUser_FullMethodName,
-			Authorities: []string{s.config.SecurityConfig.AuthorityAdmin, s.config.SecurityConfig.AuthorityManager},
-		},
-	})
+	grpcTokenInterceptor := security.NewGrpcTokenInterceptor(s.services.UserDetailInterceptor).InterceptToken(
+		[]security.GrpcSecuredMethod{
+			{
+				Method:      proto.User_SearchUsers_FullMethodName,
+				Authorities: append(s.config.SecurityConfig.ReadAuthorities, s.config.SecurityConfig.WriteAuthorities...),
+			},
+			{
+				Method:      proto.User_GetUser_FullMethodName,
+				Authorities: append(s.config.SecurityConfig.ReadAuthorities, s.config.SecurityConfig.WriteAuthorities...),
+			},
+		})
 
 	grpcServer := grpc.NewServer(grpc.UnaryInterceptor(grpcTokenInterceptor))
 
-	authgrpc.RegisterAuthServer(grpcServer, service.NewAuthServer(s.dataSource, s.jwtService, s.passwordEncoder))
-	authgrpc.RegisterCaptchaServer(grpcServer, service.NewCaptchaServer(s.passwordEncoder))
-	authgrpc.RegisterUserServer(grpcServer, service.NewUserServer(s.dataSource, s.jwtService, s.passwordEncoder))
+	proto.RegisterAuthServer(grpcServer, impl.NewAuthServer(s.services.AuthService))
+	proto.RegisterUserServer(grpcServer, impl.NewUserServer(s.services.UserService))
 
 	go func() {
 		if err := grpcServer.Serve(lis); err != nil {

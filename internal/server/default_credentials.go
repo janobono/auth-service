@@ -4,20 +4,21 @@ import (
 	"context"
 	"errors"
 	"github.com/jackc/pgx/v5"
-	"github.com/janobono/auth-service/gen/db/repository"
+	"github.com/janobono/auth-service/generated/sqlc"
 	"github.com/janobono/auth-service/internal/config"
 	"github.com/janobono/auth-service/internal/db"
-	"github.com/janobono/auth-service/pkg/util"
 	"log/slog"
+
+	janobonodb "github.com/janobono/go-util/db"
 )
 
 func initDefaultCredentials(config *config.ServerConfig, dataSource *db.DataSource) {
 	slog.Info("Initializing default credentials")
 
-	defaultAuthorities := initDefaultAuthorities(dataSource, []string{
-		config.SecurityConfig.AuthorityAdmin,
-		config.SecurityConfig.AuthorityManager,
-	})
+	defaultAuthorities := initDefaultAuthorities(dataSource, append(
+		config.SecurityConfig.ReadAuthorities,
+		config.SecurityConfig.WriteAuthorities...,
+	))
 
 	count, err := dataSource.Queries.CountAllUsers(context.Background())
 	if err != nil {
@@ -37,9 +38,9 @@ func initDefaultCredentials(config *config.ServerConfig, dataSource *db.DataSour
 	}
 
 	if errors.Is(err, pgx.ErrNoRows) {
-		newUser, err := dataSource.Queries.AddUser(context.Background(), repository.AddUserParams{
-			ID:        util.NewUUID(),
-			CreatedAt: util.NowUTC(),
+		newUser, err := dataSource.Queries.AddUser(context.Background(), sqlc.AddUserParams{
+			ID:        janobonodb.NewUUID(),
+			CreatedAt: janobonodb.NowUTC(),
 			Email:     config.SecurityConfig.DefaultUsername,
 			Password:  config.SecurityConfig.DefaultPassword,
 			Confirmed: true,
@@ -53,8 +54,8 @@ func initDefaultCredentials(config *config.ServerConfig, dataSource *db.DataSour
 
 		slog.Info("Default user created", "email", config.SecurityConfig.DefaultUsername)
 
-		for _, defaultAuthority := range *defaultAuthorities {
-			err := dataSource.Queries.AddUserAuthority(context.Background(), repository.AddUserAuthorityParams{
+		for _, defaultAuthority := range defaultAuthorities {
+			err := dataSource.Queries.AddUserAuthority(context.Background(), sqlc.AddUserAuthorityParams{
 				UserID:      newUser.ID,
 				AuthorityID: defaultAuthority.ID,
 			})
@@ -69,8 +70,8 @@ func initDefaultCredentials(config *config.ServerConfig, dataSource *db.DataSour
 	slog.Info("Default credentials initialized")
 }
 
-func initDefaultAuthorities(dataSource *db.DataSource, defaultAuthorities []string) *[]repository.Authority {
-	var result []repository.Authority
+func initDefaultAuthorities(dataSource *db.DataSource, defaultAuthorities []string) []sqlc.Authority {
+	var result []sqlc.Authority
 	slog.Info("Initializing default authorities")
 
 	for _, authority := range defaultAuthorities {
@@ -82,8 +83,8 @@ func initDefaultAuthorities(dataSource *db.DataSource, defaultAuthorities []stri
 		}
 
 		if errors.Is(err, pgx.ErrNoRows) {
-			newAuthority, err := dataSource.Queries.AddAuthority(context.Background(), repository.AddAuthorityParams{
-				ID:        util.NewUUID(),
+			newAuthority, err := dataSource.Queries.AddAuthority(context.Background(), sqlc.AddAuthorityParams{
+				ID:        janobonodb.NewUUID(),
 				Authority: authority,
 			})
 			if err != nil {
@@ -100,5 +101,5 @@ func initDefaultAuthorities(dataSource *db.DataSource, defaultAuthorities []stri
 	}
 
 	slog.Info("Default authorities initialized")
-	return &result
+	return result
 }

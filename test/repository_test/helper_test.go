@@ -1,9 +1,10 @@
-package test
+package repository_test
 
 import (
 	"context"
 	"fmt"
 	"github.com/janobono/auth-service/internal/config"
+	"github.com/janobono/auth-service/internal/db"
 	"log"
 	"os"
 	"testing"
@@ -16,8 +17,7 @@ import (
 )
 
 var (
-	DbConfig   *config.DbConfig
-	MailConfig *config.MailConfig
+	DataSource *db.DataSource
 )
 
 func TestMain(m *testing.M) {
@@ -28,7 +28,7 @@ func TestMain(m *testing.M) {
 		log.Fatalf("could not start container: %v", err)
 	}
 
-	DbConfig = cfg
+	DataSource = db.NewDataSource(cfg)
 
 	code := m.Run()
 
@@ -74,6 +74,6 @@ func StartPostgresContainer(ctx context.Context) (tc.Container, *config.DbConfig
 		Password:       "app",
 		MaxConnections: 5,
 		MinConnections: 2,
-		MigrationsUrl:  "file://../migrations",
+		MigrationsUrl:  "file://../../migrations",
 	}, nil
 }

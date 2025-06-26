@@ -3,7 +3,7 @@ package test
 import (
 	"context"
 	"fmt"
-	"github.com/janobono/auth-service/gen/authgrpc"
+	"github.com/janobono/auth-service/generated/proto"
 	"github.com/janobono/auth-service/internal/config"
 	"github.com/janobono/auth-service/internal/server"
 	"google.golang.org/grpc"
@@ -29,8 +29,8 @@ func TestIntegrationSomething(t *testing.T) {
 		DbConfig:    DbConfig,
 		MailConfig:  MailConfig,
 		SecurityConfig: &config.SecurityConfig{
-			AuthorityAdmin:           "admin",
-			AuthorityManager:         "manager",
+			ReadAuthorities:          []string{"customer", "manager"},
+			WriteAuthorities:         []string{"admin"},
 			DefaultUsername:          "simple@auth.org",
 			DefaultPassword:          "$2a$10$gRKMsjTON2A4b5PDIgjej.EZPvzVaKRj52Mug/9bfQBzAYmVF0Cae",
 			TokenIssuer:              "simple",
@@ -40,6 +40,14 @@ func TestIntegrationSomething(t *testing.T) {
 			RefreshTokenJwkExpiresIn: time.Duration(20160) * time.Minute,
 			ContentTokenExpiresIn:    time.Duration(10080) * time.Minute,
 			ContentTokenJwkExpiresIn: time.Duration(20160) * time.Minute,
+		},
+		CorsConfig: &config.CorsConfig{
+			AllowedOrigins:   []string{"*"}, // Or restrict to specific domains
+			AllowedMethods:   []string{"GET", "POST", "PUT", "PATCH", "DELETE"},
+			AllowedHeaders:   []string{"Origin", "Content-Type", "Accept", "Authorization"},
+			ExposedHeaders:   []string{"Content-Length"},
+			AllowCredentials: true,
+			MaxAge:           12 * time.Hour,
 		},
 		AppConfig: &config.AppConfig{
 			MailConfirmation: true,
@@ -60,8 +68,8 @@ func TestIntegrationSomething(t *testing.T) {
 	}
 	defer conn.Close()
 
-	authClient := authgrpc.NewAuthClient(conn)
-	result, err := authClient.SignIn(context.Background(), &authgrpc.SignInData{
+	authClient := proto.NewAuthClient(conn)
+	result, err := authClient.SignIn(context.Background(), &proto.SignInData{
 		Email:    "simple@auth.org",
 		Password: "simple",
 	})
@@ -70,11 +78,11 @@ func TestIntegrationSomething(t *testing.T) {
 	}
 	t.Logf("sign in result: %v", result)
 
-	userClient := authgrpc.NewUserClient(conn)
+	userClient := proto.NewUserClient(conn)
 	ctx := metadata.NewOutgoingContext(context.Background(), metadata.Pairs(
 		"authorization", "Bearer "+result.AccessToken,
 	))
-	usersPage, err := userClient.SearchUsers(ctx, &authgrpc.SearchCriteria{})
+	usersPage, err := userClient.SearchUsers(ctx, &proto.SearchCriteria{})
 	if err != nil {
 		t.Fatalf("failed to search users: %v", err)
 	}
