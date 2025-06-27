@@ -2,6 +2,7 @@ package server
 
 import (
 	"context"
+	"github.com/janobono/auth-service/generated/openapi"
 	"github.com/janobono/auth-service/internal/config"
 	"github.com/janobono/auth-service/internal/db"
 	"github.com/janobono/auth-service/internal/repository"
@@ -16,8 +17,8 @@ import (
 )
 
 type Services struct {
-	HttpHandlers          security.HttpHandlers[*service.UserDetail]
-	UserDetailInterceptor security.UserDetailDecoder[*service.UserDetail]
+	HttpHandlers          security.HttpHandlers[*openapi.UserDetail]
+	UserDetailInterceptor security.UserDetailDecoder[*openapi.UserDetail]
 	AttributeService      service.AttributeService
 	AuthService           service.AuthService
 	AuthorityService      service.AuthorityService

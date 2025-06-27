@@ -2,6 +2,7 @@ package repository
 
 import (
 	"context"
+	"github.com/jackc/pgx/v5/pgtype"
 	"github.com/janobono/auth-service/generated/sqlc"
 	"github.com/janobono/auth-service/internal/db"
 	db2 "github.com/janobono/go-util/db"
@@ -9,7 +10,7 @@ import (
 
 type AttributeRepository interface {
 	AddAttribute(ctx context.Context, arg AddAttributeData) (*Attribute, error)
-	DeleteAttribute(ctx context.Context, id string) error
+	DeleteAttribute(ctx context.Context, id pgtype.UUID) error
 	GetAttribute(ctx context.Context, key string) (*Attribute, error)
 }
 
@@ -25,7 +26,6 @@ func (a *attributeRepositoryImpl) AddAttribute(ctx context.Context, arg AddAttri
 	attribute, err := a.dataSource.Queries.AddAttribute(ctx, sqlc.AddAttributeParams{
 		ID:       db2.NewUUID(),
 		Key:      arg.Key,
-		Name:     arg.Name,
 		Required: arg.Required,
 		Hidden:   arg.Hidden,
 	})
@@ -37,14 +37,8 @@ func (a *attributeRepositoryImpl) AddAttribute(ctx context.Context, arg AddAttri
 	return toAttribute(&attribute), nil
 }
 
-func (a *attributeRepositoryImpl) DeleteAttribute(ctx context.Context, id string) error {
-	pgId, err := db2.ParseUUID(id)
-
-	if err != nil {
-		return err
-	}
-
-	return a.dataSource.Queries.DeleteAttribute(ctx, pgId)
+func (a *attributeRepositoryImpl) DeleteAttribute(ctx context.Context, id pgtype.UUID) error {
+	return a.dataSource.Queries.DeleteAttribute(ctx, id)
 }
 
 func (a *attributeRepositoryImpl) GetAttribute(ctx context.Context, key string) (*Attribute, error) {

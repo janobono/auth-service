@@ -7,7 +7,7 @@ import (
 )
 
 type userController struct {
-	UserService service.UserService
+	userService service.UserService
 }
 
 var _ openapi.UserControllerAPI = (*userController)(nil)

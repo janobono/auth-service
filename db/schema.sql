@@ -23,7 +23,6 @@ create table if not exists attribute
 (
     id       uuid         not null,
     key      varchar(255) not null,
-    name     varchar(255) not null,
     required boolean      not null,
     hidden   boolean      not null
 );

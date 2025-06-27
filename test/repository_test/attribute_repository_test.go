@@ -19,7 +19,6 @@ func TestAttributeRepository_CRUD(t *testing.T) {
 	// Create an attribute
 	addData := repository.AddAttributeData{
 		Key:      "test-key",
-		Name:     "Test Name",
 		Required: true,
 		Hidden:   false,
 	}
@@ -33,7 +32,8 @@ func TestAttributeRepository_CRUD(t *testing.T) {
 	fetchedAttr, err := repo.GetAttribute(ctx, "test-key")
 	assert.NoError(t, err)
 	assert.NotNil(t, fetchedAttr)
-	assert.Equal(t, "Test Name", fetchedAttr.Name)
+	assert.Equal(t, true, fetchedAttr.Required)
+	assert.Equal(t, false, fetchedAttr.Hidden)
 
 	// Delete the attribute
 	err = repo.DeleteAttribute(ctx, createdAttr.ID)

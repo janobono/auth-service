@@ -6,13 +6,13 @@ import (
 	"encoding/pem"
 	"fmt"
 	"github.com/golang-jwt/jwt/v5"
+	"github.com/jackc/pgx/v5/pgtype"
 	"github.com/janobono/auth-service/generated/sqlc"
 	"time"
 )
 
 type AddAttributeData struct {
 	Key      string
-	Name     string
 	Required bool
 	Hidden   bool
 }
@@ -34,20 +34,19 @@ type AddUserData struct {
 }
 
 type Attribute struct {
-	ID       string
+	ID       pgtype.UUID
 	Key      string
-	Name     string
 	Required bool
 	Hidden   bool
 }
 
 type Authority struct {
-	ID        string
+	ID        pgtype.UUID
 	Authority string
 }
 
 type Jwk struct {
-	ID         string
+	ID         pgtype.UUID
 	Kty        string
 	Use        string
 	Alg        string
@@ -65,17 +64,17 @@ type SearchUsersCriteria struct {
 }
 
 type SetUserAttributesData struct {
-	UserID     string
+	UserID     pgtype.UUID
 	Attributes []*UserAttribute
 }
 
 type SetUserAuthoritiesData struct {
-	UserID      string
+	UserID      pgtype.UUID
 	Authorities []*Authority
 }
 
 type User struct {
-	ID        string
+	ID        pgtype.UUID
 	CreatedAt time.Time
 	Email     string
 	Password  string
@@ -127,9 +126,8 @@ func parsePublicKey(jwk *sqlc.Jwk) (*rsa.PublicKey, error) {
 
 func toAttribute(attribute *sqlc.Attribute) *Attribute {
 	return &Attribute{
-		ID:       attribute.ID.String(),
+		ID:       attribute.ID,
 		Key:      attribute.Key,
-		Name:     attribute.Name,
 		Required: attribute.Required,
 		Hidden:   attribute.Hidden,
 	}
@@ -137,7 +135,7 @@ func toAttribute(attribute *sqlc.Attribute) *Attribute {
 
 func toAuthority(authority *sqlc.Authority) *Authority {
 	return &Authority{
-		ID:        authority.ID.String(),
+		ID:        authority.ID,
 		Authority: authority.Authority,
 	}
 }
@@ -156,7 +154,7 @@ func toJwk(jwk *sqlc.Jwk) (*Jwk, error) {
 	}
 
 	return &Jwk{
-		ID:         jwk.ID.String(),
+		ID:         jwk.ID,
 		Kty:        jwk.Kty,
 		Use:        jwk.Use,
 		Alg:        jwk.Alg,
@@ -170,7 +168,7 @@ func toJwk(jwk *sqlc.Jwk) (*Jwk, error) {
 
 func toUser(user *sqlc.User) *User {
 	return &User{
-		ID:        user.ID.String(),
+		ID:        user.ID,
 		CreatedAt: user.CreatedAt.Time,
 		Email:     user.Email,
 		Password:  user.Password,
@@ -182,9 +180,8 @@ func toUser(user *sqlc.User) *User {
 func toUserAttribute(attribute *sqlc.GetUserAttributesRow) *UserAttribute {
 	return &UserAttribute{
 		Attribute: &Attribute{
-			ID:       attribute.ID.String(),
+			ID:       attribute.ID,
 			Key:      attribute.Key,
-			Name:     attribute.Name,
 			Required: attribute.Required,
 			Hidden:   attribute.Hidden,
 		},

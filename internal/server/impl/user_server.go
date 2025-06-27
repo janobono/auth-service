@@ -2,9 +2,11 @@ package impl
 
 import (
 	"context"
+	"github.com/janobono/auth-service/generated/openapi"
 	"github.com/janobono/auth-service/generated/proto"
 	"github.com/janobono/auth-service/internal/service"
 	"github.com/janobono/go-util/common"
+	db2 "github.com/janobono/go-util/db"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 	"google.golang.org/protobuf/types/known/timestamppb"
@@ -75,11 +77,16 @@ func (us *userServer) SearchUsers(ctx context.Context, searchCriteria *proto.Sea
 }
 
 func (us *userServer) GetUser(ctx context.Context, id *wrapperspb.StringValue) (*proto.UserDetail, error) {
-	userDetail, err := us.userService.GetUser(ctx, id.GetValue())
+	userId, err := db2.ParseUUID(id.GetValue())
+	if err != nil {
+		return nil, status.Errorf(codes.InvalidArgument, "%s", err.Error())
+	}
+
+	userDetail, err := us.userService.GetUser(ctx, userId)
 	if err != nil {
 		slog.Error("Get user failed", "userID", id.GetValue(), "error", err)
 		switch {
-		case common.IsCode(err, service.ErrNotFound):
+		case common.IsCode(err, string(openapi.NOT_FOUND)):
 			return nil, status.Errorf(codes.NotFound, "%s", err.Error())
 		default:
 			return nil, status.Errorf(codes.Internal, "%s", err.Error())
@@ -88,7 +95,7 @@ func (us *userServer) GetUser(ctx context.Context, id *wrapperspb.StringValue) (
 	return us.protoUser(userDetail), err
 }
 
-func (us *userServer) protoUser(userDetail *service.UserDetail) *proto.UserDetail {
+func (us *userServer) protoUser(userDetail *openapi.UserDetail) *proto.UserDetail {
 	var authorities = make([]string, len(userDetail.Authorities))
 	for i, authority := range userDetail.Authorities {
 		authorities[i] = authority.Authority
@@ -96,7 +103,7 @@ func (us *userServer) protoUser(userDetail *service.UserDetail) *proto.UserDetai
 
 	attributes := make(map[string]string)
 	for _, attribute := range userDetail.Attributes {
-		attributes[attribute.Attribute.Key] = attribute.Value
+		attributes[attribute.Key] = attribute.Value
 	}
 
 	return &proto.UserDetail{

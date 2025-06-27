@@ -1,6 +1,6 @@
 -- name: AddAttribute :one
-insert into attribute (id, key, name, required, hidden)
-values ($1, $2, $3, $4, $5)
+insert into attribute (id, key, required, hidden)
+values ($1, $2, $3, $4)
 returning *;
 
 -- name: DeleteAttribute :exec
@@ -15,7 +15,7 @@ where key = $1
 limit 1;
 
 -- name: GetUserAttributes :many
-select a.id, a.key, a.name, ua.value, a.required, a.hidden
+select a.id, a.key, ua.value, a.required, a.hidden
 from attribute a
          left join user_attribute ua on ua.attribute_id = a.id
 where ua.user_id = $1

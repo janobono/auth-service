@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"github.com/gin-gonic/gin"
 	"github.com/janobono/auth-service/generated/openapi"
-	"github.com/janobono/auth-service/internal/service"
 	"github.com/janobono/go-util/security"
 	"net/http"
 )
@@ -14,13 +13,13 @@ type RouterContext struct {
 	ContextPath      string
 	ReadAuthorities  []string
 	WriteAuthorities []string
-	HttpHandlers     security.HttpHandlers[*service.UserDetail]
+	HttpHandlers     security.HttpHandlers[*openapi.UserDetail]
 }
 
 func NewRouter(routerContext RouterContext) *gin.Engine {
 	router := gin.Default()
 
-	authMiddleware := security.NewHttpTokenMiddleware[*service.UserDetail](security.HttpSecurityConfig{
+	authMiddleware := security.NewHttpTokenMiddleware[*openapi.UserDetail](security.HttpSecurityConfig{
 		PublicEndpoints: map[string]struct{}{
 			fmt.Sprintf("POST:%s/confirm", routerContext.ContextPath):              {},
 			fmt.Sprintf("POST:%s/reset-password", routerContext.ContextPath):       {},

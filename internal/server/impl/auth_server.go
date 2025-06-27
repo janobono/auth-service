@@ -2,6 +2,7 @@ package impl
 
 import (
 	"context"
+	"github.com/janobono/auth-service/generated/openapi"
 	"github.com/janobono/auth-service/generated/proto"
 	"github.com/janobono/auth-service/internal/service"
 	"google.golang.org/grpc/codes"
@@ -35,11 +36,11 @@ func (as *authServer) GetUser(ctx context.Context, empty *emptypb.Empty) (*proto
 }
 
 func (as *authServer) Refresh(ctx context.Context, refreshToken *wrapperspb.StringValue) (*proto.AuthResponse, error) {
-	authResponse, err := as.authService.RefreshToken(ctx, refreshToken.Value)
+	authenticationResponse, err := as.authService.RefreshToken(ctx, refreshToken.Value)
 	if err != nil {
 		slog.Error("RefreshToken failed", "error", err)
 		switch {
-		case common.IsCode(err, service.InvalidArgument):
+		case common.IsCode(err, string(openapi.INVALID_ARGUMENT)):
 			return nil, status.Errorf(codes.InvalidArgument, "%s", err.Error())
 		default:
 			return nil, status.Errorf(codes.Internal, "%s", err.Error())
@@ -47,19 +48,19 @@ func (as *authServer) Refresh(ctx context.Context, refreshToken *wrapperspb.Stri
 	}
 
 	return &proto.AuthResponse{
-		AccessToken:  authResponse.AccessToken,
-		RefreshToken: authResponse.RefreshToken,
+		AccessToken:  authenticationResponse.AccessToken,
+		RefreshToken: authenticationResponse.RefreshToken,
 	}, nil
 }
 
 func (as *authServer) SignIn(ctx context.Context, signInData *proto.SignInData) (*proto.AuthResponse, error) {
-	authResponse, err := as.authService.SignIn(ctx, service.SignIn{Email: signInData.Email, Password: signInData.Password})
+	authenticationResponse, err := as.authService.SignIn(ctx, &openapi.SignIn{Email: signInData.Email, Password: signInData.Password})
 	if err != nil {
 		slog.Error("SignIn failed", "error", err)
 		switch {
-		case common.IsCode(err, service.InvalidCredentials):
-		case common.IsCode(err, service.UserDisabled):
-		case common.IsCode(err, service.UserNotConfirmed):
+		case common.IsCode(err, string(openapi.INVALID_CREDENTIALS)):
+		case common.IsCode(err, string(openapi.USER_NOT_ENABLED)):
+		case common.IsCode(err, string(openapi.USER_NOT_CONFIRMED)):
 			return nil, status.Errorf(codes.Unauthenticated, "%s", err.Error())
 		default:
 			return nil, status.Errorf(codes.Internal, "%s", err.Error())
@@ -67,7 +68,7 @@ func (as *authServer) SignIn(ctx context.Context, signInData *proto.SignInData) 
 	}
 
 	return &proto.AuthResponse{
-		AccessToken:  authResponse.AccessToken,
-		RefreshToken: authResponse.RefreshToken,
+		AccessToken:  authenticationResponse.AccessToken,
+		RefreshToken: authenticationResponse.RefreshToken,
 	}, nil
 }

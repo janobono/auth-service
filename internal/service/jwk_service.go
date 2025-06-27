@@ -2,12 +2,15 @@ package service
 
 import (
 	"context"
+	"encoding/base64"
+	"github.com/janobono/auth-service/generated/openapi"
 	"github.com/janobono/auth-service/internal/repository"
 	"github.com/janobono/go-util/common"
+	"math/big"
 )
 
 type JwkService interface {
-	GetActiveJwks(ctx context.Context) ([]*Jwk, error)
+	GetJwks(ctx context.Context) (*openapi.Jwks, error)
 }
 
 type jwkService struct {
@@ -20,27 +23,34 @@ func NewJwkService(jwkRepository repository.JwkRepository) JwkService {
 	return &jwkService{jwkRepository}
 }
 
-func (j *jwkService) GetActiveJwks(ctx context.Context) ([]*Jwk, error) {
+func (j *jwkService) GetJwks(ctx context.Context) (*openapi.Jwks, error) {
 	activeJwks, err := j.jwkRepository.GetActiveJwks(ctx)
 	if err != nil {
-		return nil, common.NewServiceError(ErrInternalError, err.Error())
+		return nil, common.NewServiceError(string(openapi.UNKNOWN), err.Error())
 	}
 
-	result := make([]*Jwk, 0, len(activeJwks))
+	keys := make([]openapi.Jwk, 0, len(activeJwks))
 
-	for i, dbJwk := range activeJwks {
-		result[i] = &Jwk{
-			Id:         dbJwk.ID,
-			Kty:        dbJwk.Kty,
-			Use:        dbJwk.Use,
-			Alg:        dbJwk.Alg,
-			PublicKey:  dbJwk.PublicKey,
-			PrivateKey: dbJwk.PrivateKey,
-			Active:     dbJwk.Active,
-			CreatedAt:  dbJwk.CreatedAt,
-			ExpiresAt:  dbJwk.ExpiresAt,
+	for i, jwk := range activeJwks {
+
+		n := base64.RawURLEncoding.EncodeToString(jwk.PublicKey.N.Bytes())
+
+		eBytes := big.NewInt(int64(jwk.PublicKey.E)).Bytes()
+		if len(eBytes) < 4 {
+			padding := make([]byte, 4-len(eBytes))
+			eBytes = append(padding, eBytes...)
+		}
+		e := base64.RawURLEncoding.EncodeToString(eBytes)
+
+		keys[i] = openapi.Jwk{
+			Kty: jwk.Kty,
+			Kid: jwk.ID.String(),
+			Use: jwk.Use,
+			Alg: jwk.Alg,
+			N:   n,
+			E:   e,
 		}
 	}
 
-	return result, nil
+	return &openapi.Jwks{Keys: keys}, nil
 }

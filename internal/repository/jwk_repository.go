@@ -5,6 +5,7 @@ import (
 	"crypto/rand"
 	"crypto/rsa"
 	"fmt"
+	"github.com/jackc/pgx/v5/pgtype"
 	"github.com/janobono/auth-service/generated/sqlc"
 	"github.com/janobono/auth-service/internal/db"
 	db2 "github.com/janobono/go-util/db"
@@ -14,7 +15,7 @@ import (
 type JwkRepository interface {
 	AddJwk(ctx context.Context, arg AddJwkData) (*Jwk, error)
 	GetActiveJwk(ctx context.Context, use string) (*Jwk, error)
-	GetJwk(ctx context.Context, id string) (*Jwk, error)
+	GetJwk(ctx context.Context, id pgtype.UUID) (*Jwk, error)
 	GetActiveJwks(ctx context.Context) ([]*Jwk, error)
 }
 
@@ -96,14 +97,8 @@ func (j *jwkRepositoryImpl) GetActiveJwk(ctx context.Context, use string) (*Jwk,
 	return toJwk(&jwk)
 }
 
-func (j *jwkRepositoryImpl) GetJwk(ctx context.Context, id string) (*Jwk, error) {
-	pgId, err := db2.ParseUUID(id)
-
-	if err != nil {
-		return nil, err
-	}
-
-	jwk, err := j.dataSource.Queries.GetJwk(ctx, pgId)
+func (j *jwkRepositoryImpl) GetJwk(ctx context.Context, id pgtype.UUID) (*Jwk, error) {
+	jwk, err := j.dataSource.Queries.GetJwk(ctx, id)
 
 	if err != nil {
 		return nil, err

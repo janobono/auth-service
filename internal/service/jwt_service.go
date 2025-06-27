@@ -5,9 +5,12 @@ import (
 	"errors"
 	"github.com/golang-jwt/jwt/v5"
 	"github.com/jackc/pgx/v5"
+	"github.com/jackc/pgx/v5/pgtype"
+	"github.com/janobono/auth-service/generated/openapi"
 	"github.com/janobono/auth-service/internal/config"
 	"github.com/janobono/auth-service/internal/repository"
 	"github.com/janobono/go-util/common"
+	db2 "github.com/janobono/go-util/db"
 	"github.com/janobono/go-util/security"
 	"sync"
 	"time"
@@ -78,7 +81,7 @@ func (j *JwtService) getJwtToken(
 	jwk, err := j.jwkRepository.GetActiveJwk(ctx, use)
 
 	if err != nil && !errors.Is(err, pgx.ErrNoRows) {
-		return nil, common.NewServiceError(ErrInternalError, err.Error())
+		return nil, common.NewServiceError(string(openapi.UNKNOWN), err.Error())
 	}
 	if (err == nil && now.After(jwk.ExpiresAt)) || errors.Is(err, pgx.ErrNoRows) {
 		jwk, err = j.jwkRepository.AddJwk(ctx, repository.AddJwkData{
@@ -88,14 +91,14 @@ func (j *JwtService) getJwtToken(
 	}
 
 	if err != nil {
-		return nil, common.NewServiceError(ErrInternalError, err.Error())
+		return nil, common.NewServiceError(string(openapi.UNKNOWN), err.Error())
 	}
 
 	token := security.NewJwtToken(
 		jwt.SigningMethodRS256,
 		jwk.PrivateKey,
 		jwk.PublicKey,
-		jwk.ID,
+		jwk.ID.String(),
 		j.securityConfig.TokenIssuer,
 		tokenExpiration,
 		jwk.ExpiresAt,
@@ -107,7 +110,12 @@ func (j *JwtService) getJwtToken(
 }
 
 func (j *JwtService) GetPublicKey(ctx context.Context, kid string) (interface{}, error) {
-	jwk, err := j.jwkRepository.GetJwk(ctx, kid)
+	id, err := db2.ParseUUID(kid)
+	if err != nil {
+		return nil, err
+	}
+
+	jwk, err := j.jwkRepository.GetJwk(ctx, id)
 	if err != nil {
 		return nil, err
 	}
@@ -115,24 +123,29 @@ func (j *JwtService) GetPublicKey(ctx context.Context, kid string) (interface{},
 	return jwk.PublicKey, nil
 }
 
-func (j *JwtService) GenerateAuthToken(token *security.JwtToken, id string, authorities []string) (string, error) {
+func (j *JwtService) GenerateAuthToken(token *security.JwtToken, id pgtype.UUID, authorities []string) (string, error) {
 	claims := jwt.MapClaims{
-		"sub": id,
+		"sub": id.String(),
 		"aud": authorities,
 	}
 	return token.GenerateToken(claims)
 }
 
-func (j *JwtService) ParseAuthToken(ctx context.Context, jwtToken *security.JwtToken, token string) (string, []string, error) {
+func (j *JwtService) ParseAuthToken(ctx context.Context, jwtToken *security.JwtToken, token string) (pgtype.UUID, []string, error) {
 	claims, err := jwtToken.ParseToken(ctx, token)
 	if err != nil {
-		return "", nil, common.NewServiceError(ErrInternalError, err.Error())
+		return pgtype.UUID{}, nil, common.NewServiceError(string(openapi.UNKNOWN), err.Error())
 	}
 
-	id, ok := (*claims)["sub"].(string)
+	idString, ok := (*claims)["sub"].(string)
 
 	if !ok {
-		return "", nil, common.NewServiceError(ErrInternalError, "Invalid access token")
+		return pgtype.UUID{}, nil, common.NewServiceError(string(openapi.UNKNOWN), "Invalid access token")
+	}
+
+	id, err := db2.ParseUUID(idString)
+	if err != nil {
+		return pgtype.UUID{}, nil, common.NewServiceError(string(openapi.UNKNOWN), err.Error())
 	}
 
 	var authorities []string

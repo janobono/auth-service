@@ -2,6 +2,7 @@ package service
 
 import (
 	"context"
+	"github.com/janobono/auth-service/generated/openapi"
 	"github.com/janobono/auth-service/internal/repository"
 	"github.com/janobono/go-util/common"
 	"github.com/janobono/go-util/security"
@@ -12,73 +13,32 @@ type userDetailDecoder struct {
 	userRepository repository.UserRepository
 }
 
-var _ security.UserDetailDecoder[*UserDetail] = (*userDetailDecoder)(nil)
+var _ security.UserDetailDecoder[*openapi.UserDetail] = (*userDetailDecoder)(nil)
 
-func NewUserDetailDecoder(jwtService *JwtService, userRepository repository.UserRepository) security.UserDetailDecoder[*UserDetail] {
+func NewUserDetailDecoder(jwtService *JwtService, userRepository repository.UserRepository) security.UserDetailDecoder[*openapi.UserDetail] {
 	return &userDetailDecoder{jwtService, userRepository}
 }
 
-func (ud *userDetailDecoder) DecodeGrpcUserDetail(ctx context.Context, token string) (*UserDetail, error) {
+func (ud *userDetailDecoder) DecodeGrpcUserDetail(ctx context.Context, token string) (*openapi.UserDetail, error) {
 	jwtToken, err := ud.jwtService.GetAccessJwtToken(ctx)
 	if err != nil {
-		return nil, common.NewServiceError(ErrInternalError, err.Error())
+		return nil, common.NewServiceError(string(openapi.UNKNOWN), err.Error())
 	}
 
 	id, _, err := ud.jwtService.ParseAuthToken(ctx, jwtToken, token)
 	if err != nil {
-		return nil, common.NewServiceError(ErrInternalError, err.Error())
+		return nil, common.NewServiceError(string(openapi.UNKNOWN), err.Error())
 	}
 
 	user, err := ud.userRepository.GetUser(ctx, id)
 	if err != nil {
-		return nil, common.NewServiceError(ErrInternalError, err.Error())
+		return nil, common.NewServiceError(string(openapi.UNKNOWN), err.Error())
 	}
 
-	userAttributes, err := ud.userRepository.GetUserAttributes(ctx, id)
-	if err != nil {
-		return nil, common.NewServiceError(ErrInternalError, err.Error())
-	}
-
-	userAuthorities, err := ud.userRepository.GetUserAuthorities(ctx, id)
-	if err != nil {
-		return nil, common.NewServiceError(ErrInternalError, err.Error())
-	}
-
-	attributes := make([]*UserAttribute, 0, len(userAttributes))
-	for _, userAttribute := range userAttributes {
-		if !userAttribute.Attribute.Hidden {
-			attributes = append(attributes, &UserAttribute{
-				Attribute: &Attribute{
-					Id:       userAttribute.Attribute.ID,
-					Key:      userAttribute.Attribute.Key,
-					Name:     userAttribute.Attribute.Name,
-					Required: userAttribute.Attribute.Required,
-					Hidden:   userAttribute.Attribute.Hidden,
-				},
-				Value: userAttribute.Value,
-			})
-		}
-	}
-
-	authorities := make([]*Authority, len(userAuthorities))
-	for i, userAuthority := range userAuthorities {
-		authorities[i] = &Authority{
-			Id:        userAuthority.ID,
-			Authority: userAuthority.Authority,
-		}
-	}
-
-	return &UserDetail{
-		Id:          user.ID,
-		Email:       user.Email,
-		Confirmed:   user.Confirmed,
-		Enabled:     user.Enabled,
-		Attributes:  attributes,
-		Authorities: authorities,
-	}, nil
+	return mapUserDetail(ctx, ud.userRepository, user)
 }
 
-func (ud *userDetailDecoder) GetGrpcUserAuthorities(ctx context.Context, userDetail *UserDetail) ([]string, error) {
+func (ud *userDetailDecoder) GetGrpcUserAuthorities(ctx context.Context, userDetail *openapi.UserDetail) ([]string, error) {
 	var authorities = make([]string, len(userDetail.Authorities))
 	for i, authority := range userDetail.Authorities {
 		authorities[i] = authority.Authority

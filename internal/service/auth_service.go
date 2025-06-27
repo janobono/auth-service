@@ -4,14 +4,16 @@ import (
 	"context"
 	"errors"
 	"github.com/jackc/pgx/v5"
+	"github.com/jackc/pgx/v5/pgtype"
+	"github.com/janobono/auth-service/generated/openapi"
 	"github.com/janobono/auth-service/internal/repository"
 	"github.com/janobono/go-util/common"
 	"github.com/janobono/go-util/security"
 )
 
 type AuthService interface {
-	RefreshToken(ctx context.Context, refreshToken string) (*AuthResponse, error)
-	SignIn(ctx context.Context, signIn SignIn) (*AuthResponse, error)
+	RefreshToken(ctx context.Context, refreshToken string) (*openapi.AuthenticationResponse, error)
+	SignIn(ctx context.Context, signIn *openapi.SignIn) (*openapi.AuthenticationResponse, error)
 }
 
 type authService struct {
@@ -34,42 +36,42 @@ func NewAuthService(
 	}
 }
 
-func (a *authService) RefreshToken(ctx context.Context, refreshToken string) (*AuthResponse, error) {
+func (a *authService) RefreshToken(ctx context.Context, refreshToken string) (*openapi.AuthenticationResponse, error) {
 	refreshJwt, err := a.jwtService.GetRefreshJwtToken(ctx)
 	if err != nil {
-		return nil, common.NewServiceError(ErrInternalError, err.Error())
+		return nil, common.NewServiceError(string(openapi.UNKNOWN), err.Error())
 	}
 
 	id, authorities, err := a.jwtService.ParseAuthToken(ctx, refreshJwt, refreshToken)
 	if err != nil {
-		return nil, common.NewServiceError(InvalidArgument, err.Error())
+		return nil, common.NewServiceError(string(openapi.INVALID_ARGUMENT), err.Error())
 	}
 
 	accessJwt, err := a.jwtService.GetAccessJwtToken(ctx)
 	if err != nil {
-		return nil, common.NewServiceError(ErrInternalError, err.Error())
+		return nil, common.NewServiceError(string(openapi.UNKNOWN), err.Error())
 	}
 
 	accessToken, err := a.jwtService.GenerateAuthToken(accessJwt, id, authorities)
 	if err != nil {
-		return nil, common.NewServiceError(ErrInternalError, err.Error())
+		return nil, common.NewServiceError(string(openapi.UNKNOWN), err.Error())
 	}
 
-	return &AuthResponse{
+	return &openapi.AuthenticationResponse{
 		AccessToken:  accessToken,
 		RefreshToken: refreshToken,
 	}, nil
 }
 
-func (a *authService) SignIn(ctx context.Context, signIn SignIn) (*AuthResponse, error) {
+func (a *authService) SignIn(ctx context.Context, signIn *openapi.SignIn) (*openapi.AuthenticationResponse, error) {
 	email := common.ToScDf(signIn.Email)
 
 	user, err := a.userRepository.GetUserByEmail(ctx, email)
 	if err != nil && !errors.Is(err, pgx.ErrNoRows) {
-		return nil, common.NewServiceError(ErrInternalError, err.Error())
+		return nil, common.NewServiceError(string(openapi.UNKNOWN), err.Error())
 	}
 	if errors.Is(err, pgx.ErrNoRows) {
-		return nil, common.NewServiceError(InvalidCredentials, "User not found")
+		return nil, common.NewServiceError(string(openapi.INVALID_CREDENTIALS), "User not found")
 	}
 
 	if err := a.checkConfirmed(user); err != nil {
@@ -80,70 +82,70 @@ func (a *authService) SignIn(ctx context.Context, signIn SignIn) (*AuthResponse,
 		return nil, err
 	}
 
-	if err := a.checkPassword(user, &signIn); err != nil {
+	if err := a.checkPassword(user, signIn); err != nil {
 		return nil, err
 	}
 
-	authorities, err := a.getAuthorities(ctx, user.ID)
+	authorities, sErr := a.getAuthorities(ctx, user.ID)
 	if err != nil {
-		return nil, err
+		return nil, sErr
 	}
 
-	return a.createAuthToken(ctx, user.ID, authorities)
+	return a.createAuthenticationResponse(ctx, user.ID, authorities)
 }
 
 func (a *authService) checkConfirmed(user *repository.User) error {
 	if !user.Confirmed {
-		return common.NewServiceError(ErrPermissionDenied, "Account not confirmed")
+		return common.NewServiceError(string(openapi.USER_NOT_CONFIRMED), "Account not confirmed")
 	}
 	return nil
 }
 
 func (a *authService) checkEnabled(user *repository.User) error {
 	if !user.Enabled {
-		return common.NewServiceError(ErrPermissionDenied, "Account not enabled")
+		return common.NewServiceError(string(openapi.USER_NOT_ENABLED), "Account not enabled")
 	}
 	return nil
 }
 
-func (a *authService) checkPassword(user *repository.User, signIn *SignIn) error {
+func (a *authService) checkPassword(user *repository.User, signIn *openapi.SignIn) error {
 	if err := a.passwordEncoder.Compare(signIn.Password, user.Password); err != nil {
-		return common.NewServiceError(InvalidCredentials, "Wrong password")
+		return common.NewServiceError(string(openapi.INVALID_CREDENTIALS), "Wrong password")
 	}
 	return nil
 }
 
-func (a *authService) createAuthToken(ctx context.Context, id string, authorities []string) (*AuthResponse, error) {
+func (a *authService) createAuthenticationResponse(ctx context.Context, id pgtype.UUID, authorities []string) (*openapi.AuthenticationResponse, error) {
 	accessJwt, err := a.jwtService.GetAccessJwtToken(ctx)
 	if err != nil {
-		return nil, common.NewServiceError(ErrInternalError, err.Error())
+		return nil, common.NewServiceError(string(openapi.UNKNOWN), err.Error())
 	}
 
 	accessToken, err := a.jwtService.GenerateAuthToken(accessJwt, id, authorities)
 	if err != nil {
-		return nil, common.NewServiceError(ErrInternalError, err.Error())
+		return nil, common.NewServiceError(string(openapi.UNKNOWN), err.Error())
 	}
 
 	refreshJwt, err := a.jwtService.GetRefreshJwtToken(ctx)
 	if err != nil {
-		return nil, common.NewServiceError(ErrInternalError, err.Error())
+		return nil, common.NewServiceError(string(openapi.UNKNOWN), err.Error())
 	}
 
 	refreshToken, err := a.jwtService.GenerateAuthToken(refreshJwt, id, authorities)
 	if err != nil {
-		return nil, common.NewServiceError(ErrInternalError, err.Error())
+		return nil, common.NewServiceError(string(openapi.UNKNOWN), err.Error())
 	}
 
-	return &AuthResponse{
+	return &openapi.AuthenticationResponse{
 		AccessToken:  accessToken,
 		RefreshToken: refreshToken,
 	}, nil
 }
 
-func (a *authService) getAuthorities(ctx context.Context, id string) ([]string, error) {
+func (a *authService) getAuthorities(ctx context.Context, id pgtype.UUID) ([]string, error) {
 	userAuthorities, err := a.userRepository.GetUserAuthorities(ctx, id)
 	if err != nil {
-		return nil, common.NewServiceError(ErrInternalError, err.Error())
+		return nil, common.NewServiceError(string(openapi.UNKNOWN), err.Error())
 	}
 
 	authorities := make([]string, len(userAuthorities))

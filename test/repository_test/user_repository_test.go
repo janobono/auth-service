@@ -20,7 +20,6 @@ func TestUserRepository_FullFlow(t *testing.T) {
 
 	attr, err := attributeRepository.AddAttribute(ctx, repository.AddAttributeData{
 		Key:      "nickname",
-		Name:     "Nickname",
 		Required: false,
 		Hidden:   false,
 	})

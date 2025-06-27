@@ -3,6 +3,7 @@ package repository
 import (
 	"context"
 	"fmt"
+	"github.com/jackc/pgx/v5/pgtype"
 	"github.com/janobono/auth-service/generated/sqlc"
 	"github.com/janobono/auth-service/internal/db"
 	"github.com/janobono/go-util/common"
@@ -12,10 +13,10 @@ import (
 
 type UserRepository interface {
 	AddUser(ctx context.Context, arg AddUserData) (*User, error)
-	DeleteUser(ctx context.Context, id string) error
-	GetUser(ctx context.Context, id string) (*User, error)
-	GetUserAttributes(ctx context.Context, userID string) ([]*UserAttribute, error)
-	GetUserAuthorities(ctx context.Context, userID string) ([]*Authority, error)
+	DeleteUser(ctx context.Context, id pgtype.UUID) error
+	GetUser(ctx context.Context, id pgtype.UUID) (*User, error)
+	GetUserAttributes(ctx context.Context, userID pgtype.UUID) ([]*UserAttribute, error)
+	GetUserAuthorities(ctx context.Context, userID pgtype.UUID) ([]*Authority, error)
 	GetUserByEmail(ctx context.Context, email string) (*User, error)
 	SearchUsers(ctx context.Context, criteria SearchUsersCriteria, pageable common.Pageable) (*common.Page[*User], error)
 	SetUserAttributes(ctx context.Context, arg SetUserAttributesData) ([]*UserAttribute, error)
@@ -47,24 +48,12 @@ func (u *userRepositoryImpl) AddUser(ctx context.Context, arg AddUserData) (*Use
 	return toUser(&user), nil
 }
 
-func (u *userRepositoryImpl) DeleteUser(ctx context.Context, id string) error {
-	pgId, err := db2.ParseUUID(id)
-
-	if err != nil {
-		return err
-	}
-
-	return u.dataSource.Queries.DeleteUser(ctx, pgId)
+func (u *userRepositoryImpl) DeleteUser(ctx context.Context, id pgtype.UUID) error {
+	return u.dataSource.Queries.DeleteUser(ctx, id)
 }
 
-func (u *userRepositoryImpl) GetUser(ctx context.Context, id string) (*User, error) {
-	pgId, err := db2.ParseUUID(id)
-
-	if err != nil {
-		return nil, err
-	}
-
-	user, err := u.dataSource.Queries.GetUser(ctx, pgId)
+func (u *userRepositoryImpl) GetUser(ctx context.Context, id pgtype.UUID) (*User, error) {
+	user, err := u.dataSource.Queries.GetUser(ctx, id)
 
 	if err != nil {
 		return nil, err
@@ -73,15 +62,10 @@ func (u *userRepositoryImpl) GetUser(ctx context.Context, id string) (*User, err
 	return toUser(&user), nil
 }
 
-func (u *userRepositoryImpl) GetUserAttributes(ctx context.Context, userID string) ([]*UserAttribute, error) {
+func (u *userRepositoryImpl) GetUserAttributes(ctx context.Context, userID pgtype.UUID) ([]*UserAttribute, error) {
 	var result []*UserAttribute
-	pgUserID, err := db2.ParseUUID(userID)
 
-	if err != nil {
-		return result, err
-	}
-
-	userAttributes, err := u.dataSource.Queries.GetUserAttributes(ctx, pgUserID)
+	userAttributes, err := u.dataSource.Queries.GetUserAttributes(ctx, userID)
 
 	if err != nil {
 		return result, err
@@ -94,15 +78,10 @@ func (u *userRepositoryImpl) GetUserAttributes(ctx context.Context, userID strin
 	return result, nil
 }
 
-func (u *userRepositoryImpl) GetUserAuthorities(ctx context.Context, userID string) ([]*Authority, error) {
+func (u *userRepositoryImpl) GetUserAuthorities(ctx context.Context, userID pgtype.UUID) ([]*Authority, error) {
 	var result []*Authority
-	pgUserID, err := db2.ParseUUID(userID)
 
-	if err != nil {
-		return result, err
-	}
-
-	userAuthorities, err := u.dataSource.Queries.GetUserAuthorities(ctx, pgUserID)
+	userAuthorities, err := u.dataSource.Queries.GetUserAuthorities(ctx, userID)
 
 	if err != nil {
 		return result, err
@@ -142,29 +121,17 @@ func (u *userRepositoryImpl) SearchUsers(ctx context.Context, criteria SearchUse
 }
 
 func (u *userRepositoryImpl) SetUserAttributes(ctx context.Context, arg SetUserAttributesData) ([]*UserAttribute, error) {
-	pgUserID, err := db2.ParseUUID(arg.UserID)
-
-	if err != nil {
-		return nil, err
-	}
-
-	_, err = u.dataSource.ExecTx(ctx, func(q *sqlc.Queries) (interface{}, error) {
-		err := q.DeleteUserAttributes(ctx, pgUserID)
+	_, err := u.dataSource.ExecTx(ctx, func(q *sqlc.Queries) (interface{}, error) {
+		err := q.DeleteUserAttributes(ctx, arg.UserID)
 
 		if err != nil {
 			return nil, err
 		}
 
 		for _, attribute := range arg.Attributes {
-			pgAttributeID, err := db2.ParseUUID(attribute.Attribute.ID)
-
-			if err != nil {
-				return nil, err
-			}
-
 			err = q.AddUserAttribute(ctx, sqlc.AddUserAttributeParams{
-				UserID:      pgUserID,
-				AttributeID: pgAttributeID,
+				UserID:      arg.UserID,
+				AttributeID: attribute.Attribute.ID,
 				Value:       attribute.Value,
 			})
 
@@ -184,29 +151,17 @@ func (u *userRepositoryImpl) SetUserAttributes(ctx context.Context, arg SetUserA
 }
 
 func (u *userRepositoryImpl) SetUserAuthorities(ctx context.Context, arg SetUserAuthoritiesData) ([]*Authority, error) {
-	pgUserID, err := db2.ParseUUID(arg.UserID)
-
-	if err != nil {
-		return nil, err
-	}
-
-	_, err = u.dataSource.ExecTx(ctx, func(q *sqlc.Queries) (interface{}, error) {
-		err := q.DeleteUserAuthorities(ctx, pgUserID)
+	_, err := u.dataSource.ExecTx(ctx, func(q *sqlc.Queries) (interface{}, error) {
+		err := q.DeleteUserAuthorities(ctx, arg.UserID)
 
 		if err != nil {
 			return nil, err
 		}
 
 		for _, authority := range arg.Authorities {
-			pgAuthorityID, err := db2.ParseUUID(authority.ID)
-
-			if err != nil {
-				return nil, err
-			}
-
 			err = q.AddUserAuthority(ctx, sqlc.AddUserAuthorityParams{
-				UserID:      pgUserID,
-				AuthorityID: pgAuthorityID,
+				UserID:      arg.UserID,
+				AuthorityID: authority.ID,
 			})
 
 			if err != nil {

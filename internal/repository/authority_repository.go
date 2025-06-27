@@ -2,6 +2,7 @@ package repository
 
 import (
 	"context"
+	"github.com/jackc/pgx/v5/pgtype"
 	"github.com/janobono/auth-service/generated/sqlc"
 	"github.com/janobono/auth-service/internal/db"
 	db2 "github.com/janobono/go-util/db"
@@ -9,7 +10,7 @@ import (
 
 type AuthorityRepository interface {
 	AddAuthority(ctx context.Context, arg AddAuthorityData) (*Authority, error)
-	DeleteAuthority(ctx context.Context, id string) error
+	DeleteAuthority(ctx context.Context, id pgtype.UUID) error
 	GetAuthority(ctx context.Context, authority string) (*Authority, error)
 }
 
@@ -34,14 +35,8 @@ func (u *authorityRepositoryImpl) AddAuthority(ctx context.Context, arg AddAutho
 	return toAuthority(&authority), nil
 }
 
-func (u *authorityRepositoryImpl) DeleteAuthority(ctx context.Context, id string) error {
-	pgId, err := db2.ParseUUID(id)
-
-	if err != nil {
-		return err
-	}
-
-	return u.dataSource.Queries.DeleteAuthority(ctx, pgId)
+func (u *authorityRepositoryImpl) DeleteAuthority(ctx context.Context, id pgtype.UUID) error {
+	return u.dataSource.Queries.DeleteAuthority(ctx, id)
 }
 
 func (u *authorityRepositoryImpl) GetAuthority(ctx context.Context, authority string) (*Authority, error) {

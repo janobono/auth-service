@@ -7,7 +7,7 @@ import (
 )
 
 type authorityController struct {
-	AuthorityService service.AuthorityService
+	authorityService service.AuthorityService
 }
 
 var _ openapi.AuthorityControllerAPI = (*authorityController)(nil)
