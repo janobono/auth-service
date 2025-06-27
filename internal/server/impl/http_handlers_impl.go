@@ -1,9 +1,9 @@
-package service
+package impl
 
 import (
 	"github.com/gin-gonic/gin"
 	"github.com/janobono/auth-service/generated/openapi"
-	"github.com/janobono/auth-service/internal/repository"
+	"github.com/janobono/auth-service/internal/service"
 	"github.com/janobono/go-util/common"
 	"github.com/janobono/go-util/security"
 	"net/http"
@@ -11,14 +11,14 @@ import (
 )
 
 type httpHandlers struct {
-	jwtService     *JwtService
-	userRepository repository.UserRepository
+	jwtService  *service.JwtService
+	userService service.UserService
 }
 
 var _ security.HttpHandlers[*openapi.UserDetail] = (*httpHandlers)(nil)
 
-func NewHttpHandlers(jwtService *JwtService, userRepository repository.UserRepository) security.HttpHandlers[*openapi.UserDetail] {
-	return &httpHandlers{jwtService, userRepository}
+func NewHttpHandlers(jwtService *service.JwtService, userService service.UserService) security.HttpHandlers[*openapi.UserDetail] {
+	return &httpHandlers{jwtService, userService}
 }
 
 func (h *httpHandlers) MissingAuthorizationHeader(c *gin.Context) {
@@ -56,12 +56,7 @@ func (h *httpHandlers) DecodeUserDetail(c *gin.Context, token string) (*openapi.
 		return nil, common.NewServiceError(string(openapi.UNKNOWN), err.Error())
 	}
 
-	user, err := h.userRepository.GetUser(c.Request.Context(), id)
-	if err != nil {
-		return nil, common.NewServiceError(string(openapi.UNKNOWN), err.Error())
-	}
-
-	return mapUserDetail(c.Request.Context(), h.userRepository, user)
+	return h.userService.GetUser(c.Request.Context(), id)
 }
 
 func (h *httpHandlers) GetUserAuthorities(c *gin.Context, userDetail *openapi.UserDetail) ([]string, error) {

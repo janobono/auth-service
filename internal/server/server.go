@@ -2,7 +2,6 @@ package server
 
 import (
 	"context"
-	"github.com/janobono/auth-service/generated/openapi"
 	"github.com/janobono/auth-service/internal/config"
 	"github.com/janobono/auth-service/internal/db"
 	"github.com/janobono/auth-service/internal/repository"
@@ -17,13 +16,12 @@ import (
 )
 
 type Services struct {
-	HttpHandlers          security.HttpHandlers[*openapi.UserDetail]
-	UserDetailInterceptor security.UserDetailDecoder[*openapi.UserDetail]
-	AttributeService      service.AttributeService
-	AuthService           service.AuthService
-	AuthorityService      service.AuthorityService
-	JwkService            service.JwkService
-	UserService           service.UserService
+	AttributeService service.AttributeService
+	AuthService      service.AuthService
+	AuthorityService service.AuthorityService
+	JwkService       service.JwkService
+	JwtService       *service.JwtService
+	UserService      service.UserService
 }
 
 type Server struct {
@@ -53,13 +51,12 @@ func (s *Server) Start() {
 	jwtService := service.NewJwtService(s.config.SecurityConfig, jwkRepository)
 
 	services := &Services{
-		HttpHandlers:          service.NewHttpHandlers(jwtService, userRepository),
-		UserDetailInterceptor: service.NewUserDetailDecoder(jwtService, userRepository),
-		AttributeService:      service.NewAttributeService(attributeRepository),
-		AuthService:           service.NewAuthService(passwordEncoder, jwtService, userRepository),
-		AuthorityService:      service.NewAuthorityService(authorityRepository),
-		JwkService:            service.NewJwkService(jwkRepository),
-		UserService:           service.NewUserService(userRepository),
+		AttributeService: service.NewAttributeService(attributeRepository),
+		AuthService:      service.NewAuthService(passwordEncoder, jwtService, userRepository),
+		AuthorityService: service.NewAuthorityService(authorityRepository),
+		JwkService:       service.NewJwkService(jwkRepository),
+		JwtService:       service.NewJwtService(s.config.SecurityConfig, jwkRepository),
+		UserService:      service.NewUserService(userRepository),
 	}
 
 	grpcServer := NewGrpcServer(s.config, services).Start()

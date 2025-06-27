@@ -1,22 +1,22 @@
-package service
+package impl
 
 import (
 	"context"
 	"github.com/janobono/auth-service/generated/openapi"
-	"github.com/janobono/auth-service/internal/repository"
+	"github.com/janobono/auth-service/internal/service"
 	"github.com/janobono/go-util/common"
 	"github.com/janobono/go-util/security"
 )
 
 type userDetailDecoder struct {
-	jwtService     *JwtService
-	userRepository repository.UserRepository
+	jwtService  *service.JwtService
+	userService service.UserService
 }
 
 var _ security.UserDetailDecoder[*openapi.UserDetail] = (*userDetailDecoder)(nil)
 
-func NewUserDetailDecoder(jwtService *JwtService, userRepository repository.UserRepository) security.UserDetailDecoder[*openapi.UserDetail] {
-	return &userDetailDecoder{jwtService, userRepository}
+func NewUserDetailDecoder(jwtService *service.JwtService, userService service.UserService) security.UserDetailDecoder[*openapi.UserDetail] {
+	return &userDetailDecoder{jwtService, userService}
 }
 
 func (ud *userDetailDecoder) DecodeGrpcUserDetail(ctx context.Context, token string) (*openapi.UserDetail, error) {
@@ -30,12 +30,7 @@ func (ud *userDetailDecoder) DecodeGrpcUserDetail(ctx context.Context, token str
 		return nil, common.NewServiceError(string(openapi.UNKNOWN), err.Error())
 	}
 
-	user, err := ud.userRepository.GetUser(ctx, id)
-	if err != nil {
-		return nil, common.NewServiceError(string(openapi.UNKNOWN), err.Error())
-	}
-
-	return mapUserDetail(ctx, ud.userRepository, user)
+	return ud.userService.GetUser(ctx, id)
 }
 
 func (ud *userDetailDecoder) GetGrpcUserAuthorities(ctx context.Context, userDetail *openapi.UserDetail) ([]string, error) {

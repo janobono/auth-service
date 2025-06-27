@@ -28,7 +28,7 @@ func (s *GrpcServer) Start() *grpc.Server {
 		panic(err)
 	}
 
-	grpcTokenInterceptor := security.NewGrpcTokenInterceptor(s.services.UserDetailInterceptor).InterceptToken(
+	grpcTokenInterceptor := security.NewGrpcTokenInterceptor(impl.NewUserDetailDecoder(s.services.JwtService, s.services.UserService)).InterceptToken(
 		[]security.GrpcSecuredMethod{
 			{
 				Method:      proto.User_SearchUsers_FullMethodName,

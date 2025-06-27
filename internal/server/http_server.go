@@ -35,7 +35,7 @@ func (s *HttpServer) Start() *http.Server {
 		ContextPath:      s.config.ContextPath,
 		ReadAuthorities:  s.config.SecurityConfig.ReadAuthorities,
 		WriteAuthorities: s.config.SecurityConfig.WriteAuthorities,
-		HttpHandlers:     s.services.HttpHandlers,
+		HttpHandlers:     impl.NewHttpHandlers(s.services.JwtService, s.services.UserService),
 	})
 
 	router.Use(cors.New(cors.Config{
