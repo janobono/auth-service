@@ -42,13 +42,13 @@ func (us *userServer) SearchUsers(ctx context.Context, searchCriteria *proto.Sea
 		}
 	}
 
-	page, err := us.userService.SearchUsers(ctx,
-		service.SearchUsersCriteria{
+	page, err := us.userService.GetUsers(ctx,
+		&service.SearchUserCriteria{
 			Email:         searchCriteria.Email,
 			SearchField:   searchCriteria.SearchField,
 			AttributeKeys: searchCriteria.AttributeKeys,
 		},
-		*pageable,
+		pageable,
 	)
 
 	if err != nil {

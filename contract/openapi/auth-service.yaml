@@ -9,37 +9,29 @@ paths:
     get:
       operationId: getAttributes
       parameters:
-        - explode: true
+        - name: page
           in: query
-          name: page
           required: false
           schema:
             default: 0
             type: integer
-          style: form
-        - explode: true
+        - name: size
           in: query
-          name: size
           required: false
           schema:
             default: 20
             type: integer
-          style: form
-        - explode: true
+        - name: sort
           in: query
-          name: sort
           required: false
           schema:
             default: key ASC
             type: string
-          style: form
-        - explode: true
+        - name: searchField
           in: query
-          name: searchField
           required: false
           schema:
             type: string
-          style: form
       responses:
         "200":
           content:
@@ -91,16 +83,14 @@ paths:
       tags:
         - attribute-controller
   /attributes/{id}:
+    parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: string
     delete:
       operationId: deleteAttribute
-      parameters:
-        - explode: false
-          in: path
-          name: id
-          required: true
-          schema:
-            type: string
-          style: simple
       responses:
         "200":
           description: OK
@@ -120,14 +110,6 @@ paths:
         - attribute-controller
     get:
       operationId: getAttribute
-      parameters:
-        - explode: false
-          in: path
-          name: id
-          required: true
-          schema:
-            type: string
-          style: simple
       responses:
         "200":
           content:
@@ -151,14 +133,6 @@ paths:
         - attribute-controller
     put:
       operationId: setAttribute
-      parameters:
-        - explode: false
-          in: path
-          name: id
-          required: true
-          schema:
-            type: string
-          style: simple
       requestBody:
         content:
           application/json:
@@ -449,37 +423,29 @@ paths:
     get:
       operationId: getAuthorities
       parameters:
-        - explode: true
+        - name: page
           in: query
-          name: page
           required: false
           schema:
             default: 0
             type: integer
-          style: form
-        - explode: true
+        - name: size
           in: query
-          name: size
           required: false
           schema:
             default: 20
             type: integer
-          style: form
-        - explode: true
+        - name: sort
           in: query
-          name: sort
           required: false
           schema:
-            default: authority ASC
+            default: attribute ASC
             type: string
-          style: form
-        - explode: true
+        - name: searchField
           in: query
-          name: searchField
           required: false
           schema:
             type: string
-          style: form
       responses:
         "200":
           content:
@@ -531,16 +497,14 @@ paths:
       tags:
         - authority-controller
   /authorities/{id}:
+    parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: string
     delete:
       operationId: deleteAuthority
-      parameters:
-        - explode: false
-          in: path
-          name: id
-          required: true
-          schema:
-            type: string
-          style: simple
       responses:
         "200":
           description: OK
@@ -560,14 +524,6 @@ paths:
         - authority-controller
     get:
       operationId: getAuthority
-      parameters:
-        - explode: false
-          in: path
-          name: id
-          required: true
-          schema:
-            type: string
-          style: simple
       responses:
         "200":
           content:
@@ -591,14 +547,6 @@ paths:
         - authority-controller
     put:
       operationId: setAuthority
-      parameters:
-        - explode: false
-          in: path
-          name: id
-          required: true
-          schema:
-            type: string
-          style: simple
       requestBody:
         content:
           application/json:
@@ -678,53 +626,41 @@ paths:
     get:
       operationId: getUsers
       parameters:
-        - explode: true
+        - name: page
           in: query
-          name: page
           required: false
           schema:
             default: 0
             type: integer
-          style: form
-        - explode: true
+        - name: size
           in: query
-          name: size
           required: false
           schema:
             default: 20
             type: integer
-          style: form
-        - explode: true
+        - name: sort
           in: query
-          name: sort
           required: false
           schema:
             default: email ASC
             type: string
-          style: form
-        - explode: true
+        - required: false
           in: query
           name: searchField
+          schema:
+            type: string
+        - name: email
+          in: query
           required: false
           schema:
             type: string
-          style: form
-        - explode: true
+        - name: attributes
           in: query
-          name: email
-          required: false
-          schema:
-            type: string
-          style: form
-        - explode: true
-          in: query
-          name: attributes
           required: false
           schema:
             items:
               type: string
             type: array
-          style: form
       responses:
         "200":
           content:
@@ -776,16 +712,14 @@ paths:
       tags:
         - user-controller
   /users/{id}:
+    parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: string
     delete:
       operationId: deleteUser
-      parameters:
-        - explode: false
-          in: path
-          name: id
-          required: true
-          schema:
-            type: string
-          style: simple
       responses:
         "200":
           description: OK
@@ -805,14 +739,6 @@ paths:
         - user-controller
     get:
       operationId: getUser
-      parameters:
-        - explode: false
-          in: path
-          name: id
-          required: true
-          schema:
-            type: string
-          style: simple
       responses:
         "200":
           content:
@@ -836,14 +762,6 @@ paths:
         - user-controller
     put:
       operationId: setUser
-      parameters:
-        - explode: false
-          in: path
-          name: id
-          required: true
-          schema:
-            type: string
-          style: simple
       requestBody:
         content:
           application/json:
@@ -872,16 +790,14 @@ paths:
       tags:
         - user-controller
   /users/{id}/authorities:
+    parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: string
     patch:
       operationId: setAuthorities
-      parameters:
-        - explode: false
-          in: path
-          name: id
-          required: true
-          schema:
-            type: string
-          style: simple
       requestBody:
         content:
           application/json:
@@ -910,16 +826,14 @@ paths:
       tags:
         - user-controller
   /users/{id}/confirm:
+    parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: string
     patch:
       operationId: setConfirmed
-      parameters:
-        - explode: false
-          in: path
-          name: id
-          required: true
-          schema:
-            type: string
-          style: simple
       requestBody:
         content:
           application/json:
@@ -948,17 +862,14 @@ paths:
       tags:
         - user-controller
   /users/{id}/enable:
+    parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: string
     patch:
       operationId: setEnabled
-      parameters:
-        - explode: false
-          in: path
-          name: id
-          required: true
-          schema:
-            format: int64
-            type: integer
-          style: simple
       requestBody:
         content:
           application/json:
@@ -1175,11 +1086,9 @@ components:
         - UNAUTHORIZED
         - FORBIDDEN
         - INVALID_ARGUMENT
-        - AUTHORITY_NOT_FOUND
         - INVALID_CAPTCHA
         - INVALID_CREDENTIALS
         - UNSUPPORTED_VALIDATION_TOKEN
-        - USER_NOT_FOUND
         - USER_EMAIL_IS_USED
         - USER_NOT_CONFIRMED
         - USER_NOT_ENABLED

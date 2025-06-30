@@ -9,6 +9,7 @@ import (
 	"github.com/samborkent/uuidv7"
 	"net/http"
 	"strconv"
+	"strings"
 )
 
 func parseId(ctx *gin.Context) (pgtype.UUID, bool) {
@@ -39,4 +40,12 @@ func parsePageable(ctx *gin.Context, defaultSort string) *common.Pageable {
 		Size: int32(size),
 		Sort: sort,
 	}
+}
+
+func parseStringSlice(ctx *gin.Context, key string) []string {
+	value := ctx.Query(key)
+	if common.IsBlank(value) {
+		return []string{}
+	}
+	return strings.Split(value, ",")
 }

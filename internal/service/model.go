@@ -4,7 +4,11 @@ type SearchAttributeCriteria struct {
 	SearchField string
 }
 
-type SearchUsersCriteria struct {
+type SearchAuthorityCriteria struct {
+	SearchField string
+}
+
+type SearchUserCriteria struct {
 	SearchField   string
 	Email         string
 	AttributeKeys []string

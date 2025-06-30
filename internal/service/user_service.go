@@ -11,8 +11,14 @@ import (
 )
 
 type UserService interface {
-	SearchUsers(ctx context.Context, criteria SearchUsersCriteria, pageable common.Pageable) (*common.Page[*openapi.UserDetail], error)
+	AddUser(ctx context.Context, userData *openapi.UserData) (*openapi.UserDetail, error)
+	DeleteUser(ctx context.Context, id pgtype.UUID) error
 	GetUser(ctx context.Context, id pgtype.UUID) (*openapi.UserDetail, error)
+	GetUsers(ctx context.Context, criteria *SearchUserCriteria, pageable *common.Pageable) (*common.Page[*openapi.UserDetail], error)
+	SetAuthorities(ctx context.Context, id pgtype.UUID, userAuthoritiesData *openapi.UserAuthoritiesData) (*openapi.UserDetail, error)
+	SetConfirmed(ctx context.Context, id pgtype.UUID, booleanValue *openapi.BooleanValue) (*openapi.UserDetail, error)
+	SetEnabled(ctx context.Context, id pgtype.UUID, booleanValue *openapi.BooleanValue) (*openapi.UserDetail, error)
+	SetUser(ctx context.Context, id pgtype.UUID, userData *openapi.UserData) (*openapi.UserDetail, error)
 }
 
 type userService struct {
@@ -25,34 +31,14 @@ func NewUserService(userRepository repository.UserRepository) UserService {
 	return &userService{userRepository}
 }
 
-func (u *userService) SearchUsers(ctx context.Context, criteria SearchUsersCriteria, pageable common.Pageable) (*common.Page[*openapi.UserDetail], error) {
-	page, err := u.userRepository.SearchUsers(ctx, repository.SearchUsersCriteria{
-		SearchField:   criteria.SearchField,
-		Email:         criteria.Email,
-		AttributeKeys: criteria.AttributeKeys,
-	}, pageable)
-	if err != nil {
-		return nil, common.NewServiceError(string(openapi.UNKNOWN), err.Error())
-	}
+func (u *userService) AddUser(ctx context.Context, userData *openapi.UserData) (*openapi.UserDetail, error) {
+	//TODO implement me
+	panic("implement me")
+}
 
-	content := make([]*openapi.UserDetail, len(page.Content))
-	for i, user := range page.Content {
-		userDetail, subErr := u.mapUserDetail(ctx, u.userRepository, user)
-		if subErr != nil {
-			return nil, subErr
-		}
-		content[i] = userDetail
-	}
-
-	return &common.Page[*openapi.UserDetail]{
-		Pageable:      &pageable,
-		TotalElements: page.TotalElements,
-		TotalPages:    page.TotalPages,
-		First:         page.First,
-		Last:          page.Last,
-		Content:       content,
-		Empty:         page.Empty,
-	}, nil
+func (u *userService) DeleteUser(ctx context.Context, id pgtype.UUID) error {
+	//TODO implement me
+	panic("implement me")
 }
 
 func (u *userService) GetUser(ctx context.Context, id pgtype.UUID) (*openapi.UserDetail, error) {
@@ -63,16 +49,66 @@ func (u *userService) GetUser(ctx context.Context, id pgtype.UUID) (*openapi.Use
 	if errors.Is(err, pgx.ErrNoRows) {
 		return nil, common.NewServiceError(string(openapi.NOT_FOUND), "User not found")
 	}
-	return u.mapUserDetail(ctx, u.userRepository, user)
+	return u.mapUserDetail(ctx, user)
 }
 
-func (u *userService) mapUserDetail(ctx context.Context, userRepository repository.UserRepository, user *repository.User) (*openapi.UserDetail, error) {
-	userAttributes, err := userRepository.GetUserAttributes(ctx, user.ID)
+func (u *userService) GetUsers(ctx context.Context, criteria *SearchUserCriteria, pageable *common.Pageable) (*common.Page[*openapi.UserDetail], error) {
+	page, err := u.userRepository.SearchUsers(ctx, &repository.SearchUsersCriteria{
+		SearchField:   criteria.SearchField,
+		Email:         criteria.Email,
+		AttributeKeys: criteria.AttributeKeys,
+	}, pageable)
 	if err != nil {
 		return nil, common.NewServiceError(string(openapi.UNKNOWN), err.Error())
 	}
 
-	userAuthorities, err := userRepository.GetUserAuthorities(ctx, user.ID)
+	content := make([]*openapi.UserDetail, len(page.Content))
+	for i, user := range page.Content {
+		userDetail, subErr := u.mapUserDetail(ctx, user)
+		if subErr != nil {
+			return nil, subErr
+		}
+		content[i] = userDetail
+	}
+
+	return &common.Page[*openapi.UserDetail]{
+		Pageable:      pageable,
+		TotalElements: page.TotalElements,
+		TotalPages:    page.TotalPages,
+		First:         page.First,
+		Last:          page.Last,
+		Content:       content,
+		Empty:         page.Empty,
+	}, nil
+}
+
+func (u *userService) SetAuthorities(ctx context.Context, id pgtype.UUID, userAuthoritiesData *openapi.UserAuthoritiesData) (*openapi.UserDetail, error) {
+	//TODO implement me
+	panic("implement me")
+}
+
+func (u *userService) SetConfirmed(ctx context.Context, id pgtype.UUID, booleanValue *openapi.BooleanValue) (*openapi.UserDetail, error) {
+	//TODO implement me
+	panic("implement me")
+}
+
+func (u *userService) SetEnabled(ctx context.Context, id pgtype.UUID, booleanValue *openapi.BooleanValue) (*openapi.UserDetail, error) {
+	//TODO implement me
+	panic("implement me")
+}
+
+func (u *userService) SetUser(ctx context.Context, id pgtype.UUID, userData *openapi.UserData) (*openapi.UserDetail, error) {
+	//TODO implement me
+	panic("implement me")
+}
+
+func (u *userService) mapUserDetail(ctx context.Context, user *repository.User) (*openapi.UserDetail, error) {
+	userAttributes, err := u.userRepository.GetUserAttributes(ctx, user.ID)
+	if err != nil {
+		return nil, common.NewServiceError(string(openapi.UNKNOWN), err.Error())
+	}
+
+	userAuthorities, err := u.userRepository.GetUserAuthorities(ctx, user.ID)
 	if err != nil {
 		return nil, common.NewServiceError(string(openapi.UNKNOWN), err.Error())
 	}

@@ -18,7 +18,7 @@ type UserRepository interface {
 	GetUserAttributes(ctx context.Context, userID pgtype.UUID) ([]*UserAttribute, error)
 	GetUserAuthorities(ctx context.Context, userID pgtype.UUID) ([]*Authority, error)
 	GetUserByEmail(ctx context.Context, email string) (*User, error)
-	SearchUsers(ctx context.Context, criteria SearchUsersCriteria, pageable common.Pageable) (*common.Page[*User], error)
+	SearchUsers(ctx context.Context, criteria *SearchUsersCriteria, pageable *common.Pageable) (*common.Page[*User], error)
 	SetUserAttributes(ctx context.Context, arg SetUserAttributesData) ([]*UserAttribute, error)
 	SetUserAuthorities(ctx context.Context, arg SetUserAuthoritiesData) ([]*Authority, error)
 }
@@ -104,7 +104,7 @@ func (u *userRepositoryImpl) GetUserByEmail(ctx context.Context, email string) (
 	return toUser(&user), nil
 }
 
-func (u *userRepositoryImpl) SearchUsers(ctx context.Context, criteria SearchUsersCriteria, pageable common.Pageable) (*common.Page[*User], error) {
+func (u *userRepositoryImpl) SearchUsers(ctx context.Context, criteria *SearchUsersCriteria, pageable *common.Pageable) (*common.Page[*User], error) {
 	totalRows, err := u.countUsers(ctx, criteria)
 
 	if err != nil {
@@ -117,7 +117,7 @@ func (u *userRepositoryImpl) SearchUsers(ctx context.Context, criteria SearchUse
 		return nil, err
 	}
 
-	return common.NewPage[*User](&pageable, totalRows, content), nil
+	return common.NewPage[*User](pageable, totalRows, content), nil
 }
 
 func (u *userRepositoryImpl) SetUserAttributes(ctx context.Context, arg SetUserAttributesData) ([]*UserAttribute, error) {
@@ -179,7 +179,7 @@ func (u *userRepositoryImpl) SetUserAuthorities(ctx context.Context, arg SetUser
 	return arg.Authorities, nil
 }
 
-func (u *userRepositoryImpl) countUsers(ctx context.Context, criteria SearchUsersCriteria) (int64, error) {
+func (u *userRepositoryImpl) countUsers(ctx context.Context, criteria *SearchUsersCriteria) (int64, error) {
 	var query strings.Builder
 	query.WriteString(`select count(*) from "user" u`)
 
@@ -198,7 +198,7 @@ func (u *userRepositoryImpl) countUsers(ctx context.Context, criteria SearchUser
 	return count, err
 }
 
-func (u *userRepositoryImpl) searchUsers(ctx context.Context, criteria SearchUsersCriteria, pageable common.Pageable) ([]*User, error) {
+func (u *userRepositoryImpl) searchUsers(ctx context.Context, criteria *SearchUsersCriteria, pageable *common.Pageable) ([]*User, error) {
 	var query strings.Builder
 	query.WriteString(`select u.id, u.created_at, u.email, u.password, u.confirmed, u.enabled from "user" u`)
 
@@ -241,7 +241,7 @@ func (u *userRepositoryImpl) searchUsers(ctx context.Context, criteria SearchUse
 	return content, nil
 }
 
-func buildSearchQueryParts(criteria SearchUsersCriteria, paramIndex *int) (joins string, conditions []string, parameters []interface{}) {
+func buildSearchQueryParts(criteria *SearchUsersCriteria, paramIndex *int) (joins string, conditions []string, parameters []interface{}) {
 	var joinBuilder strings.Builder
 	conditions = []string{}
 	parameters = []interface{}{}
