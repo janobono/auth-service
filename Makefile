@@ -1,6 +1,15 @@
-.PHONY: clean generate generate-proto generate-openapi generate-sqlc build fmt test vet
+.PHONY: tools clean generate generate-proto generate-openapi generate-sqlc build fmt test vet
 
 default: build
+
+tools:
+	@echo "  >  Installing sqlc"
+	@go install github.com/sqlc-dev/sqlc/cmd/sqlc@latest
+	@echo "  >  Installing grpc"
+	@go install google.golang.org/protobuf/cmd/protoc-gen-go@latest
+	@go install google.golang.org/grpc/cmd/protoc-gen-go-grpc@latest
+	@echo "  >  Installing modules"
+	@go mod tidy
 
 clean:
 	@echo "  >  Cleaning build cache"

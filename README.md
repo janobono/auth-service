@@ -32,24 +32,26 @@ docker compose down
 
 ## make
 
-If you have make and golang installed, you can use prepared targets.
+If you have `make` and Go installed, you can use these prepared targets:
 
-- clean - to delete all generated sources
-- generate-proto - generate source files from proto (gRPC) into `gen/authgrpc`
-- generate-openapi - generate source files from openapi (http) into `gen/authrest`
-- generate-sqlx - generate sqlx repositories into `gen/db`
-- generate - to generate all sources
-- build - default target will call generate and build everything
-- test - run all tests
-- fmt - format code
-- test - run tests
-- vet - check code with vet
+- `tools` - to install all tools and modules
+- `clean` - to delete all generated sources
+- `generate-openapi` - generate source files from openapi (http) into `generated/openapi`
+- `generate-proto` - generate source files from proto (gRPC) into `generated/proto`
+- `generate` - to generate all sources
+- `build` - default target will call generate and build everything
+- `fmt` - format code
+- `test` - run tests
+- `vet` - check code with vet
 
-After successful build there is just a simple client just to test if everything is OK.
+## local run
 
-```shell
-./bin/auth-proto-client -addr localhost:50052 -email simple@auth.org -password simple
-```
+To start the service locally, follow these steps:
+
+1. **Set Environment Variables**  
+   Create a `.env.local` file with the required environment variables, or set them manually in your system.
+2. **Run necessary services**  
+   Run necessary services with docker command `docker compose -f infra.yaml up`.
 
 ## environment variables
 

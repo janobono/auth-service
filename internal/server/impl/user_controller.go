@@ -29,6 +29,10 @@ func (u userController) AddUser(ctx *gin.Context) {
 		RespondWithError(ctx, http.StatusBadRequest, openapi.INVALID_ARGUMENT, "'email' must not be blank")
 		return
 	}
+	if !common.IsValidEmail(data.Email) {
+		RespondWithError(ctx, http.StatusBadRequest, openapi.INVALID_ARGUMENT, "'email' invalid format")
+		return
+	}
 
 	user, err := u.userService.AddUser(ctx.Request.Context(), &data)
 	if err != nil {
