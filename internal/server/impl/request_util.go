@@ -6,6 +6,7 @@ import (
 	"github.com/janobono/auth-service/generated/openapi"
 	"github.com/janobono/go-util/common"
 	db2 "github.com/janobono/go-util/db"
+	"github.com/janobono/go-util/security"
 	"github.com/samborkent/uuidv7"
 	"net/http"
 	"strconv"
@@ -48,4 +49,24 @@ func parseStringSlice(ctx *gin.Context, key string) []string {
 		return []string{}
 	}
 	return strings.Split(value, ",")
+}
+
+func getAccessToken(ctx *gin.Context) (string, bool) {
+	token, ok := security.GetHttpAccessToken(ctx)
+
+	if !ok {
+		RespondWithError(ctx, http.StatusUnauthorized, openapi.UNAUTHORIZED, "Access token not found in context")
+	}
+
+	return token, ok
+}
+
+func getUserDetail(ctx *gin.Context) (*openapi.UserDetail, bool) {
+	principal, ok := security.GetHttpUserDetail[*openapi.UserDetail](ctx)
+
+	if !ok {
+		RespondWithError(ctx, http.StatusUnauthorized, openapi.UNAUTHORIZED, "Principal not found in context")
+	}
+
+	return principal, ok
 }

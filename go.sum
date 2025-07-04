@@ -105,6 +105,8 @@ github.com/janobono/go-util/db v1.1.0 h1:Q7xe51hoJrSXfr4KBAWqrTETMlOzvyfItQgyYAu
 github.com/janobono/go-util/db v1.1.0/go.mod h1:y48Jcr171IfFB9MUKnjHxNSk4ot9qO8jedk+ZuQjhlM=
 github.com/janobono/go-util/security v1.1.0 h1:OS67u84TOfkGihrJ9GDexBi9Z99gvdbQSFPNDzJjOGU=
 github.com/janobono/go-util/security v1.1.0/go.mod h1:DlvZMJXIirPsMwSupO45Qq/eYrSa/YZSZRVP0H5Ucyw=
+github.com/janobono/go-util/security v1.2.0 h1:BBzvhytWJY89QvzweqAEaGpraSdnEwgAxqtEvdKxGPo=
+github.com/janobono/go-util/security v1.2.0/go.mod h1:DlvZMJXIirPsMwSupO45Qq/eYrSa/YZSZRVP0H5Ucyw=
 github.com/joho/godotenv v1.5.1 h1:7eLL/+HRGLY0ldzfGMeQkb7vMd0as4CfYvUVzLqw0N0=
 github.com/joho/godotenv v1.5.1/go.mod h1:f4LDr5Voq0i2e/R5DDNOoa2zzDfwtkZa6DnEwAbqwq4=
 github.com/json-iterator/go v1.1.12 h1:PV8peI4a0ysnczrg+LtxykD8LfKY9ML6u2jnxaEnrnM=

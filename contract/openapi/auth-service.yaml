@@ -1150,9 +1150,9 @@ components:
     Refresh:
       type: object
       required:
-        - accessToken
+        - refreshToken
       properties:
-        accessToken:
+        refreshToken:
           type: string
     ResetPassword:
       type: object

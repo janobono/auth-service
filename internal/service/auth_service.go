@@ -12,8 +12,14 @@ import (
 )
 
 type AuthService interface {
+	ChangeEmail(ctx context.Context, userDetail *openapi.UserDetail, changeEmailData *openapi.ChangeEmail) (*openapi.AuthenticationResponse, error)
+	ChangePassword(ctx context.Context, userDetail *openapi.UserDetail, changePasswordData *openapi.ChangePassword) (*openapi.AuthenticationResponse, error)
+	ChangeUserAttributes(ctx context.Context, userDetail *openapi.UserDetail, changeUserAttributesData *openapi.ChangeUserAttributes) (*openapi.AuthenticationResponse, error)
+	Confirm(ctx context.Context, confirmation *openapi.Confirmation) (*openapi.AuthenticationResponse, error)
 	RefreshToken(ctx context.Context, refreshToken string) (*openapi.AuthenticationResponse, error)
+	ResetPassword(ctx context.Context, resetPassword *openapi.ResetPassword) error
 	SignIn(ctx context.Context, signIn *openapi.SignIn) (*openapi.AuthenticationResponse, error)
+	SignUp(ctx context.Context, signUp *openapi.SignUp) (*openapi.AuthenticationResponse, error)
 }
 
 type authService struct {
@@ -34,6 +40,26 @@ func NewAuthService(
 		jwtService:      jwtService,
 		userRepository:  userRepository,
 	}
+}
+
+func (a *authService) ChangeEmail(ctx context.Context, userDetail *openapi.UserDetail, changeEmailData *openapi.ChangeEmail) (*openapi.AuthenticationResponse, error) {
+	//TODO implement me
+	panic("implement me")
+}
+
+func (a *authService) ChangePassword(ctx context.Context, userDetail *openapi.UserDetail, changePasswordData *openapi.ChangePassword) (*openapi.AuthenticationResponse, error) {
+	//TODO implement me
+	panic("implement me")
+}
+
+func (a *authService) ChangeUserAttributes(ctx context.Context, userDetail *openapi.UserDetail, changeUserAttributesData *openapi.ChangeUserAttributes) (*openapi.AuthenticationResponse, error) {
+	//TODO implement me
+	panic("implement me")
+}
+
+func (a *authService) Confirm(ctx context.Context, confirmation *openapi.Confirmation) (*openapi.AuthenticationResponse, error) {
+	//TODO implement me
+	panic("implement me")
 }
 
 func (a *authService) RefreshToken(ctx context.Context, refreshToken string) (*openapi.AuthenticationResponse, error) {
@@ -61,6 +87,11 @@ func (a *authService) RefreshToken(ctx context.Context, refreshToken string) (*o
 		AccessToken:  accessToken,
 		RefreshToken: refreshToken,
 	}, nil
+}
+
+func (a *authService) ResetPassword(ctx context.Context, resetPassword *openapi.ResetPassword) error {
+	//TODO implement me
+	panic("implement me")
 }
 
 func (a *authService) SignIn(ctx context.Context, signIn *openapi.SignIn) (*openapi.AuthenticationResponse, error) {
@@ -92,6 +123,11 @@ func (a *authService) SignIn(ctx context.Context, signIn *openapi.SignIn) (*open
 	}
 
 	return a.createAuthenticationResponse(ctx, user.ID, authorities)
+}
+
+func (a *authService) SignUp(ctx context.Context, signUp *openapi.SignUp) (*openapi.AuthenticationResponse, error) {
+	//TODO implement me
+	panic("implement me")
 }
 
 func (a *authService) checkConfirmed(user *repository.User) error {
