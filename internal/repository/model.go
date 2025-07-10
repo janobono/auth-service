@@ -11,7 +11,14 @@ import (
 	"time"
 )
 
-type AddAttributeData struct {
+type Attribute struct {
+	ID       pgtype.UUID
+	Key      string
+	Required bool
+	Hidden   bool
+}
+
+type AttributeData struct {
 	Key      string
 	Required bool
 	Hidden   bool
@@ -31,13 +38,6 @@ type AddUserData struct {
 	Password  string
 	Confirmed bool
 	Enabled   bool
-}
-
-type Attribute struct {
-	ID       pgtype.UUID
-	Key      string
-	Required bool
-	Hidden   bool
 }
 
 type Authority struct {

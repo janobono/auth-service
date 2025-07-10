@@ -4,7 +4,6 @@ import (
 	"context"
 	"github.com/janobono/auth-service/generated/openapi"
 	"github.com/janobono/auth-service/internal/service"
-	"github.com/janobono/go-util/common"
 	"github.com/janobono/go-util/security"
 )
 
@@ -22,12 +21,12 @@ func NewUserDetailDecoder(jwtService *service.JwtService, userService service.Us
 func (ud *userDetailDecoder) DecodeGrpcUserDetail(ctx context.Context, token string) (*openapi.UserDetail, error) {
 	jwtToken, err := ud.jwtService.GetAccessJwtToken(ctx)
 	if err != nil {
-		return nil, common.NewServiceError(string(openapi.UNKNOWN), err.Error())
+		return nil, err
 	}
 
 	id, _, err := ud.jwtService.ParseAuthToken(ctx, jwtToken, token)
 	if err != nil {
-		return nil, common.NewServiceError(string(openapi.UNKNOWN), err.Error())
+		return nil, err
 	}
 
 	return ud.userService.GetUser(ctx, id)

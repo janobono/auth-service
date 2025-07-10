@@ -24,11 +24,6 @@ message AuthResponse {
   string access_token = 2;
 }
 
-message CaptchaData {
-  string text = 1;
-  string token = 2;
-}
-
 message PageData {
   int32 page = 1;
   int32 size = 2;

@@ -4,7 +4,6 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/janobono/auth-service/generated/openapi"
 	"github.com/janobono/auth-service/internal/service"
-	"github.com/janobono/go-util/common"
 	"github.com/janobono/go-util/security"
 	"net/http"
 	"time"
@@ -48,12 +47,12 @@ func (h *httpHandlers) PermissionDenied(c *gin.Context) {
 func (h *httpHandlers) DecodeUserDetail(c *gin.Context, token string) (*openapi.UserDetail, error) {
 	jwtToken, err := h.jwtService.GetAccessJwtToken(c.Request.Context())
 	if err != nil {
-		return nil, common.NewServiceError(string(openapi.UNKNOWN), err.Error())
+		return nil, err
 	}
 
 	id, _, err := h.jwtService.ParseAuthToken(c.Request.Context(), jwtToken, token)
 	if err != nil {
-		return nil, common.NewServiceError(string(openapi.UNKNOWN), err.Error())
+		return nil, err
 	}
 
 	return h.userService.GetUser(c.Request.Context(), id)

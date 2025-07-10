@@ -40,7 +40,7 @@ func (as *authServer) Refresh(ctx context.Context, refreshToken *wrapperspb.Stri
 	if err != nil {
 		slog.Error("RefreshToken failed", "error", err)
 		switch {
-		case common.IsCode(err, string(openapi.INVALID_ARGUMENT)):
+		case common.IsCode(err, string(openapi.INVALID_FIELD)):
 			return nil, status.Errorf(codes.InvalidArgument, "%s", err.Error())
 		default:
 			return nil, status.Errorf(codes.Internal, "%s", err.Error())
@@ -58,10 +58,12 @@ func (as *authServer) SignIn(ctx context.Context, signInData *proto.SignInData) 
 	if err != nil {
 		slog.Error("SignIn failed", "error", err)
 		switch {
+		case common.IsCode(err, string(openapi.NOT_FOUND)):
+			return nil, status.Errorf(codes.NotFound, "%s", err.Error())
 		case common.IsCode(err, string(openapi.INVALID_CREDENTIALS)):
 		case common.IsCode(err, string(openapi.USER_NOT_ENABLED)):
 		case common.IsCode(err, string(openapi.USER_NOT_CONFIRMED)):
-			return nil, status.Errorf(codes.Unauthenticated, "%s", err.Error())
+			return nil, status.Errorf(codes.PermissionDenied, "%s", err.Error())
 		default:
 			return nil, status.Errorf(codes.Internal, "%s", err.Error())
 		}

@@ -22,15 +22,15 @@ func NewUserController(userService service.UserService) openapi.UserControllerAP
 func (u userController) AddUser(ctx *gin.Context) {
 	var data openapi.UserData
 	if err := ctx.ShouldBindJSON(&data); err != nil {
-		RespondWithError(ctx, http.StatusBadRequest, openapi.INVALID_ARGUMENT, "Invalid request body")
+		RespondWithError(ctx, http.StatusBadRequest, openapi.INVALID_BODY, "Invalid request body")
 		return
 	}
 	if common.IsBlank(data.Email) {
-		RespondWithError(ctx, http.StatusBadRequest, openapi.INVALID_ARGUMENT, "'email' must not be blank")
+		RespondWithError(ctx, http.StatusBadRequest, openapi.INVALID_FIELD, "'email' must not be blank")
 		return
 	}
 	if !common.IsValidEmail(data.Email) {
-		RespondWithError(ctx, http.StatusBadRequest, openapi.INVALID_ARGUMENT, "'email' invalid format")
+		RespondWithError(ctx, http.StatusBadRequest, openapi.INVALID_FIELD, "'email' invalid format")
 		return
 	}
 
@@ -102,7 +102,7 @@ func (u userController) SetAuthorities(ctx *gin.Context) {
 	}
 	var data openapi.UserAuthoritiesData
 	if err := ctx.ShouldBindJSON(&data); err != nil {
-		RespondWithError(ctx, http.StatusBadRequest, openapi.INVALID_ARGUMENT, "Invalid request body")
+		RespondWithError(ctx, http.StatusBadRequest, openapi.INVALID_BODY, "Invalid request body")
 		return
 	}
 
@@ -123,7 +123,7 @@ func (u userController) SetConfirmed(ctx *gin.Context) {
 	}
 	var data openapi.BooleanValue
 	if err := ctx.ShouldBindJSON(&data); err != nil {
-		RespondWithError(ctx, http.StatusBadRequest, openapi.INVALID_ARGUMENT, "Invalid request body")
+		RespondWithError(ctx, http.StatusBadRequest, openapi.INVALID_BODY, "Invalid request body")
 		return
 	}
 
@@ -144,7 +144,7 @@ func (u userController) SetEnabled(ctx *gin.Context) {
 	}
 	var data openapi.BooleanValue
 	if err := ctx.ShouldBindJSON(&data); err != nil {
-		RespondWithError(ctx, http.StatusBadRequest, openapi.INVALID_ARGUMENT, "Invalid request body")
+		RespondWithError(ctx, http.StatusBadRequest, openapi.INVALID_BODY, "Invalid request body")
 		return
 	}
 
@@ -166,11 +166,11 @@ func (u userController) SetUser(ctx *gin.Context) {
 
 	var data openapi.UserData
 	if err := ctx.ShouldBindJSON(&data); err != nil {
-		RespondWithError(ctx, http.StatusBadRequest, openapi.INVALID_ARGUMENT, "Invalid request body")
+		RespondWithError(ctx, http.StatusBadRequest, openapi.INVALID_BODY, "Invalid request body")
 		return
 	}
 	if common.IsBlank(data.Email) {
-		RespondWithError(ctx, http.StatusBadRequest, openapi.INVALID_ARGUMENT, "'email' must not be blank")
+		RespondWithError(ctx, http.StatusBadRequest, openapi.INVALID_FIELD, "'email' must not be blank")
 		return
 	}
 

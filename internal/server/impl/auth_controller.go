@@ -22,27 +22,27 @@ func NewAuthController(authService service.AuthService) openapi.AuthControllerAP
 func (a *authController) ChangeEmail(ctx *gin.Context) {
 	var data openapi.ChangeEmail
 	if err := ctx.ShouldBindJSON(&data); err != nil {
-		RespondWithError(ctx, http.StatusBadRequest, openapi.INVALID_ARGUMENT, "Invalid request body")
+		RespondWithError(ctx, http.StatusBadRequest, openapi.INVALID_BODY, "Invalid request body")
 		return
 	}
 	if common.IsBlank(data.Email) {
-		RespondWithError(ctx, http.StatusBadRequest, openapi.INVALID_ARGUMENT, "'email' must not be blank")
+		RespondWithError(ctx, http.StatusBadRequest, openapi.INVALID_FIELD, "'email' must not be blank")
 		return
 	}
 	if !common.IsValidEmail(data.Email) {
-		RespondWithError(ctx, http.StatusBadRequest, openapi.INVALID_ARGUMENT, "'email' invalid format")
+		RespondWithError(ctx, http.StatusBadRequest, openapi.INVALID_FIELD, "'email' invalid format")
 		return
 	}
 	if common.IsBlank(data.Password) {
-		RespondWithError(ctx, http.StatusBadRequest, openapi.INVALID_ARGUMENT, "'password' must not be blank")
+		RespondWithError(ctx, http.StatusBadRequest, openapi.INVALID_FIELD, "'password' must not be blank")
 		return
 	}
 	if common.IsBlank(data.CaptchaText) {
-		RespondWithError(ctx, http.StatusBadRequest, openapi.INVALID_ARGUMENT, "'captchaText' must not be blank")
+		RespondWithError(ctx, http.StatusBadRequest, openapi.INVALID_FIELD, "'captchaText' must not be blank")
 		return
 	}
 	if common.IsBlank(data.CaptchaToken) {
-		RespondWithError(ctx, http.StatusBadRequest, openapi.INVALID_ARGUMENT, "'captchaToken' must not be blank")
+		RespondWithError(ctx, http.StatusBadRequest, openapi.INVALID_FIELD, "'captchaToken' must not be blank")
 		return
 	}
 
@@ -64,23 +64,23 @@ func (a *authController) ChangeEmail(ctx *gin.Context) {
 func (a *authController) ChangePassword(ctx *gin.Context) {
 	var data openapi.ChangePassword
 	if err := ctx.ShouldBindJSON(&data); err != nil {
-		RespondWithError(ctx, http.StatusBadRequest, openapi.INVALID_ARGUMENT, "Invalid request body")
+		RespondWithError(ctx, http.StatusBadRequest, openapi.INVALID_BODY, "Invalid request body")
 		return
 	}
 	if common.IsBlank(data.OldPassword) {
-		RespondWithError(ctx, http.StatusBadRequest, openapi.INVALID_ARGUMENT, "'oldPassword' must not be blank")
+		RespondWithError(ctx, http.StatusBadRequest, openapi.INVALID_FIELD, "'oldPassword' must not be blank")
 		return
 	}
 	if common.IsBlank(data.NewPassword) {
-		RespondWithError(ctx, http.StatusBadRequest, openapi.INVALID_ARGUMENT, "'newPassword' must not be blank")
+		RespondWithError(ctx, http.StatusBadRequest, openapi.INVALID_FIELD, "'newPassword' must not be blank")
 		return
 	}
 	if common.IsBlank(data.CaptchaText) {
-		RespondWithError(ctx, http.StatusBadRequest, openapi.INVALID_ARGUMENT, "'captchaText' must not be blank")
+		RespondWithError(ctx, http.StatusBadRequest, openapi.INVALID_FIELD, "'captchaText' must not be blank")
 		return
 	}
 	if common.IsBlank(data.CaptchaToken) {
-		RespondWithError(ctx, http.StatusBadRequest, openapi.INVALID_ARGUMENT, "'captchaToken' must not be blank")
+		RespondWithError(ctx, http.StatusBadRequest, openapi.INVALID_FIELD, "'captchaToken' must not be blank")
 		return
 	}
 
@@ -102,15 +102,15 @@ func (a *authController) ChangePassword(ctx *gin.Context) {
 func (a *authController) ChangeUserAttributes(ctx *gin.Context) {
 	var data openapi.ChangeUserAttributes
 	if err := ctx.ShouldBindJSON(&data); err != nil {
-		RespondWithError(ctx, http.StatusBadRequest, openapi.INVALID_ARGUMENT, "Invalid request body")
+		RespondWithError(ctx, http.StatusBadRequest, openapi.INVALID_BODY, "Invalid request body")
 		return
 	}
 	if common.IsBlank(data.CaptchaText) {
-		RespondWithError(ctx, http.StatusBadRequest, openapi.INVALID_ARGUMENT, "'captchaText' must not be blank")
+		RespondWithError(ctx, http.StatusBadRequest, openapi.INVALID_FIELD, "'captchaText' must not be blank")
 		return
 	}
 	if common.IsBlank(data.CaptchaToken) {
-		RespondWithError(ctx, http.StatusBadRequest, openapi.INVALID_ARGUMENT, "'captchaToken' must not be blank")
+		RespondWithError(ctx, http.StatusBadRequest, openapi.INVALID_FIELD, "'captchaToken' must not be blank")
 		return
 	}
 
@@ -132,11 +132,11 @@ func (a *authController) ChangeUserAttributes(ctx *gin.Context) {
 func (a *authController) Confirm(ctx *gin.Context) {
 	var data openapi.Confirmation
 	if err := ctx.ShouldBindJSON(&data); err != nil {
-		RespondWithError(ctx, http.StatusBadRequest, openapi.INVALID_ARGUMENT, "Invalid request body")
+		RespondWithError(ctx, http.StatusBadRequest, openapi.INVALID_BODY, "Invalid request body")
 		return
 	}
 	if common.IsBlank(data.Token) {
-		RespondWithError(ctx, http.StatusBadRequest, openapi.INVALID_ARGUMENT, "'token' must not be blank")
+		RespondWithError(ctx, http.StatusBadRequest, openapi.INVALID_FIELD, "'token' must not be blank")
 		return
 	}
 
@@ -162,11 +162,11 @@ func (a *authController) GetUserDetail(ctx *gin.Context) {
 func (a *authController) Refresh(ctx *gin.Context) {
 	var data openapi.Refresh
 	if err := ctx.ShouldBindJSON(&data); err != nil {
-		RespondWithError(ctx, http.StatusBadRequest, openapi.INVALID_ARGUMENT, "Invalid request body")
+		RespondWithError(ctx, http.StatusBadRequest, openapi.INVALID_BODY, "Invalid request body")
 		return
 	}
 	if common.IsBlank(data.RefreshToken) {
-		RespondWithError(ctx, http.StatusBadRequest, openapi.INVALID_ARGUMENT, "'refreshToken' must not be blank")
+		RespondWithError(ctx, http.StatusBadRequest, openapi.INVALID_FIELD, "'refreshToken' must not be blank")
 		return
 	}
 
@@ -183,24 +183,24 @@ func (a *authController) Refresh(ctx *gin.Context) {
 func (a *authController) ResetPassword(ctx *gin.Context) {
 	var data openapi.ResetPassword
 	if err := ctx.ShouldBindJSON(&data); err != nil {
-		RespondWithError(ctx, http.StatusBadRequest, openapi.INVALID_ARGUMENT, "Invalid request body")
+		RespondWithError(ctx, http.StatusBadRequest, openapi.INVALID_BODY, "Invalid request body")
 		return
 	}
 
 	if common.IsBlank(data.Email) {
-		RespondWithError(ctx, http.StatusBadRequest, openapi.INVALID_ARGUMENT, "'email' must not be blank")
+		RespondWithError(ctx, http.StatusBadRequest, openapi.INVALID_FIELD, "'email' must not be blank")
 		return
 	}
 	if !common.IsValidEmail(data.Email) {
-		RespondWithError(ctx, http.StatusBadRequest, openapi.INVALID_ARGUMENT, "'email' invalid format")
+		RespondWithError(ctx, http.StatusBadRequest, openapi.INVALID_FIELD, "'email' invalid format")
 		return
 	}
 	if common.IsBlank(data.CaptchaText) {
-		RespondWithError(ctx, http.StatusBadRequest, openapi.INVALID_ARGUMENT, "'captchaText' must not be blank")
+		RespondWithError(ctx, http.StatusBadRequest, openapi.INVALID_FIELD, "'captchaText' must not be blank")
 		return
 	}
 	if common.IsBlank(data.CaptchaToken) {
-		RespondWithError(ctx, http.StatusBadRequest, openapi.INVALID_ARGUMENT, "'captchaToken' must not be blank")
+		RespondWithError(ctx, http.StatusBadRequest, openapi.INVALID_FIELD, "'captchaToken' must not be blank")
 		return
 	}
 
@@ -217,19 +217,19 @@ func (a *authController) ResetPassword(ctx *gin.Context) {
 func (a *authController) SignIn(ctx *gin.Context) {
 	var data openapi.SignIn
 	if err := ctx.ShouldBindJSON(&data); err != nil {
-		RespondWithError(ctx, http.StatusBadRequest, openapi.INVALID_ARGUMENT, "Invalid request body")
+		RespondWithError(ctx, http.StatusBadRequest, openapi.INVALID_BODY, "Invalid request body")
 		return
 	}
 	if common.IsBlank(data.Email) {
-		RespondWithError(ctx, http.StatusBadRequest, openapi.INVALID_ARGUMENT, "'email' must not be blank")
+		RespondWithError(ctx, http.StatusBadRequest, openapi.INVALID_FIELD, "'email' must not be blank")
 		return
 	}
 	if !common.IsValidEmail(data.Email) {
-		RespondWithError(ctx, http.StatusBadRequest, openapi.INVALID_ARGUMENT, "'email' invalid format")
+		RespondWithError(ctx, http.StatusBadRequest, openapi.INVALID_FIELD, "'email' invalid format")
 		return
 	}
 	if common.IsBlank(data.Password) {
-		RespondWithError(ctx, http.StatusBadRequest, openapi.INVALID_ARGUMENT, "'password' must not be blank")
+		RespondWithError(ctx, http.StatusBadRequest, openapi.INVALID_FIELD, "'password' must not be blank")
 		return
 	}
 
@@ -246,19 +246,19 @@ func (a *authController) SignIn(ctx *gin.Context) {
 func (a *authController) SignUp(ctx *gin.Context) {
 	var data openapi.SignUp
 	if err := ctx.ShouldBindJSON(&data); err != nil {
-		RespondWithError(ctx, http.StatusBadRequest, openapi.INVALID_ARGUMENT, "Invalid request body")
+		RespondWithError(ctx, http.StatusBadRequest, openapi.INVALID_BODY, "Invalid request body")
 		return
 	}
 	if common.IsBlank(data.Email) {
-		RespondWithError(ctx, http.StatusBadRequest, openapi.INVALID_ARGUMENT, "'email' must not be blank")
+		RespondWithError(ctx, http.StatusBadRequest, openapi.INVALID_FIELD, "'email' must not be blank")
 		return
 	}
 	if !common.IsValidEmail(data.Email) {
-		RespondWithError(ctx, http.StatusBadRequest, openapi.INVALID_ARGUMENT, "'email' invalid format")
+		RespondWithError(ctx, http.StatusBadRequest, openapi.INVALID_FIELD, "'email' invalid format")
 		return
 	}
 	if common.IsBlank(data.Password) {
-		RespondWithError(ctx, http.StatusBadRequest, openapi.INVALID_ARGUMENT, "'password' must not be blank")
+		RespondWithError(ctx, http.StatusBadRequest, openapi.INVALID_FIELD, "'password' must not be blank")
 		return
 	}
 

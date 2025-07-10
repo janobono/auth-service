@@ -16,16 +16,16 @@ import (
 func parseId(ctx *gin.Context) (pgtype.UUID, bool) {
 	id := ctx.Param("id")
 	if common.IsBlank(id) {
-		RespondWithError(ctx, http.StatusBadRequest, openapi.INVALID_ARGUMENT, "'id' must not be blank")
+		RespondWithError(ctx, http.StatusBadRequest, openapi.INVALID_FIELD, "'id' must not be blank")
 		return pgtype.UUID{}, false
 	}
 	if !uuidv7.IsValidString(id) {
-		RespondWithError(ctx, http.StatusBadRequest, openapi.INVALID_ARGUMENT, "'id' must be uuid v7")
+		RespondWithError(ctx, http.StatusBadRequest, openapi.INVALID_FIELD, "'id' must be uuid v7")
 		return pgtype.UUID{}, false
 	}
 	result, err := db2.ParseUUID(id)
 	if err != nil {
-		RespondWithError(ctx, http.StatusBadRequest, openapi.INVALID_ARGUMENT, err.Error())
+		RespondWithError(ctx, http.StatusBadRequest, openapi.INVALID_FIELD, err.Error())
 		return pgtype.UUID{}, false
 	}
 	return result, true

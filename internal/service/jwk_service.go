@@ -5,7 +5,6 @@ import (
 	"encoding/base64"
 	"github.com/janobono/auth-service/generated/openapi"
 	"github.com/janobono/auth-service/internal/repository"
-	"github.com/janobono/go-util/common"
 	"math/big"
 )
 
@@ -26,7 +25,7 @@ func NewJwkService(jwkRepository repository.JwkRepository) JwkService {
 func (j *jwkService) GetJwks(ctx context.Context) (*openapi.Jwks, error) {
 	activeJwks, err := j.jwkRepository.GetActiveJwks(ctx)
 	if err != nil {
-		return nil, common.NewServiceError(string(openapi.UNKNOWN), err.Error())
+		return nil, err
 	}
 
 	keys := make([]openapi.Jwk, 0, len(activeJwks))

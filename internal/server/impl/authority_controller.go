@@ -22,11 +22,11 @@ func NewAuthorityController(authorityService service.AuthorityService) openapi.A
 func (a *authorityController) AddAuthority(ctx *gin.Context) {
 	var data openapi.AuthorityData
 	if err := ctx.ShouldBindJSON(&data); err != nil {
-		RespondWithError(ctx, http.StatusBadRequest, openapi.INVALID_ARGUMENT, "Invalid request body")
+		RespondWithError(ctx, http.StatusBadRequest, openapi.INVALID_BODY, "Invalid request body")
 		return
 	}
 	if common.IsBlank(data.Authority) {
-		RespondWithError(ctx, http.StatusBadRequest, openapi.INVALID_ARGUMENT, "'authority' must not be blank")
+		RespondWithError(ctx, http.StatusBadRequest, openapi.INVALID_FIELD, "'authority' must not be blank")
 		return
 	}
 
@@ -97,11 +97,11 @@ func (a *authorityController) SetAuthority(ctx *gin.Context) {
 
 	var data openapi.AuthorityData
 	if err := ctx.ShouldBindJSON(&data); err != nil {
-		RespondWithError(ctx, http.StatusBadRequest, openapi.INVALID_ARGUMENT, "Invalid request body")
+		RespondWithError(ctx, http.StatusBadRequest, openapi.INVALID_BODY, "Invalid request body")
 		return
 	}
 	if common.IsBlank(data.Authority) {
-		RespondWithError(ctx, http.StatusBadRequest, openapi.INVALID_ARGUMENT, "'authority' must not be blank")
+		RespondWithError(ctx, http.StatusBadRequest, openapi.INVALID_FIELD, "'authority' must not be blank")
 		return
 	}
 

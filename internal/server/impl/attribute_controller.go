@@ -22,11 +22,11 @@ func NewAttributeController(attributeService service.AttributeService) openapi.A
 func (a *attributeController) AddAttribute(ctx *gin.Context) {
 	var data openapi.AttributeData
 	if err := ctx.ShouldBindJSON(&data); err != nil {
-		RespondWithError(ctx, http.StatusBadRequest, openapi.INVALID_ARGUMENT, "Invalid request body")
+		RespondWithError(ctx, http.StatusBadRequest, openapi.INVALID_BODY, "Invalid request body")
 		return
 	}
 	if common.IsBlank(data.Key) {
-		RespondWithError(ctx, http.StatusBadRequest, openapi.INVALID_ARGUMENT, "'key' must not be blank")
+		RespondWithError(ctx, http.StatusBadRequest, openapi.INVALID_FIELD, "'key' must not be blank")
 		return
 	}
 
@@ -97,11 +97,11 @@ func (a *attributeController) SetAttribute(ctx *gin.Context) {
 
 	var data openapi.AttributeData
 	if err := ctx.ShouldBindJSON(&data); err != nil {
-		RespondWithError(ctx, http.StatusBadRequest, openapi.INVALID_ARGUMENT, "Invalid request body")
+		RespondWithError(ctx, http.StatusBadRequest, openapi.INVALID_BODY, "Invalid request body")
 		return
 	}
 	if common.IsBlank(data.Key) {
-		RespondWithError(ctx, http.StatusBadRequest, openapi.INVALID_ARGUMENT, "'key' must not be blank")
+		RespondWithError(ctx, http.StatusBadRequest, openapi.INVALID_FIELD, "'key' must not be blank")
 		return
 	}
 

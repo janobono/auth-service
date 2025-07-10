@@ -6,10 +6,8 @@ import (
 	"github.com/golang-jwt/jwt/v5"
 	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgtype"
-	"github.com/janobono/auth-service/generated/openapi"
 	"github.com/janobono/auth-service/internal/config"
 	"github.com/janobono/auth-service/internal/repository"
-	"github.com/janobono/go-util/common"
 	db2 "github.com/janobono/go-util/db"
 	"github.com/janobono/go-util/security"
 	"sync"
@@ -81,7 +79,7 @@ func (j *JwtService) getJwtToken(
 	jwk, err := j.jwkRepository.GetActiveJwk(ctx, use)
 
 	if err != nil && !errors.Is(err, pgx.ErrNoRows) {
-		return nil, common.NewServiceError(string(openapi.UNKNOWN), err.Error())
+		return nil, err
 	}
 	if (err == nil && now.After(jwk.ExpiresAt)) || errors.Is(err, pgx.ErrNoRows) {
 		jwk, err = j.jwkRepository.AddJwk(ctx, repository.AddJwkData{
@@ -91,7 +89,7 @@ func (j *JwtService) getJwtToken(
 	}
 
 	if err != nil {
-		return nil, common.NewServiceError(string(openapi.UNKNOWN), err.Error())
+		return nil, err
 	}
 
 	token := security.NewJwtToken(
@@ -134,18 +132,18 @@ func (j *JwtService) GenerateAuthToken(token *security.JwtToken, id pgtype.UUID,
 func (j *JwtService) ParseAuthToken(ctx context.Context, jwtToken *security.JwtToken, token string) (pgtype.UUID, []string, error) {
 	claims, err := jwtToken.ParseToken(ctx, token)
 	if err != nil {
-		return pgtype.UUID{}, nil, common.NewServiceError(string(openapi.UNKNOWN), err.Error())
+		return pgtype.UUID{}, nil, err
 	}
 
 	idString, ok := (*claims)["sub"].(string)
 
 	if !ok {
-		return pgtype.UUID{}, nil, common.NewServiceError(string(openapi.UNKNOWN), "Invalid access token")
+		return pgtype.UUID{}, nil, errors.New("invalid access token")
 	}
 
 	id, err := db2.ParseUUID(idString)
 	if err != nil {
-		return pgtype.UUID{}, nil, common.NewServiceError(string(openapi.UNKNOWN), err.Error())
+		return pgtype.UUID{}, nil, err
 	}
 
 	var authorities []string

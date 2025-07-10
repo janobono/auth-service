@@ -3,6 +3,8 @@
 default: build
 
 tools:
+	@echo "  >  Installing openapi generator"
+	@npm install @openapitools/openapi-generator-cli -g
 	@echo "  >  Installing sqlc"
 	@go install github.com/sqlc-dev/sqlc/cmd/sqlc@latest
 	@echo "  >  Installing grpc"

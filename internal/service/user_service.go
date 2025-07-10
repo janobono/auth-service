@@ -8,6 +8,7 @@ import (
 	"github.com/janobono/auth-service/generated/openapi"
 	"github.com/janobono/auth-service/internal/repository"
 	"github.com/janobono/go-util/common"
+	"net/http"
 )
 
 type UserService interface {
@@ -44,10 +45,10 @@ func (u *userService) DeleteUser(ctx context.Context, id pgtype.UUID) error {
 func (u *userService) GetUser(ctx context.Context, id pgtype.UUID) (*openapi.UserDetail, error) {
 	user, err := u.userRepository.GetUser(ctx, id)
 	if err != nil && !errors.Is(err, pgx.ErrNoRows) {
-		return nil, common.NewServiceError(string(openapi.UNKNOWN), err.Error())
+		return nil, err
 	}
 	if errors.Is(err, pgx.ErrNoRows) {
-		return nil, common.NewServiceError(string(openapi.NOT_FOUND), "User not found")
+		return nil, common.NewServiceError(http.StatusNotFound, string(openapi.NOT_FOUND), "User not found")
 	}
 	return u.mapUserDetail(ctx, user)
 }
@@ -59,7 +60,7 @@ func (u *userService) GetUsers(ctx context.Context, criteria *SearchUserCriteria
 		AttributeKeys: criteria.AttributeKeys,
 	}, pageable)
 	if err != nil {
-		return nil, common.NewServiceError(string(openapi.UNKNOWN), err.Error())
+		return nil, err
 	}
 
 	content := make([]*openapi.UserDetail, len(page.Content))
@@ -105,12 +106,12 @@ func (u *userService) SetUser(ctx context.Context, id pgtype.UUID, userData *ope
 func (u *userService) mapUserDetail(ctx context.Context, user *repository.User) (*openapi.UserDetail, error) {
 	userAttributes, err := u.userRepository.GetUserAttributes(ctx, user.ID)
 	if err != nil {
-		return nil, common.NewServiceError(string(openapi.UNKNOWN), err.Error())
+		return nil, err
 	}
 
 	userAuthorities, err := u.userRepository.GetUserAuthorities(ctx, user.ID)
 	if err != nil {
-		return nil, common.NewServiceError(string(openapi.UNKNOWN), err.Error())
+		return nil, err
 	}
 
 	attributes := make([]openapi.AttributeValueDetail, 0, len(userAttributes))

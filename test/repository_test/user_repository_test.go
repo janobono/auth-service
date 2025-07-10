@@ -18,7 +18,7 @@ func TestUserRepository_FullFlow(t *testing.T) {
 	auth, err := authorityRepository.AddAuthority(ctx, repository.AddAuthorityData{Authority: "ROLE_TEST"})
 	assert.NoError(t, err)
 
-	attr, err := attributeRepository.AddAttribute(ctx, repository.AddAttributeData{
+	attr, err := attributeRepository.AddAttribute(ctx, repository.AttributeData{
 		Key:      "nickname",
 		Required: false,
 		Hidden:   false,

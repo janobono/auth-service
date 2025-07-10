@@ -1085,13 +1085,11 @@ components:
         - NOT_FOUND
         - UNAUTHORIZED
         - FORBIDDEN
-        - INVALID_ARGUMENT
-        - INVALID_CAPTCHA
+        - INVALID_BODY
+        - INVALID_FIELD
         - INVALID_CREDENTIALS
-        - UNSUPPORTED_VALIDATION_TOKEN
-        - USER_EMAIL_IS_USED
-        - USER_NOT_CONFIRMED
         - USER_NOT_ENABLED
+        - USER_NOT_CONFIRMED
     ErrorMessage:
       type: object
       properties:
