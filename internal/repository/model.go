@@ -24,24 +24,12 @@ type AttributeData struct {
 	Hidden   bool
 }
 
-type AddAuthorityData struct {
+type Authority struct {
+	ID        pgtype.UUID
 	Authority string
 }
 
-type AddJwkData struct {
-	Use        string
-	Expiration time.Duration
-}
-
-type AddUserData struct {
-	Email     string
-	Password  string
-	Confirmed bool
-	Enabled   bool
-}
-
-type Authority struct {
-	ID        pgtype.UUID
+type AuthorityData struct {
 	Authority string
 }
 
@@ -57,25 +45,41 @@ type Jwk struct {
 	ExpiresAt  time.Time
 }
 
+type JwkData struct {
+	Use        string
+	Expiration time.Duration
+}
+
+type SearchAttributesCriteria struct {
+	SearchField string
+}
+
 type SearchUsersCriteria struct {
 	SearchField   string
 	Email         string
 	AttributeKeys []string
 }
 
-type SetUserAttributesData struct {
+type User struct {
+	ID        pgtype.UUID
+	CreatedAt time.Time
+	Email     string
+	Password  string
+	Confirmed bool
+	Enabled   bool
+}
+
+type UserAttributesData struct {
 	UserID     pgtype.UUID
 	Attributes []*UserAttribute
 }
 
-type SetUserAuthoritiesData struct {
+type UserAuthoritiesData struct {
 	UserID      pgtype.UUID
 	Authorities []*Authority
 }
 
-type User struct {
-	ID        pgtype.UUID
-	CreatedAt time.Time
+type UserData struct {
 	Email     string
 	Password  string
 	Confirmed bool

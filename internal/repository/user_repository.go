@@ -12,15 +12,15 @@ import (
 )
 
 type UserRepository interface {
-	AddUser(ctx context.Context, arg AddUserData) (*User, error)
+	AddUser(ctx context.Context, data UserData) (*User, error)
 	DeleteUser(ctx context.Context, id pgtype.UUID) error
-	GetUser(ctx context.Context, id pgtype.UUID) (*User, error)
 	GetUserAttributes(ctx context.Context, userID pgtype.UUID) ([]*UserAttribute, error)
 	GetUserAuthorities(ctx context.Context, userID pgtype.UUID) ([]*Authority, error)
 	GetUserByEmail(ctx context.Context, email string) (*User, error)
+	GetUserById(ctx context.Context, id pgtype.UUID) (*User, error)
 	SearchUsers(ctx context.Context, criteria *SearchUsersCriteria, pageable *common.Pageable) (*common.Page[*User], error)
-	SetUserAttributes(ctx context.Context, arg SetUserAttributesData) ([]*UserAttribute, error)
-	SetUserAuthorities(ctx context.Context, arg SetUserAuthoritiesData) ([]*Authority, error)
+	SetUserAttributes(ctx context.Context, arg UserAttributesData) ([]*UserAttribute, error)
+	SetUserAuthorities(ctx context.Context, arg UserAuthoritiesData) ([]*Authority, error)
 }
 
 type userRepositoryImpl struct {
@@ -31,14 +31,14 @@ func NewUserRepository(dataSource *db.DataSource) UserRepository {
 	return &userRepositoryImpl{dataSource}
 }
 
-func (u *userRepositoryImpl) AddUser(ctx context.Context, arg AddUserData) (*User, error) {
+func (u *userRepositoryImpl) AddUser(ctx context.Context, data UserData) (*User, error) {
 	user, err := u.dataSource.Queries.AddUser(ctx, sqlc.AddUserParams{
 		ID:        db2.NewUUID(),
 		CreatedAt: db2.NowUTC(),
-		Email:     arg.Email,
-		Password:  arg.Password,
-		Enabled:   arg.Enabled,
-		Confirmed: arg.Confirmed,
+		Email:     data.Email,
+		Password:  data.Password,
+		Enabled:   data.Enabled,
+		Confirmed: data.Confirmed,
 	})
 
 	if err != nil {
@@ -50,16 +50,6 @@ func (u *userRepositoryImpl) AddUser(ctx context.Context, arg AddUserData) (*Use
 
 func (u *userRepositoryImpl) DeleteUser(ctx context.Context, id pgtype.UUID) error {
 	return u.dataSource.Queries.DeleteUser(ctx, id)
-}
-
-func (u *userRepositoryImpl) GetUser(ctx context.Context, id pgtype.UUID) (*User, error) {
-	user, err := u.dataSource.Queries.GetUser(ctx, id)
-
-	if err != nil {
-		return nil, err
-	}
-
-	return toUser(&user), nil
 }
 
 func (u *userRepositoryImpl) GetUserAttributes(ctx context.Context, userID pgtype.UUID) ([]*UserAttribute, error) {
@@ -104,6 +94,16 @@ func (u *userRepositoryImpl) GetUserByEmail(ctx context.Context, email string) (
 	return toUser(&user), nil
 }
 
+func (u *userRepositoryImpl) GetUserById(ctx context.Context, id pgtype.UUID) (*User, error) {
+	user, err := u.dataSource.Queries.GetUserById(ctx, id)
+
+	if err != nil {
+		return nil, err
+	}
+
+	return toUser(&user), nil
+}
+
 func (u *userRepositoryImpl) SearchUsers(ctx context.Context, criteria *SearchUsersCriteria, pageable *common.Pageable) (*common.Page[*User], error) {
 	totalRows, err := u.countUsers(ctx, criteria)
 
@@ -120,7 +120,7 @@ func (u *userRepositoryImpl) SearchUsers(ctx context.Context, criteria *SearchUs
 	return common.NewPage[*User](pageable, totalRows, content), nil
 }
 
-func (u *userRepositoryImpl) SetUserAttributes(ctx context.Context, arg SetUserAttributesData) ([]*UserAttribute, error) {
+func (u *userRepositoryImpl) SetUserAttributes(ctx context.Context, arg UserAttributesData) ([]*UserAttribute, error) {
 	_, err := u.dataSource.ExecTx(ctx, func(q *sqlc.Queries) (interface{}, error) {
 		err := q.DeleteUserAttributes(ctx, arg.UserID)
 
@@ -150,7 +150,7 @@ func (u *userRepositoryImpl) SetUserAttributes(ctx context.Context, arg SetUserA
 	return arg.Attributes, nil
 }
 
-func (u *userRepositoryImpl) SetUserAuthorities(ctx context.Context, arg SetUserAuthoritiesData) ([]*Authority, error) {
+func (u *userRepositoryImpl) SetUserAuthorities(ctx context.Context, arg UserAuthoritiesData) ([]*Authority, error) {
 	_, err := u.dataSource.ExecTx(ctx, func(q *sqlc.Queries) (interface{}, error) {
 		err := q.DeleteUserAuthorities(ctx, arg.UserID)
 
@@ -184,7 +184,7 @@ func (u *userRepositoryImpl) countUsers(ctx context.Context, criteria *SearchUse
 	query.WriteString(`select count(*) from "user" u`)
 
 	paramIndex := 1
-	joins, conditions, parameters := buildSearchQueryParts(criteria, &paramIndex)
+	joins, conditions, parameters := u.buildSearchQueryParts(criteria, &paramIndex)
 	query.WriteString(joins)
 
 	if len(conditions) > 0 {
@@ -203,7 +203,7 @@ func (u *userRepositoryImpl) searchUsers(ctx context.Context, criteria *SearchUs
 	query.WriteString(`select u.id, u.created_at, u.email, u.password, u.confirmed, u.enabled from "user" u`)
 
 	paramIndex := 1
-	joins, conditions, parameters := buildSearchQueryParts(criteria, &paramIndex)
+	joins, conditions, parameters := u.buildSearchQueryParts(criteria, &paramIndex)
 	query.WriteString(joins)
 
 	if len(conditions) > 0 {
@@ -241,26 +241,26 @@ func (u *userRepositoryImpl) searchUsers(ctx context.Context, criteria *SearchUs
 	return content, nil
 }
 
-func buildSearchQueryParts(criteria *SearchUsersCriteria, paramIndex *int) (joins string, conditions []string, parameters []interface{}) {
+func (u *userRepositoryImpl) buildSearchQueryParts(criteria *SearchUsersCriteria, paramIndex *int) (joins string, conditions []string, parameters []interface{}) {
 	var joinBuilder strings.Builder
 	conditions = []string{}
 	parameters = []interface{}{}
 
-	if cond, params := buildEmailFilterCondition(criteria.Email, paramIndex); cond != "" {
+	if cond, params := u.buildEmailFilterCondition(criteria.Email, paramIndex); cond != "" {
 		conditions = append(conditions, cond)
 		parameters = append(parameters, params...)
 	}
 
 	searchValues := common.SplitWithoutBlank(common.ToScDf(criteria.SearchField), " ")
 	if len(searchValues) > 0 {
-		if cond, params := buildEmailSearchConditions(searchValues, paramIndex); cond != "" {
+		if cond, params := u.buildEmailSearchConditions(searchValues, paramIndex); cond != "" {
 			conditions = append(conditions, cond)
 			parameters = append(parameters, params...)
 		}
 
 		attributeKeys := common.Deduplicate(common.FilterBlank(criteria.AttributeKeys))
 		if len(attributeKeys) > 0 {
-			joins, attrConditions, params := buildAttributeJoinsAndConditions(attributeKeys, searchValues, paramIndex)
+			joins, attrConditions, params := u.buildAttributeJoinsAndConditions(attributeKeys, searchValues, paramIndex)
 			joinBuilder.WriteString(joins)
 			conditions = append(conditions, attrConditions...)
 			parameters = append(parameters, params...)
@@ -270,7 +270,7 @@ func buildSearchQueryParts(criteria *SearchUsersCriteria, paramIndex *int) (join
 	return joinBuilder.String(), conditions, parameters
 }
 
-func buildEmailFilterCondition(email string, paramIndex *int) (string, []interface{}) {
+func (u *userRepositoryImpl) buildEmailFilterCondition(email string, paramIndex *int) (string, []interface{}) {
 	if common.IsBlank(email) {
 		return "", nil
 	}
@@ -280,7 +280,7 @@ func buildEmailFilterCondition(email string, paramIndex *int) (string, []interfa
 	return cond, []interface{}{param}
 }
 
-func buildEmailSearchConditions(values []string, paramIndex *int) (string, []interface{}) {
+func (u *userRepositoryImpl) buildEmailSearchConditions(values []string, paramIndex *int) (string, []interface{}) {
 	if len(values) == 0 {
 		return "", nil
 	}
@@ -302,7 +302,7 @@ func buildEmailSearchConditions(values []string, paramIndex *int) (string, []int
 	return sb.String(), params
 }
 
-func buildAttributeJoinsAndConditions(attributeKeys, values []string, paramIndex *int) (joins string, conditions []string, params []interface{}) {
+func (u *userRepositoryImpl) buildAttributeJoinsAndConditions(attributeKeys, values []string, paramIndex *int) (joins string, conditions []string, params []interface{}) {
 	var joinBuilder strings.Builder
 	conditions = []string{}
 	params = []interface{}{}

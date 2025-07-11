@@ -82,7 +82,7 @@ func (j *JwtService) getJwtToken(
 		return nil, err
 	}
 	if (err == nil && now.After(jwk.ExpiresAt)) || errors.Is(err, pgx.ErrNoRows) {
-		jwk, err = j.jwkRepository.AddJwk(ctx, repository.AddJwkData{
+		jwk, err = j.jwkRepository.AddJwk(ctx, repository.JwkData{
 			Use:        use,
 			Expiration: jwkExpiration,
 		})

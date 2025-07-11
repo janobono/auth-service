@@ -103,7 +103,7 @@ func (a *authService) SignIn(ctx context.Context, signIn *openapi.SignIn) (*open
 		return nil, err
 	}
 	if errors.Is(err, pgx.ErrNoRows) {
-		return nil, common.NewServiceError(http.StatusNotFound, string(openapi.NOT_FOUND), "User not found")
+		return nil, common.NewServiceError(http.StatusNotFound, string(openapi.NOT_FOUND), "user not found")
 	}
 
 	if err := a.checkConfirmed(user); err != nil {
@@ -133,21 +133,21 @@ func (a *authService) SignUp(ctx context.Context, signUp *openapi.SignUp) (*open
 
 func (a *authService) checkConfirmed(user *repository.User) error {
 	if !user.Confirmed {
-		return common.NewServiceError(http.StatusForbidden, string(openapi.USER_NOT_CONFIRMED), "Account not confirmed")
+		return common.NewServiceError(http.StatusForbidden, string(openapi.USER_NOT_CONFIRMED), "account not confirmed")
 	}
 	return nil
 }
 
 func (a *authService) checkEnabled(user *repository.User) error {
 	if !user.Enabled {
-		return common.NewServiceError(http.StatusForbidden, string(openapi.USER_NOT_ENABLED), "Account not enabled")
+		return common.NewServiceError(http.StatusForbidden, string(openapi.USER_NOT_ENABLED), "account not enabled")
 	}
 	return nil
 }
 
 func (a *authService) checkPassword(user *repository.User, signIn *openapi.SignIn) error {
 	if err := a.passwordEncoder.Compare(signIn.Password, user.Password); err != nil {
-		return common.NewServiceError(http.StatusForbidden, string(openapi.INVALID_CREDENTIALS), "Wrong password")
+		return common.NewServiceError(http.StatusForbidden, string(openapi.INVALID_CREDENTIALS), "wrong password")
 	}
 	return nil
 }

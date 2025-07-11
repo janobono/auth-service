@@ -15,7 +15,7 @@ func TestJwkRepository_CRUD(t *testing.T) {
 	defer cancel()
 
 	// Add new JWK
-	addData := repository.AddJwkData{
+	addData := repository.JwkData{
 		Use:        "sig",
 		Expiration: 2 * time.Hour,
 	}

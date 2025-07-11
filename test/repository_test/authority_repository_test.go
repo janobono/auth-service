@@ -15,7 +15,7 @@ func TestAuthorityRepository_CRUD(t *testing.T) {
 	defer cancel()
 
 	// Add an authority
-	addData := repository.AddAuthorityData{
+	addData := repository.AuthorityData{
 		Authority: "ROLE_TEST",
 	}
 

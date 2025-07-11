@@ -13,7 +13,7 @@ import (
 )
 
 type JwkRepository interface {
-	AddJwk(ctx context.Context, arg AddJwkData) (*Jwk, error)
+	AddJwk(ctx context.Context, data JwkData) (*Jwk, error)
 	GetActiveJwk(ctx context.Context, use string) (*Jwk, error)
 	GetJwk(ctx context.Context, id pgtype.UUID) (*Jwk, error)
 	GetActiveJwks(ctx context.Context) ([]*Jwk, error)
@@ -27,7 +27,7 @@ func NewJwkRepository(dataSource *db.DataSource) JwkRepository {
 	return &jwkRepositoryImpl{dataSource}
 }
 
-func (j *jwkRepositoryImpl) AddJwk(ctx context.Context, arg AddJwkData) (*Jwk, error) {
+func (j *jwkRepositoryImpl) AddJwk(ctx context.Context, data JwkData) (*Jwk, error) {
 	jwk, err := j.dataSource.ExecTx(ctx, func(q *sqlc.Queries) (interface{}, error) {
 		privateKey, err := rsa.GenerateKey(rand.Reader, 2048)
 		if err != nil {
@@ -46,26 +46,26 @@ func (j *jwkRepositoryImpl) AddJwk(ctx context.Context, arg AddJwkData) (*Jwk, e
 		jwk, err := q.AddJwk(ctx, sqlc.AddJwkParams{
 			ID:         db2.NewUUID(),
 			Kty:        "RSA",
-			Use:        arg.Use,
+			Use:        data.Use,
 			Alg:        "RS256",
 			PublicKey:  publicPEM,
 			PrivateKey: privatePEM,
 			Active:     true,
 			CreatedAt:  db2.TimestampUTC(now),
-			ExpiresAt:  db2.TimestampUTC(now.Add(arg.Expiration)),
+			ExpiresAt:  db2.TimestampUTC(now.Add(data.Expiration)),
 		})
 
 		if err != nil {
 			return nil, err
 		}
 
-		err = q.DeactivateJwks(ctx, sqlc.DeactivateJwksParams{ID: jwk.ID, Use: arg.Use})
+		err = q.DeactivateJwks(ctx, sqlc.DeactivateJwksParams{ID: jwk.ID, Use: data.Use})
 		if err != nil {
 			return nil, err
 		}
 
 		err = q.DeleteNotActiveJwks(ctx, sqlc.DeleteNotActiveJwksParams{
-			Use:       arg.Use,
+			Use:       data.Use,
 			ExpiresAt: db2.TimestampUTC(now),
 		})
 		if err != nil {

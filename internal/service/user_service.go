@@ -43,7 +43,7 @@ func (u *userService) DeleteUser(ctx context.Context, id pgtype.UUID) error {
 }
 
 func (u *userService) GetUser(ctx context.Context, id pgtype.UUID) (*openapi.UserDetail, error) {
-	user, err := u.userRepository.GetUser(ctx, id)
+	user, err := u.userRepository.GetUserById(ctx, id)
 	if err != nil && !errors.Is(err, pgx.ErrNoRows) {
 		return nil, err
 	}

@@ -11,7 +11,7 @@ delete
 from "user"
 where id = $1;
 
--- name: GetUser :one
+-- name: GetUserById :one
 select *
 from "user"
 where id = $1

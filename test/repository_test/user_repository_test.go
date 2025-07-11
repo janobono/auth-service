@@ -15,10 +15,10 @@ func TestUserRepository_FullFlow(t *testing.T) {
 	ctx := context.Background()
 
 	// Add authority and attribute needed for setting later
-	auth, err := authorityRepository.AddAuthority(ctx, repository.AddAuthorityData{Authority: "ROLE_TEST"})
+	auth, err := authorityRepository.AddAuthority(ctx, repository.AuthorityData{Authority: "ROLE_TEST"})
 	assert.NoError(t, err)
 
-	attr, err := attributeRepository.AddAttribute(ctx, repository.AttributeData{
+	attr, err := attributeRepository.AddAttribute(ctx, &repository.AttributeData{
 		Key:      "nickname",
 		Required: false,
 		Hidden:   false,
@@ -26,7 +26,7 @@ func TestUserRepository_FullFlow(t *testing.T) {
 	assert.NoError(t, err)
 
 	// Add user
-	user, err := userRepository.AddUser(ctx, repository.AddUserData{
+	user, err := userRepository.AddUser(ctx, repository.UserData{
 		Email:     "user@example.com",
 		Password:  "securepass",
 		Enabled:   true,
@@ -41,7 +41,7 @@ func TestUserRepository_FullFlow(t *testing.T) {
 	assert.Equal(t, user.ID, fetchedByEmail.ID)
 
 	// Set authorities
-	updatedAuths, err := userRepository.SetUserAuthorities(ctx, repository.SetUserAuthoritiesData{
+	updatedAuths, err := userRepository.SetUserAuthorities(ctx, repository.UserAuthoritiesData{
 		UserID:      user.ID,
 		Authorities: []*repository.Authority{auth},
 	})
@@ -50,7 +50,7 @@ func TestUserRepository_FullFlow(t *testing.T) {
 	assert.Equal(t, "ROLE_TEST", updatedAuths[0].Authority)
 
 	// Set attributes
-	updatedAttrs, err := userRepository.SetUserAttributes(ctx, repository.SetUserAttributesData{
+	updatedAttrs, err := userRepository.SetUserAttributes(ctx, repository.UserAttributesData{
 		UserID: user.ID,
 		Attributes: []*repository.UserAttribute{
 			{

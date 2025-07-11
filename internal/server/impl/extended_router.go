@@ -230,7 +230,7 @@ func getRoutes(handleFunctions openapi.ApiHandleFunctions) []openapi.Route {
 			handleFunctions.UserControllerAPI.DeleteUser,
 		},
 		{
-			"GetUser",
+			"GetUserById",
 			http.MethodGet,
 			"/users/:id",
 			handleFunctions.UserControllerAPI.GetUser,

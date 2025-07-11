@@ -23,7 +23,7 @@ func TestAttributeRepository_CRUD(t *testing.T) {
 		Hidden:   false,
 	}
 
-	createdAttr, err := repo.AddAttribute(ctx, addData)
+	createdAttr, err := repo.AddAttribute(ctx, &addData)
 	assert.NoError(t, err)
 	assert.NotNil(t, createdAttr)
 	assert.Equal(t, addData.Key, createdAttr.Key)
@@ -38,8 +38,13 @@ func TestAttributeRepository_CRUD(t *testing.T) {
 	assert.NoError(t, err)
 	assert.Equal(t, int64(1), count)
 
-	// Get the attribute
-	fetchedAttr, err := repo.GetAttribute(ctx, "test-key")
+	// Count by key and not id
+	count, err = repo.CountByKeyAndNotId(ctx, createdAttr.Key, createdAttr.ID)
+	assert.NoError(t, err)
+	assert.Equal(t, int64(0), count)
+
+	// Get the attribute by key
+	fetchedAttr, err := repo.GetAttributeByKey(ctx, "test-key")
 	assert.NoError(t, err)
 	assert.NotNil(t, fetchedAttr)
 	assert.Equal(t, true, fetchedAttr.Required)
@@ -52,19 +57,27 @@ func TestAttributeRepository_CRUD(t *testing.T) {
 		Hidden:   !fetchedAttr.Hidden,
 	}
 
-	changedAttr, err := repo.SetAttribute(ctx, fetchedAttr.ID, setData)
+	changedAttr, err := repo.SetAttribute(ctx, fetchedAttr.ID, &setData)
 	assert.NoError(t, err)
 	assert.NotNil(t, changedAttr)
 	assert.Equal(t, fetchedAttr.Key, changedAttr.Key)
 	assert.Equal(t, !fetchedAttr.Required, changedAttr.Required)
 	assert.Equal(t, !fetchedAttr.Hidden, changedAttr.Hidden)
 
+	// Get the attribute by id
+	fetchedAttr, err = repo.GetAttributeById(ctx, changedAttr.ID)
+	assert.NoError(t, err)
+	assert.NotNil(t, fetchedAttr)
+	assert.Equal(t, "test-key", fetchedAttr.Key)
+	assert.Equal(t, changedAttr.Required, fetchedAttr.Required)
+	assert.Equal(t, changedAttr.Hidden, fetchedAttr.Hidden)
+
 	// Delete the attribute
 	err = repo.DeleteAttribute(ctx, createdAttr.ID)
 	assert.NoError(t, err)
 
 	// Try to get again (should fail)
-	fetchedAttr, err = repo.GetAttribute(ctx, "test-key")
+	fetchedAttr, err = repo.GetAttributeByKey(ctx, "test-key")
 	assert.Error(t, err)
 	assert.Nil(t, fetchedAttr)
 }

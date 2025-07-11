@@ -9,7 +9,7 @@ import (
 )
 
 type AuthorityRepository interface {
-	AddAuthority(ctx context.Context, arg AddAuthorityData) (*Authority, error)
+	AddAuthority(ctx context.Context, arg AuthorityData) (*Authority, error)
 	DeleteAuthority(ctx context.Context, id pgtype.UUID) error
 	GetAuthority(ctx context.Context, authority string) (*Authority, error)
 }
@@ -22,7 +22,7 @@ func NewAuthorityRepository(dataSource *db.DataSource) AuthorityRepository {
 	return &authorityRepositoryImpl{dataSource}
 }
 
-func (u *authorityRepositoryImpl) AddAuthority(ctx context.Context, arg AddAuthorityData) (*Authority, error) {
+func (u *authorityRepositoryImpl) AddAuthority(ctx context.Context, arg AuthorityData) (*Authority, error) {
 	authority, err := u.dataSource.Queries.AddAuthority(ctx, sqlc.AddAuthorityParams{
 		ID:        db2.NewUUID(),
 		Authority: arg.Authority,

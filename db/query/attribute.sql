@@ -13,12 +13,24 @@ select count(*)
 from attribute
 where key = $1;
 
+-- name: CountAttributeByKeyNotId :one
+select count(*)
+from attribute
+where key = $1
+  and id != $2;
+
 -- name: DeleteAttribute :exec
 delete
 from attribute
 where id = $1;
 
--- name: GetAttribute :one
+-- name: GetAttributeById :one
+select *
+from attribute
+where id = $1
+limit 1;
+
+-- name: GetAttributeByKey :one
 select *
 from attribute
 where key = $1
