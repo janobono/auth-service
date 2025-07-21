@@ -3,6 +3,7 @@ package repository_test
 import (
 	"context"
 	"github.com/janobono/auth-service/internal/repository"
+	"github.com/janobono/go-util/common"
 	"github.com/stretchr/testify/assert"
 	"testing"
 	"time"
@@ -16,68 +17,108 @@ func TestAttributeRepository_CRUD(t *testing.T) {
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
 
-	// Create an attribute
-	addData := repository.AttributeData{
+	// Add an attribute
+	attribute, err := repo.AddAttribute(ctx, &repository.AttributeData{
 		Key:      "test-key",
 		Required: true,
 		Hidden:   false,
-	}
-
-	createdAttr, err := repo.AddAttribute(ctx, &addData)
+	})
 	assert.NoError(t, err)
-	assert.NotNil(t, createdAttr)
-	assert.Equal(t, addData.Key, createdAttr.Key)
+	assert.NotNil(t, attribute)
+	assert.Equal(t, "test-key", attribute.Key)
+	assert.Equal(t, true, attribute.Required)
+	assert.Equal(t, false, attribute.Hidden)
 
 	// Count by id
-	count, err := repo.CountById(ctx, createdAttr.ID)
+	count, err := repo.CountById(ctx, attribute.ID)
 	assert.NoError(t, err)
 	assert.Equal(t, int64(1), count)
 
 	// Count by key
-	count, err = repo.CountByKey(ctx, createdAttr.Key)
+	count, err = repo.CountByKey(ctx, attribute.Key)
 	assert.NoError(t, err)
 	assert.Equal(t, int64(1), count)
 
 	// Count by key and not id
-	count, err = repo.CountByKeyAndNotId(ctx, createdAttr.Key, createdAttr.ID)
+	count, err = repo.CountByKeyAndNotId(ctx, attribute.Key, attribute.ID)
 	assert.NoError(t, err)
 	assert.Equal(t, int64(0), count)
 
 	// Get the attribute by key
-	fetchedAttr, err := repo.GetAttributeByKey(ctx, "test-key")
+	fetched, err := repo.GetAttributeByKey(ctx, attribute.Key)
 	assert.NoError(t, err)
-	assert.NotNil(t, fetchedAttr)
-	assert.Equal(t, true, fetchedAttr.Required)
-	assert.Equal(t, false, fetchedAttr.Hidden)
+	assert.NotNil(t, fetched)
+	assert.Equal(t, attribute.ID, fetched.ID)
+	assert.Equal(t, attribute.Required, fetched.Required)
+	assert.Equal(t, attribute.Hidden, fetched.Hidden)
 
 	// Set the attribute
-	setData := repository.AttributeData{
-		Key:      fetchedAttr.Key,
-		Required: !fetchedAttr.Required,
-		Hidden:   !fetchedAttr.Hidden,
-	}
-
-	changedAttr, err := repo.SetAttribute(ctx, fetchedAttr.ID, &setData)
+	changed, err := repo.SetAttribute(ctx, attribute.ID, &repository.AttributeData{
+		Key:      attribute.Key,
+		Required: !attribute.Required,
+		Hidden:   !attribute.Hidden,
+	})
 	assert.NoError(t, err)
-	assert.NotNil(t, changedAttr)
-	assert.Equal(t, fetchedAttr.Key, changedAttr.Key)
-	assert.Equal(t, !fetchedAttr.Required, changedAttr.Required)
-	assert.Equal(t, !fetchedAttr.Hidden, changedAttr.Hidden)
+	assert.NotNil(t, changed)
+	assert.Equal(t, attribute.ID, changed.ID)
+	assert.Equal(t, attribute.Key, changed.Key)
+	assert.Equal(t, !attribute.Required, changed.Required)
+	assert.Equal(t, !attribute.Hidden, changed.Hidden)
 
 	// Get the attribute by id
-	fetchedAttr, err = repo.GetAttributeById(ctx, changedAttr.ID)
+	fetched, err = repo.GetAttributeById(ctx, changed.ID)
 	assert.NoError(t, err)
-	assert.NotNil(t, fetchedAttr)
-	assert.Equal(t, "test-key", fetchedAttr.Key)
-	assert.Equal(t, changedAttr.Required, fetchedAttr.Required)
-	assert.Equal(t, changedAttr.Hidden, fetchedAttr.Hidden)
+	assert.NotNil(t, fetched)
+	assert.Equal(t, changed.Key, fetched.Key)
+	assert.Equal(t, changed.Required, fetched.Required)
+	assert.Equal(t, changed.Hidden, fetched.Hidden)
+
+	// Search attribute
+	_, err = repo.AddAttribute(ctx, &repository.AttributeData{
+		Key:      "other-key",
+		Required: true,
+		Hidden:   false,
+	})
+	assert.NoError(t, err)
+
+	page, err := repo.SearchAttributes(ctx,
+		&repository.SearchAttributesCriteria{SearchField: attribute.Key},
+		&common.Pageable{
+			Page: 0,
+			Size: 10,
+			Sort: "id",
+		})
+	assert.NoError(t, err)
+	assert.NotNil(t, page)
+	assert.Equal(t, false, page.Empty)
+	assert.Equal(t, true, page.First)
+	assert.Equal(t, true, page.Last)
+	assert.Equal(t, int32(1), page.TotalPages)
+	assert.Equal(t, int64(1), page.TotalElements)
+	assert.Equal(t, 1, len(page.Content))
+
+	page, err = repo.SearchAttributes(ctx,
+		&repository.SearchAttributesCriteria{},
+		&common.Pageable{
+			Page: 1,
+			Size: 1,
+			Sort: "id",
+		})
+	assert.NoError(t, err)
+	assert.NotNil(t, page)
+	assert.Equal(t, false, page.Empty)
+	assert.Equal(t, false, page.First)
+	assert.Equal(t, true, page.Last)
+	assert.Equal(t, int32(2), page.TotalPages)
+	assert.Equal(t, int64(2), page.TotalElements)
+	assert.Equal(t, 1, len(page.Content))
 
 	// Delete the attribute
-	err = repo.DeleteAttribute(ctx, createdAttr.ID)
+	err = repo.DeleteAttributeById(ctx, attribute.ID)
 	assert.NoError(t, err)
 
 	// Try to get again (should fail)
-	fetchedAttr, err = repo.GetAttributeByKey(ctx, "test-key")
+	fetched, err = repo.GetAttributeById(ctx, attribute.ID)
 	assert.Error(t, err)
-	assert.Nil(t, fetchedAttr)
+	assert.Nil(t, fetched)
 }

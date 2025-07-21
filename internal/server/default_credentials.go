@@ -75,7 +75,7 @@ func initDefaultAuthorities(dataSource *db.DataSource, defaultAuthorities []stri
 	slog.Info("Initializing default authorities")
 
 	for _, authority := range defaultAuthorities {
-		savedAuthority, err := dataSource.Queries.GetAuthority(context.Background(), authority)
+		savedAuthority, err := dataSource.Queries.GetAuthorityByAuthority(context.Background(), authority)
 
 		if err != nil && !errors.Is(err, pgx.ErrNoRows) {
 			slog.Error("Failed to get authority", "error", err)

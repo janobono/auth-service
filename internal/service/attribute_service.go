@@ -66,7 +66,7 @@ func (a *attributeService) DeleteAttribute(ctx context.Context, id pgtype.UUID) 
 		return common.NewServiceError(http.StatusNotFound, string(openapi.NOT_FOUND), "attribute does not exist")
 	}
 
-	return a.attributeRepository.DeleteAttribute(ctx, id)
+	return a.attributeRepository.DeleteAttributeById(ctx, id)
 }
 
 func (a *attributeService) GetAttribute(ctx context.Context, id pgtype.UUID) (*openapi.AttributeDetail, error) {

@@ -54,6 +54,10 @@ type SearchAttributesCriteria struct {
 	SearchField string
 }
 
+type SearchAuthoritiesCriteria struct {
+	SearchField string
+}
+
 type SearchUsersCriteria struct {
 	SearchField   string
 	Email         string

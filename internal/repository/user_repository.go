@@ -13,7 +13,7 @@ import (
 
 type UserRepository interface {
 	AddUser(ctx context.Context, data UserData) (*User, error)
-	DeleteUser(ctx context.Context, id pgtype.UUID) error
+	DeleteUserById(ctx context.Context, id pgtype.UUID) error
 	GetUserAttributes(ctx context.Context, userID pgtype.UUID) ([]*UserAttribute, error)
 	GetUserAuthorities(ctx context.Context, userID pgtype.UUID) ([]*Authority, error)
 	GetUserByEmail(ctx context.Context, email string) (*User, error)
@@ -48,8 +48,8 @@ func (u *userRepositoryImpl) AddUser(ctx context.Context, data UserData) (*User,
 	return toUser(&user), nil
 }
 
-func (u *userRepositoryImpl) DeleteUser(ctx context.Context, id pgtype.UUID) error {
-	return u.dataSource.Queries.DeleteUser(ctx, id)
+func (u *userRepositoryImpl) DeleteUserById(ctx context.Context, id pgtype.UUID) error {
+	return u.dataSource.Queries.DeleteUserById(ctx, id)
 }
 
 func (u *userRepositoryImpl) GetUserAttributes(ctx context.Context, userID pgtype.UUID) ([]*UserAttribute, error) {

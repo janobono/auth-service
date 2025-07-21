@@ -6,7 +6,7 @@ returning *;
 -- name: CountAllUsers :one
 select count(*) from "user";
 
--- name: DeleteUser :exec
+-- name: DeleteUserById :exec
 delete
 from "user"
 where id = $1;

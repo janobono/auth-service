@@ -16,7 +16,7 @@ type AttributeRepository interface {
 	CountById(ctx context.Context, id pgtype.UUID) (int64, error)
 	CountByKey(ctx context.Context, key string) (int64, error)
 	CountByKeyAndNotId(ctx context.Context, key string, id pgtype.UUID) (int64, error)
-	DeleteAttribute(ctx context.Context, id pgtype.UUID) error
+	DeleteAttributeById(ctx context.Context, id pgtype.UUID) error
 	GetAttributeById(ctx context.Context, id pgtype.UUID) (*Attribute, error)
 	GetAttributeByKey(ctx context.Context, key string) (*Attribute, error)
 	SearchAttributes(ctx context.Context, criteria *SearchAttributesCriteria, pageable *common.Pageable) (*common.Page[*Attribute], error)
@@ -61,8 +61,8 @@ func (a *attributeRepositoryImpl) CountByKeyAndNotId(ctx context.Context, key st
 	})
 }
 
-func (a *attributeRepositoryImpl) DeleteAttribute(ctx context.Context, id pgtype.UUID) error {
-	return a.dataSource.Queries.DeleteAttribute(ctx, id)
+func (a *attributeRepositoryImpl) DeleteAttributeById(ctx context.Context, id pgtype.UUID) error {
+	return a.dataSource.Queries.DeleteAttributeById(ctx, id)
 }
 
 func (a *attributeRepositoryImpl) GetAttributeById(ctx context.Context, id pgtype.UUID) (*Attribute, error) {

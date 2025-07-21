@@ -15,7 +15,7 @@ func TestUserRepository_FullFlow(t *testing.T) {
 	ctx := context.Background()
 
 	// Add authority and attribute needed for setting later
-	auth, err := authorityRepository.AddAuthority(ctx, repository.AuthorityData{Authority: "ROLE_TEST"})
+	auth, err := authorityRepository.AddAuthority(ctx, &repository.AuthorityData{Authority: "ROLE_TEST"})
 	assert.NoError(t, err)
 
 	attr, err := attributeRepository.AddAttribute(ctx, &repository.AttributeData{
@@ -76,6 +76,6 @@ func TestUserRepository_FullFlow(t *testing.T) {
 	assert.Equal(t, "testnick", gotAttrs[0].Value)
 
 	// Delete user
-	err = userRepository.DeleteUser(ctx, user.ID)
+	err = userRepository.DeleteUserById(ctx, user.ID)
 	assert.NoError(t, err)
 }

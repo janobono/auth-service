@@ -19,7 +19,7 @@ from attribute
 where key = $1
   and id != $2;
 
--- name: DeleteAttribute :exec
+-- name: DeleteAttributeById :exec
 delete
 from attribute
 where id = $1;
@@ -27,21 +27,12 @@ where id = $1;
 -- name: GetAttributeById :one
 select *
 from attribute
-where id = $1
-limit 1;
+where id = $1;
 
 -- name: GetAttributeByKey :one
 select *
 from attribute
-where key = $1
-limit 1;
-
--- name: GetUserAttributes :many
-select a.id, a.key, ua.value, a.required, a.hidden
-from attribute a
-         left join user_attribute ua on ua.attribute_id = a.id
-where ua.user_id = $1
-order by a.key;
+where key = $1;
 
 -- name: SetAttribute :one
 update attribute
