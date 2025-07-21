@@ -3,17 +3,17 @@ insert into attribute (id, key, required, hidden)
 values ($1, $2, $3, $4)
 returning *;
 
--- name: CountAttributeById :one
+-- name: CountAttributesById :one
 select count(*)
 from attribute
 where id = $1;
 
--- name: CountAttributeByKey :one
+-- name: CountAttributesByKey :one
 select count(*)
 from attribute
 where key = $1;
 
--- name: CountAttributeByKeyNotId :one
+-- name: CountAttributesByKeyNotId :one
 select count(*)
 from attribute
 where key = $1

@@ -47,15 +47,15 @@ func (a *attributeRepositoryImpl) AddAttribute(ctx context.Context, data *Attrib
 }
 
 func (a *attributeRepositoryImpl) CountById(ctx context.Context, id pgtype.UUID) (int64, error) {
-	return a.dataSource.Queries.CountAttributeById(ctx, id)
+	return a.dataSource.Queries.CountAttributesById(ctx, id)
 }
 
 func (a *attributeRepositoryImpl) CountByKey(ctx context.Context, key string) (int64, error) {
-	return a.dataSource.Queries.CountAttributeByKey(ctx, key)
+	return a.dataSource.Queries.CountAttributesByKey(ctx, key)
 }
 
 func (a *attributeRepositoryImpl) CountByKeyAndNotId(ctx context.Context, key string, id pgtype.UUID) (int64, error) {
-	return a.dataSource.Queries.CountAttributeByKeyNotId(ctx, sqlc.CountAttributeByKeyNotIdParams{
+	return a.dataSource.Queries.CountAttributesByKeyNotId(ctx, sqlc.CountAttributesByKeyNotIdParams{
 		Key: key,
 		ID:  id,
 	})

@@ -45,15 +45,15 @@ func (a *authorityRepositoryImpl) AddAuthority(ctx context.Context, data *Author
 }
 
 func (a *authorityRepositoryImpl) CountById(ctx context.Context, id pgtype.UUID) (int64, error) {
-	return a.dataSource.Queries.CountAuthorityById(ctx, id)
+	return a.dataSource.Queries.CountAuthoritiesById(ctx, id)
 }
 
 func (a *authorityRepositoryImpl) CountByAuthority(ctx context.Context, authority string) (int64, error) {
-	return a.dataSource.Queries.CountAuthorityByAuthority(ctx, authority)
+	return a.dataSource.Queries.CountAuthoritiesByAuthority(ctx, authority)
 }
 
 func (a *authorityRepositoryImpl) CountByAuthorityAndNotId(ctx context.Context, authority string, id pgtype.UUID) (int64, error) {
-	return a.dataSource.Queries.CountAuthorityByAuthorityNotId(ctx, sqlc.CountAuthorityByAuthorityNotIdParams{
+	return a.dataSource.Queries.CountAuthoritiesByAuthorityNotId(ctx, sqlc.CountAuthoritiesByAuthorityNotIdParams{
 		Authority: authority,
 		ID:        id,
 	})
