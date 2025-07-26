@@ -1,0 +1,15 @@
+get:
+  operationId: getUserDetail
+  responses:
+    "200":
+      content:
+        application/json:
+          schema:
+            $ref: '../components/schemas/user.yaml#/UserDetail'
+      description: OK
+    "4XX":
+      $ref: '../components/responses/client-error.yaml'
+    "5XX":
+      $ref: '../components/responses/server-error.yaml'
+  tags:
+    - auth-controller

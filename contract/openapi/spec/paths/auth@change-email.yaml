@@ -1,0 +1,21 @@
+post:
+  operationId: changeEmail
+  requestBody:
+    content:
+      application/json:
+        schema:
+          $ref: '../components/schemas/change-email.yaml#/ChangeEmail'
+    required: true
+  responses:
+    "200":
+      content:
+        application/json:
+          schema:
+            $ref: '../components/schemas/authentication-response.yaml#/AuthenticationResponse'
+      description: OK
+    "4XX":
+      $ref: '../components/responses/client-error.yaml'
+    "5XX":
+      $ref: '../components/responses/server-error.yaml'
+  tags:
+    - auth-controller

@@ -1,0 +1,54 @@
+parameters:
+  - name: id
+    in: path
+    required: true
+    schema:
+      type: string
+      format: uuid
+delete:
+  operationId: deleteAttribute
+  responses:
+    "200":
+      description: OK
+    "4XX":
+      $ref: '../components/responses/client-error.yaml'
+    "5XX":
+      $ref: '../components/responses/server-error.yaml'
+  tags:
+    - attribute-controller
+get:
+  operationId: getAttribute
+  responses:
+    "200":
+      content:
+        application/json:
+          schema:
+            $ref: '../components/schemas/attribute.yaml#/AttributeDetail'
+      description: OK
+    "4XX":
+      $ref: '../components/responses/client-error.yaml'
+    "5XX":
+      $ref: '../components/responses/server-error.yaml'
+  tags:
+    - attribute-controller
+put:
+  operationId: setAttribute
+  requestBody:
+    content:
+      application/json:
+        schema:
+          $ref: '../components/schemas/attribute.yaml#/AttributeData'
+    required: true
+  responses:
+    "200":
+      content:
+        application/json:
+          schema:
+            $ref: '../components/schemas/attribute.yaml#/AttributeDetail'
+      description: OK
+    "4XX":
+      $ref: '../components/responses/client-error.yaml'
+    "5XX":
+      $ref: '../components/responses/server-error.yaml'
+  tags:
+    - attribute-controller

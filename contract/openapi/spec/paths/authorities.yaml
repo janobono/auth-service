@@ -1,0 +1,60 @@
+get:
+  operationId: getAuthorities
+  parameters:
+    - name: page
+      in: query
+      required: false
+      schema:
+        default: 0
+        type: integer
+    - name: size
+      in: query
+      required: false
+      schema:
+        default: 20
+        type: integer
+    - name: sort
+      in: query
+      required: false
+      schema:
+        default: attribute ASC
+        type: string
+    - name: searchField
+      in: query
+      required: false
+      schema:
+        type: string
+  responses:
+    "200":
+      content:
+        application/json:
+          schema:
+            $ref: '../components/schemas/authority.yaml#/AuthorityPage'
+      description: OK
+    "4XX":
+      $ref: '../components/responses/client-error.yaml'
+    "5XX":
+      $ref: '../components/responses/server-error.yaml'
+  tags:
+    - authority-controller
+post:
+  operationId: addAuthority
+  requestBody:
+    content:
+      application/json:
+        schema:
+          $ref: '../components/schemas/authority.yaml#/AuthorityData'
+    required: true
+  responses:
+    "201":
+      content:
+        application/json:
+          schema:
+            $ref: '../components/schemas/authority.yaml#/AuthorityDetail'
+      description: Created
+    "4XX":
+      $ref: '../components/responses/client-error.yaml'
+    "5XX":
+      $ref: '../components/responses/server-error.yaml'
+  tags:
+    - authority-controller

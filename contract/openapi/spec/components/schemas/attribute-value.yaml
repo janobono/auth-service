@@ -1,0 +1,17 @@
+AttributeValueData:
+  type: object
+  required:
+    - key
+    - value
+  properties:
+    key:
+      type: string
+    value:
+      type: string
+AttributeValueDetail:
+  type: object
+  properties:
+    key:
+      type: string
+    value:
+      type: string

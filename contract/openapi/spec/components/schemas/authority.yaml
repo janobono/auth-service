@@ -1,0 +1,24 @@
+AuthorityData:
+  type: object
+  required:
+    - authority
+  properties:
+    authority:
+      type: string
+AuthorityDetail:
+  type: object
+  properties:
+    id:
+      type: string
+      format: uuid
+    authority:
+      type: string
+AuthorityPage:
+  allOf:
+    - $ref: './page.yaml#/Page'
+    - type: object
+      properties:
+        content:
+          items:
+            $ref: '#/AuthorityDetail'
+          type: array

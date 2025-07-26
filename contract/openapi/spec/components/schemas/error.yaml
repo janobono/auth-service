@@ -1,0 +1,22 @@
+ErrorCode:
+  type: string
+  enum:
+    - UNKNOWN
+    - NOT_FOUND
+    - UNAUTHORIZED
+    - FORBIDDEN
+    - INVALID_BODY
+    - INVALID_FIELD
+    - INVALID_CREDENTIALS
+    - USER_NOT_ENABLED
+    - USER_NOT_CONFIRMED
+ErrorMessage:
+  type: object
+  properties:
+    code:
+      $ref: '#/ErrorCode'
+    message:
+      type: string
+    timestamp:
+      format: date-time
+      type: string

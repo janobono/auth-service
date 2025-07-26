@@ -1,0 +1,17 @@
+ChangeEmail:
+  type: object
+  required:
+    - captchaText
+    - captchaToken
+    - email
+    - password
+  properties:
+    email:
+      format: email
+      type: string
+    password:
+      type: string
+    captchaText:
+      type: string
+    captchaToken:
+      type: string

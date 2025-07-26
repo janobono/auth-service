@@ -1,0 +1,7 @@
+AuthenticationResponse:
+  type: object
+  properties:
+    refreshToken:
+      type: string
+    accessToken:
+      type: string

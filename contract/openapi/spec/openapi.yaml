@@ -1,0 +1,55 @@
+openapi: 3.1.1
+info:
+  title: Auth Service
+  version: 1.0.0
+security:
+  - bearerAuth: [ ]
+paths:
+  /attributes:
+    $ref: './paths/attributes.yaml'
+  /attributes/{id}:
+    $ref: './paths/attributes@{id}.yaml'
+  /auth/change-email:
+    $ref: './paths/auth@change-email.yaml'
+  /auth/change-password:
+    $ref: './paths/auth@change-password.yaml'
+  /auth/change-user-attributes:
+    $ref: './paths/auth@change-user-attributes.yaml'
+  /auth/confirm:
+    $ref: './paths/auth@confirm.yaml'
+  /auth/refresh:
+    $ref: './paths/auth@refresh.yaml'
+  /auth/reset-password:
+    $ref: './paths/auth@reset-password.yaml'
+  /auth/sign-in:
+    $ref: './paths/auth@sign-in.yaml'
+  /auth/sign-up:
+    $ref: './paths/auth@sign-up.yaml'
+  /auth/user-detail:
+    $ref: './paths/auth@user-detail.yaml'
+  /authorities:
+    $ref: './paths/authorities.yaml'
+  /authorities/{id}:
+    $ref: './paths/authorities@{id}.yaml'
+  /livez:
+    $ref: './paths/livez.yaml'
+  /readyz:
+    $ref: './paths/readyz.yaml'
+  /users:
+    $ref: './paths/users.yaml'
+  /users/{id}:
+    $ref: './paths/users@{id}.yaml'
+  /users/{id}/authorities:
+    $ref: './paths/users@{id}@authorities.yaml'
+  /users/{id}/confirm:
+    $ref: './paths/users@{id}@confirm.yaml'
+  /users/{id}/enable:
+    $ref: './paths/users@{id}@enable.yaml'
+  /.well-known/jwks.json:
+    $ref: './paths/.well-known@jwks.json.yaml'
+components:
+  securitySchemes:
+    bearerAuth:
+      bearerFormat: JWT
+      scheme: bearer
+      type: http

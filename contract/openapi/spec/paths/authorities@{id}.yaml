@@ -1,0 +1,53 @@
+parameters:
+  - name: id
+    in: path
+    required: true
+    schema:
+      type: string
+delete:
+  operationId: deleteAuthority
+  responses:
+    "200":
+      description: OK
+    "4XX":
+      $ref: '../components/responses/client-error.yaml'
+    "5XX":
+      $ref: '../components/responses/server-error.yaml'
+  tags:
+    - authority-controller
+get:
+  operationId: getAuthority
+  responses:
+    "200":
+      content:
+        application/json:
+          schema:
+            $ref: '../components/schemas/authority.yaml#/AuthorityDetail'
+      description: OK
+    "4XX":
+      $ref: '../components/responses/client-error.yaml'
+    "5XX":
+      $ref: '../components/responses/server-error.yaml'
+  tags:
+    - authority-controller
+put:
+  operationId: setAuthority
+  requestBody:
+    content:
+      application/json:
+        schema:
+          $ref: '../components/schemas/authority.yaml#/AuthorityData'
+    required: true
+  responses:
+    "200":
+      content:
+        application/json:
+          schema:
+            $ref: '../components/schemas/authority.yaml#/AuthorityDetail'
+      description: OK
+    "4XX":
+      $ref: '../components/responses/client-error.yaml'
+    "5XX":
+      $ref: '../components/responses/server-error.yaml'
+  tags:
+    - authority-controller

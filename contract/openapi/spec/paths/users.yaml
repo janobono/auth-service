@@ -1,0 +1,72 @@
+get:
+  operationId: getUsers
+  parameters:
+    - name: page
+      in: query
+      required: false
+      schema:
+        default: 0
+        type: integer
+    - name: size
+      in: query
+      required: false
+      schema:
+        default: 20
+        type: integer
+    - name: sort
+      in: query
+      required: false
+      schema:
+        default: email ASC
+        type: string
+    - required: false
+      in: query
+      name: searchField
+      schema:
+        type: string
+    - name: email
+      in: query
+      required: false
+      schema:
+        type: string
+    - name: attributes
+      in: query
+      required: false
+      schema:
+        items:
+          type: string
+        type: array
+  responses:
+    "200":
+      content:
+        application/json:
+          schema:
+            $ref: '../components/schemas/user.yaml#/UserPage'
+      description: OK
+    "4XX":
+      $ref: '../components/responses/client-error.yaml'
+    "5XX":
+      $ref: '../components/responses/server-error.yaml'
+  tags:
+    - user-controller
+post:
+  operationId: addUser
+  requestBody:
+    content:
+      application/json:
+        schema:
+          $ref: '../components/schemas/user.yaml#/UserData'
+    required: true
+  responses:
+    "201":
+      content:
+        application/json:
+          schema:
+            $ref: '../components/schemas/user.yaml#/UserDetail'
+      description: Created
+    "4XX":
+      $ref: '../components/responses/client-error.yaml'
+    "5XX":
+      $ref: '../components/responses/server-error.yaml'
+  tags:
+    - user-controller

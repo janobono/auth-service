@@ -1,0 +1,60 @@
+get:
+  operationId: getAttributes
+  parameters:
+    - name: page
+      in: query
+      required: false
+      schema:
+        default: 0
+        type: integer
+    - name: size
+      in: query
+      required: false
+      schema:
+        default: 20
+        type: integer
+    - name: sort
+      in: query
+      required: false
+      schema:
+        default: key ASC
+        type: string
+    - name: searchField
+      in: query
+      required: false
+      schema:
+        type: string
+  responses:
+    "200":
+      content:
+        application/json:
+          schema:
+            $ref: '../components/schemas/attribute.yaml#/AttributePage'
+      description: OK
+    "4XX":
+      $ref: '../components/responses/client-error.yaml'
+    "5XX":
+      $ref: '../components/responses/server-error.yaml'
+  tags:
+    - attribute-controller
+post:
+  operationId: addAttribute
+  requestBody:
+    content:
+      application/json:
+        schema:
+          $ref: '../components/schemas/attribute.yaml#/AttributeData'
+    required: true
+  responses:
+    "201":
+      content:
+        application/json:
+          schema:
+            $ref: '../components/schemas/attribute.yaml#/AttributeDetail'
+      description: Created
+    "4XX":
+      $ref: '../components/responses/client-error.yaml'
+    "5XX":
+      $ref: '../components/responses/server-error.yaml'
+  tags:
+    - attribute-controller

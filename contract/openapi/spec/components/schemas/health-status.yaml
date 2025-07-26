@@ -1,0 +1,5 @@
+HealthStatus:
+  type: object
+  properties:
+    status:
+      type: string

@@ -1,0 +1,17 @@
+Page:
+  type: object
+  properties:
+    totalElements:
+      format: int64
+      type: integer
+    totalPages:
+      format: int32
+      type: integer
+    page:
+      format: int32
+      type: integer
+    size:
+      format: int32
+      type: integer
+    sort:
+      type: string

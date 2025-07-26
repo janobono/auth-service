@@ -1,0 +1,34 @@
+AttributeData:
+  type: object
+  required:
+    - key
+    - required
+    - hidden
+  properties:
+    key:
+      type: string
+    required:
+      type: boolean
+    hidden:
+      type: boolean
+AttributeDetail:
+  type: object
+  properties:
+    id:
+      type: string
+      format: uuid
+    key:
+      type: string
+    required:
+      type: boolean
+    hidden:
+      type: boolean
+AttributePage:
+  allOf:
+    - $ref: './page.yaml#/Page'
+    - type: object
+      properties:
+        content:
+          items:
+            $ref: '#/AttributeDetail'
+          type: array

@@ -1,0 +1,23 @@
+JWK:
+  type: object
+  required: [ kty, kid, use, alg, n, e ]
+  properties:
+    kty:
+      type: string
+    kid:
+      type: string
+    use:
+      type: string
+    alg:
+      type: string
+    n:
+      type: string
+    e:
+      type: string
+JWKS:
+  type: object
+  properties:
+    keys:
+      type: array
+      items:
+        $ref: '#/JWK'

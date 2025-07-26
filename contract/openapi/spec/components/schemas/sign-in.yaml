@@ -1,0 +1,11 @@
+SignIn:
+  type: object
+  required:
+    - email
+    - password
+  properties:
+    email:
+      format: email
+      type: string
+    password:
+      type: string
