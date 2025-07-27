@@ -12,14 +12,15 @@ import (
 )
 
 type UserService interface {
-	AddUser(ctx context.Context, userData *openapi.UserData) (*openapi.UserDetail, error)
+	AddUser(ctx context.Context, data *openapi.UserData) (*openapi.UserDetail, error)
 	DeleteUser(ctx context.Context, id pgtype.UUID) error
 	GetUser(ctx context.Context, id pgtype.UUID) (*openapi.UserDetail, error)
 	GetUsers(ctx context.Context, criteria *SearchUserCriteria, pageable *common.Pageable) (*common.Page[*openapi.UserDetail], error)
-	SetAuthorities(ctx context.Context, id pgtype.UUID, userAuthoritiesData *openapi.UserAuthoritiesData) (*openapi.UserDetail, error)
-	SetConfirmed(ctx context.Context, id pgtype.UUID, booleanValue *openapi.BooleanValue) (*openapi.UserDetail, error)
-	SetEnabled(ctx context.Context, id pgtype.UUID, booleanValue *openapi.BooleanValue) (*openapi.UserDetail, error)
-	SetUser(ctx context.Context, id pgtype.UUID, userData *openapi.UserData) (*openapi.UserDetail, error)
+	SetAttributes(ctx context.Context, id pgtype.UUID, data *openapi.UserAttributesData) (*openapi.UserDetail, error)
+	SetAuthorities(ctx context.Context, id pgtype.UUID, data *openapi.UserAuthoritiesData) (*openapi.UserDetail, error)
+	SetConfirmed(ctx context.Context, id pgtype.UUID, data *openapi.BooleanValue) (*openapi.UserDetail, error)
+	SetEmail(ctx context.Context, id pgtype.UUID, data *openapi.UserEmailData) (*openapi.UserDetail, error)
+	SetEnabled(ctx context.Context, id pgtype.UUID, data *openapi.BooleanValue) (*openapi.UserDetail, error)
 }
 
 type userService struct {
@@ -32,7 +33,7 @@ func NewUserService(userRepository repository.UserRepository) UserService {
 	return &userService{userRepository}
 }
 
-func (u *userService) AddUser(ctx context.Context, userData *openapi.UserData) (*openapi.UserDetail, error) {
+func (u *userService) AddUser(ctx context.Context, data *openapi.UserData) (*openapi.UserDetail, error) {
 	//TODO implement me
 	panic("implement me")
 }
@@ -83,6 +84,11 @@ func (u *userService) GetUsers(ctx context.Context, criteria *SearchUserCriteria
 	}, nil
 }
 
+func (u *userService) SetAttributes(ctx context.Context, id pgtype.UUID, data *openapi.UserAttributesData) (*openapi.UserDetail, error) {
+	//TODO implement me
+	panic("implement me")
+}
+
 func (u *userService) SetAuthorities(ctx context.Context, id pgtype.UUID, userAuthoritiesData *openapi.UserAuthoritiesData) (*openapi.UserDetail, error) {
 	//TODO implement me
 	panic("implement me")
@@ -93,12 +99,12 @@ func (u *userService) SetConfirmed(ctx context.Context, id pgtype.UUID, booleanV
 	panic("implement me")
 }
 
-func (u *userService) SetEnabled(ctx context.Context, id pgtype.UUID, booleanValue *openapi.BooleanValue) (*openapi.UserDetail, error) {
+func (u *userService) SetEmail(ctx context.Context, id pgtype.UUID, data *openapi.UserEmailData) (*openapi.UserDetail, error) {
 	//TODO implement me
 	panic("implement me")
 }
 
-func (u *userService) SetUser(ctx context.Context, id pgtype.UUID, userData *openapi.UserData) (*openapi.UserDetail, error) {
+func (u *userService) SetEnabled(ctx context.Context, id pgtype.UUID, booleanValue *openapi.BooleanValue) (*openapi.UserDetail, error) {
 	//TODO implement me
 	panic("implement me")
 }

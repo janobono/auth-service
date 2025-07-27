@@ -3,8 +3,6 @@ ErrorCode:
   enum:
     - UNKNOWN
     - NOT_FOUND
-    - UNAUTHORIZED
-    - FORBIDDEN
     - INVALID_BODY
     - INVALID_FIELD
     - INVALID_CREDENTIALS

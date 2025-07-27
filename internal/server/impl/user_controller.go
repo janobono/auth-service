@@ -95,6 +95,27 @@ func (u userController) GetUsers(ctx *gin.Context) {
 	ctx.JSON(http.StatusOK, result)
 }
 
+func (u userController) SetAttributes(ctx *gin.Context) {
+	id, ok := parseId(ctx)
+	if !ok {
+		return
+	}
+	var data openapi.UserAttributesData
+	if err := ctx.ShouldBindJSON(&data); err != nil {
+		RespondWithError(ctx, http.StatusBadRequest, openapi.INVALID_BODY, "Invalid request body")
+		return
+	}
+
+	user, err := u.userService.SetAttributes(ctx.Request.Context(), id, &data)
+	if err != nil {
+		slog.Error("Failed to update user attributes", "id", id, "error", err)
+		RespondWithServiceError(ctx, err)
+		return
+	}
+
+	ctx.JSON(http.StatusOK, user)
+}
+
 func (u userController) SetAuthorities(ctx *gin.Context) {
 	id, ok := parseId(ctx)
 	if !ok {
@@ -129,7 +150,37 @@ func (u userController) SetConfirmed(ctx *gin.Context) {
 
 	user, err := u.userService.SetConfirmed(ctx.Request.Context(), id, &data)
 	if err != nil {
-		slog.Error("Failed to update user authorities", "id", id, "error", err)
+		slog.Error("Failed to update user confirmed flag", "id", id, "error", err)
+		RespondWithServiceError(ctx, err)
+		return
+	}
+
+	ctx.JSON(http.StatusOK, user)
+}
+
+func (u userController) SetEmail(ctx *gin.Context) {
+	id, ok := parseId(ctx)
+	if !ok {
+		return
+	}
+
+	var data openapi.UserEmailData
+	if err := ctx.ShouldBindJSON(&data); err != nil {
+		RespondWithError(ctx, http.StatusBadRequest, openapi.INVALID_BODY, "Invalid request body")
+		return
+	}
+	if common.IsBlank(data.Email) {
+		RespondWithError(ctx, http.StatusBadRequest, openapi.INVALID_FIELD, "'email' must not be blank")
+		return
+	}
+	if !common.IsValidEmail(data.Email) {
+		RespondWithError(ctx, http.StatusBadRequest, openapi.INVALID_FIELD, "'email' invalid format")
+		return
+	}
+
+	user, err := u.userService.SetEmail(ctx.Request.Context(), id, &data)
+	if err != nil {
+		slog.Error("Failed to update user email", "id", id, "error", err)
 		RespondWithServiceError(ctx, err)
 		return
 	}
@@ -150,33 +201,7 @@ func (u userController) SetEnabled(ctx *gin.Context) {
 
 	user, err := u.userService.SetEnabled(ctx.Request.Context(), id, &data)
 	if err != nil {
-		slog.Error("Failed to update user authorities", "id", id, "error", err)
-		RespondWithServiceError(ctx, err)
-		return
-	}
-
-	ctx.JSON(http.StatusOK, user)
-}
-
-func (u userController) SetUser(ctx *gin.Context) {
-	id, ok := parseId(ctx)
-	if !ok {
-		return
-	}
-
-	var data openapi.UserData
-	if err := ctx.ShouldBindJSON(&data); err != nil {
-		RespondWithError(ctx, http.StatusBadRequest, openapi.INVALID_BODY, "Invalid request body")
-		return
-	}
-	if common.IsBlank(data.Email) {
-		RespondWithError(ctx, http.StatusBadRequest, openapi.INVALID_FIELD, "'email' must not be blank")
-		return
-	}
-
-	user, err := u.userService.SetUser(ctx.Request.Context(), id, &data)
-	if err != nil {
-		slog.Error("Failed to update user", "id", id, "error", err)
+		slog.Error("Failed to update user enabled flag", "id", id, "error", err)
 		RespondWithServiceError(ctx, err)
 		return
 	}

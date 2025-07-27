@@ -6,7 +6,6 @@ import (
 	"github.com/janobono/auth-service/internal/service"
 	"github.com/janobono/go-util/security"
 	"net/http"
-	"time"
 )
 
 type httpHandlers struct {
@@ -21,27 +20,15 @@ func NewHttpHandlers(jwtService *service.JwtService, userService service.UserSer
 }
 
 func (h *httpHandlers) MissingAuthorizationHeader(c *gin.Context) {
-	c.AbortWithStatusJSON(http.StatusUnauthorized, openapi.ErrorMessage{
-		Code:      openapi.UNAUTHORIZED,
-		Message:   "Authorization header is missing.",
-		Timestamp: time.Now().UTC(),
-	})
+	c.AbortWithStatus(http.StatusUnauthorized)
 }
 
 func (h *httpHandlers) Unauthorized(c *gin.Context) {
-	c.AbortWithStatusJSON(http.StatusUnauthorized, openapi.ErrorMessage{
-		Code:      openapi.UNAUTHORIZED,
-		Message:   "Invalid or missing authentication token.",
-		Timestamp: time.Now().UTC(),
-	})
+	c.AbortWithStatus(http.StatusUnauthorized)
 }
 
 func (h *httpHandlers) PermissionDenied(c *gin.Context) {
-	c.AbortWithStatusJSON(http.StatusForbidden, openapi.ErrorMessage{
-		Code:      openapi.FORBIDDEN,
-		Message:   "You are not authorized to access this resource.",
-		Timestamp: time.Now().UTC(),
-	})
+	c.AbortWithStatus(http.StatusForbidden)
 }
 
 func (h *httpHandlers) DecodeUserDetail(c *gin.Context, token string) (*openapi.UserDetail, error) {

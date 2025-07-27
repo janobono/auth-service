@@ -9,6 +9,8 @@ paths:
     $ref: './paths/attributes.yaml'
   /attributes/{id}:
     $ref: './paths/attributes@{id}.yaml'
+
+  # auth
   /auth/change-email:
     $ref: './paths/auth@change-email.yaml'
   /auth/change-password:
@@ -19,6 +21,8 @@ paths:
     $ref: './paths/auth@confirm.yaml'
   /auth/refresh:
     $ref: './paths/auth@refresh.yaml'
+  /auth/resend-confirmation:
+    $ref: './paths/auth@resend-confirmation.yaml'
   /auth/reset-password:
     $ref: './paths/auth@reset-password.yaml'
   /auth/sign-in:
@@ -27,24 +31,36 @@ paths:
     $ref: './paths/auth@sign-up.yaml'
   /auth/user-detail:
     $ref: './paths/auth@user-detail.yaml'
+
+  # authorities
   /authorities:
     $ref: './paths/authorities.yaml'
   /authorities/{id}:
     $ref: './paths/authorities@{id}.yaml'
+
+  # health
   /livez:
     $ref: './paths/livez.yaml'
   /readyz:
     $ref: './paths/readyz.yaml'
+
+  # users
   /users:
     $ref: './paths/users.yaml'
   /users/{id}:
     $ref: './paths/users@{id}.yaml'
+  /users/{id}/attributes:
+    $ref: './paths/users@{id}@attributes.yaml'
   /users/{id}/authorities:
     $ref: './paths/users@{id}@authorities.yaml'
   /users/{id}/confirm:
     $ref: './paths/users@{id}@confirm.yaml'
+  /users/{id}/email:
+    $ref: './paths/users@{id}@email.yaml'
   /users/{id}/enable:
     $ref: './paths/users@{id}@enable.yaml'
+
+  # jwks
   /.well-known/jwks.json:
     $ref: './paths/.well-known@jwks.json.yaml'
 components:

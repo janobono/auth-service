@@ -13,14 +13,15 @@ import (
 )
 
 type AuthService interface {
-	ChangeEmail(ctx context.Context, userDetail *openapi.UserDetail, changeEmailData *openapi.ChangeEmail) (*openapi.AuthenticationResponse, error)
-	ChangePassword(ctx context.Context, userDetail *openapi.UserDetail, changePasswordData *openapi.ChangePassword) (*openapi.AuthenticationResponse, error)
-	ChangeUserAttributes(ctx context.Context, userDetail *openapi.UserDetail, changeUserAttributesData *openapi.ChangeUserAttributes) (*openapi.AuthenticationResponse, error)
-	Confirm(ctx context.Context, confirmation *openapi.Confirmation) (*openapi.AuthenticationResponse, error)
+	ChangeEmail(ctx context.Context, userDetail *openapi.UserDetail, data *openapi.ChangeEmail) (*openapi.AuthenticationResponse, error)
+	ChangePassword(ctx context.Context, userDetail *openapi.UserDetail, data *openapi.ChangePassword) (*openapi.AuthenticationResponse, error)
+	ChangeUserAttributes(ctx context.Context, userDetail *openapi.UserDetail, data *openapi.ChangeUserAttributes) (*openapi.AuthenticationResponse, error)
+	Confirm(ctx context.Context, data *openapi.Confirmation) (*openapi.AuthenticationResponse, error)
 	RefreshToken(ctx context.Context, refreshToken string) (*openapi.AuthenticationResponse, error)
-	ResetPassword(ctx context.Context, resetPassword *openapi.ResetPassword) error
-	SignIn(ctx context.Context, signIn *openapi.SignIn) (*openapi.AuthenticationResponse, error)
-	SignUp(ctx context.Context, signUp *openapi.SignUp) (*openapi.AuthenticationResponse, error)
+	ResendConfirmation(ctx context.Context, data *openapi.ResendConfirmation) error
+	ResetPassword(ctx context.Context, data *openapi.ResetPassword) error
+	SignIn(ctx context.Context, data *openapi.SignIn) (*openapi.AuthenticationResponse, error)
+	SignUp(ctx context.Context, data *openapi.SignUp) (*openapi.AuthenticationResponse, error)
 }
 
 type authService struct {
@@ -43,17 +44,17 @@ func NewAuthService(
 	}
 }
 
-func (a *authService) ChangeEmail(ctx context.Context, userDetail *openapi.UserDetail, changeEmailData *openapi.ChangeEmail) (*openapi.AuthenticationResponse, error) {
+func (a *authService) ChangeEmail(ctx context.Context, userDetail *openapi.UserDetail, data *openapi.ChangeEmail) (*openapi.AuthenticationResponse, error) {
 	//TODO implement me
 	panic("implement me")
 }
 
-func (a *authService) ChangePassword(ctx context.Context, userDetail *openapi.UserDetail, changePasswordData *openapi.ChangePassword) (*openapi.AuthenticationResponse, error) {
+func (a *authService) ChangePassword(ctx context.Context, userDetail *openapi.UserDetail, data *openapi.ChangePassword) (*openapi.AuthenticationResponse, error) {
 	//TODO implement me
 	panic("implement me")
 }
 
-func (a *authService) ChangeUserAttributes(ctx context.Context, userDetail *openapi.UserDetail, changeUserAttributesData *openapi.ChangeUserAttributes) (*openapi.AuthenticationResponse, error) {
+func (a *authService) ChangeUserAttributes(ctx context.Context, userDetail *openapi.UserDetail, data *openapi.ChangeUserAttributes) (*openapi.AuthenticationResponse, error) {
 	//TODO implement me
 	panic("implement me")
 }
@@ -90,13 +91,18 @@ func (a *authService) RefreshToken(ctx context.Context, refreshToken string) (*o
 	}, nil
 }
 
-func (a *authService) ResetPassword(ctx context.Context, resetPassword *openapi.ResetPassword) error {
+func (a *authService) ResendConfirmation(ctx context.Context, data *openapi.ResendConfirmation) error {
 	//TODO implement me
 	panic("implement me")
 }
 
-func (a *authService) SignIn(ctx context.Context, signIn *openapi.SignIn) (*openapi.AuthenticationResponse, error) {
-	email := common.ToScDf(signIn.Email)
+func (a *authService) ResetPassword(ctx context.Context, data *openapi.ResetPassword) error {
+	//TODO implement me
+	panic("implement me")
+}
+
+func (a *authService) SignIn(ctx context.Context, data *openapi.SignIn) (*openapi.AuthenticationResponse, error) {
+	email := common.ToScDf(data.Email)
 
 	user, err := a.userRepository.GetUserByEmail(ctx, email)
 	if err != nil && !errors.Is(err, pgx.ErrNoRows) {
@@ -114,7 +120,7 @@ func (a *authService) SignIn(ctx context.Context, signIn *openapi.SignIn) (*open
 		return nil, err
 	}
 
-	if err := a.checkPassword(user, signIn); err != nil {
+	if err := a.checkPassword(user, data); err != nil {
 		return nil, err
 	}
 
@@ -126,7 +132,7 @@ func (a *authService) SignIn(ctx context.Context, signIn *openapi.SignIn) (*open
 	return a.createAuthenticationResponse(ctx, user.ID, authorities)
 }
 
-func (a *authService) SignUp(ctx context.Context, signUp *openapi.SignUp) (*openapi.AuthenticationResponse, error) {
+func (a *authService) SignUp(ctx context.Context, data *openapi.SignUp) (*openapi.AuthenticationResponse, error) {
 	//TODO implement me
 	panic("implement me")
 }

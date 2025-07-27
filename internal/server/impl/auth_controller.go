@@ -180,6 +180,40 @@ func (a *authController) Refresh(ctx *gin.Context) {
 	ctx.JSON(http.StatusOK, authentificationResponse)
 }
 
+func (a *authController) ResendConfirmation(ctx *gin.Context) {
+	var data openapi.ResendConfirmation
+	if err := ctx.ShouldBindJSON(&data); err != nil {
+		RespondWithError(ctx, http.StatusBadRequest, openapi.INVALID_BODY, "Invalid request body")
+		return
+	}
+
+	if common.IsBlank(data.Email) {
+		RespondWithError(ctx, http.StatusBadRequest, openapi.INVALID_FIELD, "'email' must not be blank")
+		return
+	}
+	if !common.IsValidEmail(data.Email) {
+		RespondWithError(ctx, http.StatusBadRequest, openapi.INVALID_FIELD, "'email' invalid format")
+		return
+	}
+	if common.IsBlank(data.CaptchaText) {
+		RespondWithError(ctx, http.StatusBadRequest, openapi.INVALID_FIELD, "'captchaText' must not be blank")
+		return
+	}
+	if common.IsBlank(data.CaptchaToken) {
+		RespondWithError(ctx, http.StatusBadRequest, openapi.INVALID_FIELD, "'captchaToken' must not be blank")
+		return
+	}
+
+	err := a.authService.ResendConfirmation(ctx.Request.Context(), &data)
+	if err != nil {
+		slog.Error("Failed to resend confirmation", "error", err)
+		RespondWithServiceError(ctx, err)
+		return
+	}
+
+	ctx.Status(http.StatusOK)
+}
+
 func (a *authController) ResetPassword(ctx *gin.Context) {
 	var data openapi.ResetPassword
 	if err := ctx.ShouldBindJSON(&data); err != nil {

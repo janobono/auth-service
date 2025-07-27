@@ -1,21 +1,13 @@
-SignUp:
+ResendConfirmation:
   type: object
   required:
-    - attributes
     - captchaText
     - captchaToken
     - email
-    - password
   properties:
     email:
-      type: string
       format: email
-    password:
       type: string
-    attributes:
-      items:
-        $ref: './attribute-value.yaml#/AttributeValueData'
-      type: array
     captchaText:
       type: string
     captchaToken:

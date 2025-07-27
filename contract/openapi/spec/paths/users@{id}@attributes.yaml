@@ -6,12 +6,12 @@ parameters:
       type: string
       format: uuid
 patch:
-  operationId: setAuthorities
+  operationId: setAttributes
   requestBody:
     content:
       application/json:
         schema:
-          $ref: '../components/schemas/user.yaml#/UserAuthoritiesData'
+          $ref: '../components/schemas/user.yaml#/UserAttributesData'
     required: true
   responses:
     "200":

@@ -22,6 +22,7 @@ func NewRouter(routerContext RouterContext) *gin.Engine {
 	authMiddleware := security.NewHttpTokenMiddleware[*openapi.UserDetail](security.HttpSecurityConfig{
 		PublicEndpoints: map[string]struct{}{
 			fmt.Sprintf("POST:%s/confirm", routerContext.ContextPath):              {},
+			fmt.Sprintf("POST:%s/resend-confirmation", routerContext.ContextPath):  {},
 			fmt.Sprintf("POST:%s/reset-password", routerContext.ContextPath):       {},
 			fmt.Sprintf("POST:%s/sign-in", routerContext.ContextPath):              {},
 			fmt.Sprintf("POST:%s/sign-up", routerContext.ContextPath):              {},
@@ -49,9 +50,10 @@ func NewRouter(routerContext RouterContext) *gin.Engine {
 			"GET:/users/:id":               append(routerContext.ReadAuthorities, routerContext.WriteAuthorities...),
 			"DELETE:/users/:id":            routerContext.WriteAuthorities,
 			"POST:/users":                  routerContext.WriteAuthorities,
-			"PUT:/users/:id":               routerContext.WriteAuthorities,
+			"PATCH:/users/:id/attributes":  routerContext.WriteAuthorities,
 			"PATCH:/users/:id/authorities": routerContext.WriteAuthorities,
 			"PATCH:/users/:id/confirm":     routerContext.WriteAuthorities,
+			"PATCH:/users/:id/email":       routerContext.WriteAuthorities,
 			"PATCH:/users/:id/enable":      routerContext.WriteAuthorities,
 		},
 	}, routerContext.HttpHandlers)
@@ -152,6 +154,12 @@ func getRoutes(handleFunctions openapi.ApiHandleFunctions) []openapi.Route {
 			handleFunctions.AuthControllerAPI.Refresh,
 		},
 		{
+			"ResetConfirmation",
+			http.MethodPost,
+			"/auth/resend-confirmation",
+			handleFunctions.AuthControllerAPI.ResendConfirmation,
+		},
+		{
 			"ResetPassword",
 			http.MethodPost,
 			"/auth/reset-password",
@@ -230,7 +238,7 @@ func getRoutes(handleFunctions openapi.ApiHandleFunctions) []openapi.Route {
 			handleFunctions.UserControllerAPI.DeleteUser,
 		},
 		{
-			"GetUserById",
+			"GetUser",
 			http.MethodGet,
 			"/users/:id",
 			handleFunctions.UserControllerAPI.GetUser,
@@ -240,6 +248,12 @@ func getRoutes(handleFunctions openapi.ApiHandleFunctions) []openapi.Route {
 			http.MethodGet,
 			"/users",
 			handleFunctions.UserControllerAPI.GetUsers,
+		},
+		{
+			"SetAttributes",
+			http.MethodPatch,
+			"/users/:id/attributes",
+			handleFunctions.UserControllerAPI.SetAttributes,
 		},
 		{
 			"SetAuthorities",
@@ -254,16 +268,16 @@ func getRoutes(handleFunctions openapi.ApiHandleFunctions) []openapi.Route {
 			handleFunctions.UserControllerAPI.SetConfirmed,
 		},
 		{
+			"SetEmail",
+			http.MethodPatch,
+			"/users/:id/email",
+			handleFunctions.UserControllerAPI.SetEmail,
+		},
+		{
 			"SetEnabled",
 			http.MethodPatch,
 			"/users/:id/enable",
 			handleFunctions.UserControllerAPI.SetEnabled,
-		},
-		{
-			"SetUser",
-			http.MethodPut,
-			"/users/:id",
-			handleFunctions.UserControllerAPI.SetUser,
 		},
 	}
 }

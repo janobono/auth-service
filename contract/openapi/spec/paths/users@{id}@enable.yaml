@@ -4,6 +4,7 @@ parameters:
     required: true
     schema:
       type: string
+      format: uuid
 patch:
   operationId: setEnabled
   requestBody:

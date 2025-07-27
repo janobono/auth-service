@@ -55,7 +55,7 @@ func getAccessToken(ctx *gin.Context) (string, bool) {
 	token, ok := security.GetHttpAccessToken(ctx)
 
 	if !ok {
-		RespondWithError(ctx, http.StatusUnauthorized, openapi.UNAUTHORIZED, "Access token not found in context")
+		AbortWithStatus(ctx, http.StatusUnauthorized)
 	}
 
 	return token, ok
@@ -65,7 +65,7 @@ func getUserDetail(ctx *gin.Context) (*openapi.UserDetail, bool) {
 	principal, ok := security.GetHttpUserDetail[*openapi.UserDetail](ctx)
 
 	if !ok {
-		RespondWithError(ctx, http.StatusUnauthorized, openapi.UNAUTHORIZED, "Principal not found in context")
+		AbortWithStatus(ctx, http.StatusUnauthorized)
 	}
 
 	return principal, ok

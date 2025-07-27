@@ -31,24 +31,3 @@ get:
       $ref: '../components/responses/server-error.yaml'
   tags:
     - user-controller
-put:
-  operationId: setUser
-  requestBody:
-    content:
-      application/json:
-        schema:
-          $ref: '../components/schemas/user.yaml#/UserData'
-    required: true
-  responses:
-    "200":
-      content:
-        application/json:
-          schema:
-            $ref: '../components/schemas/user.yaml#/UserDetail'
-      description: OK
-    "4XX":
-      $ref: '../components/responses/client-error.yaml'
-    "5XX":
-      $ref: '../components/responses/server-error.yaml'
-  tags:
-    - user-controller

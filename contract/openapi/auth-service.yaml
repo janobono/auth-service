@@ -230,6 +230,24 @@ paths:
           $ref: '#/components/responses/server-error'
       tags:
         - auth-controller
+  /auth/resend-confirmation:
+    post:
+      operationId: resendConfirmation
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ResendConfirmation'
+        required: true
+      responses:
+        '200':
+          description: OK
+        4XX:
+          $ref: '#/components/responses/client-error'
+        5XX:
+          $ref: '#/components/responses/server-error'
+      tags:
+        - auth-controller
   /auth/reset-password:
     post:
       operationId: resetPassword
@@ -562,13 +580,21 @@ paths:
           $ref: '#/components/responses/server-error'
       tags:
         - user-controller
-    put:
-      operationId: setUser
+  /users/{id}/attributes:
+    parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+    patch:
+      operationId: setAttributes
       requestBody:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/UserData'
+              $ref: '#/components/schemas/UserAttributesData'
         required: true
       responses:
         '200':
@@ -590,6 +616,7 @@ paths:
         required: true
         schema:
           type: string
+          format: uuid
     patch:
       operationId: setAuthorities
       requestBody:
@@ -618,6 +645,7 @@ paths:
         required: true
         schema:
           type: string
+          format: uuid
     patch:
       operationId: setConfirmed
       requestBody:
@@ -639,6 +667,35 @@ paths:
           $ref: '#/components/responses/server-error'
       tags:
         - user-controller
+  /users/{id}/email:
+    parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+    patch:
+      operationId: setEmail
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UserEmailData'
+        required: true
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UserDetail'
+          description: OK
+        4XX:
+          $ref: '#/components/responses/client-error'
+        5XX:
+          $ref: '#/components/responses/server-error'
+      tags:
+        - user-controller
   /users/{id}/enable:
     parameters:
       - name: id
@@ -646,6 +703,7 @@ paths:
         required: true
         schema:
           type: string
+          format: uuid
     patch:
       operationId: setEnabled
       requestBody:
@@ -733,8 +791,6 @@ components:
       enum:
         - UNKNOWN
         - NOT_FOUND
-        - UNAUTHORIZED
-        - FORBIDDEN
         - INVALID_BODY
         - INVALID_FIELD
         - INVALID_CREDENTIALS
@@ -842,6 +898,20 @@ components:
       properties:
         refreshToken:
           type: string
+    ResendConfirmation:
+      type: object
+      required:
+        - captchaText
+        - captchaToken
+        - email
+      properties:
+        email:
+          format: email
+          type: string
+        captchaText:
+          type: string
+        captchaToken:
+          type: string
     ResetPassword:
       type: object
       required:
@@ -877,8 +947,8 @@ components:
         - password
       properties:
         email:
-          format: email
           type: string
+          format: email
         password:
           type: string
         attributes:
@@ -912,6 +982,7 @@ components:
           format: uuid
         email:
           type: string
+          format: email
         createdAt:
           type: string
           format: date-time
@@ -960,26 +1031,25 @@ components:
     UserData:
       type: object
       required:
-        - attributes
-        - authorities
-        - confirmed
         - email
+        - confirmed
         - enabled
       properties:
         email:
-          format: email
           type: string
+          format: email
         confirmed:
           type: boolean
         enabled:
           type: boolean
+    UserAttributesData:
+      type: object
+      required:
+        - attributes
+      properties:
         attributes:
           items:
             $ref: '#/components/schemas/AttributeValueData'
-          type: array
-        authorities:
-          items:
-            type: string
           type: array
     UserAuthoritiesData:
       type: object
@@ -997,6 +1067,14 @@ components:
       properties:
         value:
           type: boolean
+    UserEmailData:
+      type: object
+      required:
+        - email
+      properties:
+        email:
+          type: string
+          format: email
     JWK:
       type: object
       required:

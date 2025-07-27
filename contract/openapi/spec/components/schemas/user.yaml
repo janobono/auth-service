@@ -1,3 +1,12 @@
+UserAttributesData:
+  type: object
+  required:
+    - attributes
+  properties:
+    attributes:
+      items:
+        $ref: './attribute-value.yaml#/AttributeValueData'
+      type: array
 UserAuthoritiesData:
   type: object
   required:
@@ -7,30 +16,28 @@ UserAuthoritiesData:
       items:
         type: string
       type: array
+UserEmailData:
+  type: object
+  required:
+    - email
+  properties:
+    email:
+      type: string
+      format: email
 UserData:
   type: object
   required:
-    - attributes
-    - authorities
-    - confirmed
     - email
+    - confirmed
     - enabled
   properties:
     email:
-      format: email
       type: string
+      format: email
     confirmed:
       type: boolean
     enabled:
       type: boolean
-    attributes:
-      items:
-        $ref: './attribute-value.yaml#/AttributeValueData'
-      type: array
-    authorities:
-      items:
-        type: string
-      type: array
 UserDetail:
   type: object
   properties:
@@ -39,6 +46,7 @@ UserDetail:
       format: uuid
     email:
       type: string
+      format: email
     createdAt:
       type: string
       format: date-time

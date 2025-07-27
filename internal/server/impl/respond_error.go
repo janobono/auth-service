@@ -11,6 +11,11 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
+func AbortWithStatus(ctx *gin.Context, statusCode int) {
+	slog.Error("Abort with status", "status", statusCode)
+	ctx.AbortWithStatus(statusCode)
+}
+
 func RespondWithError(ctx *gin.Context, statusCode int, code openapi.ErrorCode, message string) {
 	slog.Error("Error occurred", "code", code, "error", message)
 	ctx.JSON(statusCode, openapi.ErrorMessage{
