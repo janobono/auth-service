@@ -62,8 +62,10 @@ type CorsConfig struct {
 }
 
 type AppConfig struct {
-	MailConfirmation bool
-	ConfirmationUrl  string
+	MailConfirmation   bool
+	ConfirmationUrl    string
+	PasswordCharacters string
+	PasswordLength     int
 }
 
 func InitConfig() *ServerConfig {
@@ -115,8 +117,10 @@ func InitConfig() *ServerConfig {
 			MaxAge:           time.Duration(common.EnvInt("CORS_MAX_AGE")) * time.Hour,
 		},
 		AppConfig: &AppConfig{
-			MailConfirmation: common.EnvBool("APP_MAIL_CONFIRMATION"),
-			ConfirmationUrl:  common.Env("APP_CONFIRMATION_URL"),
+			MailConfirmation:   common.EnvBool("APP_MAIL_CONFIRMATION"),
+			ConfirmationUrl:    common.Env("APP_CONFIRMATION_URL"),
+			PasswordCharacters: common.Env("APP_PASSWORD_CHARACTERS"),
+			PasswordLength:     common.EnvInt("APP_PASSWORD_LENGTH"),
 		},
 	}
 }

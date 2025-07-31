@@ -8,6 +8,9 @@ ErrorCode:
     - INVALID_CREDENTIALS
     - USER_NOT_ENABLED
     - USER_NOT_CONFIRMED
+    - EMAIL_ALREADY_EXISTS
+    - CANNOT_MANAGE_OWN_ACCOUNT
+    - REQUIRED_ATTRIBUTE
 ErrorMessage:
   type: object
   properties:

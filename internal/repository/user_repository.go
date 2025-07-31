@@ -12,15 +12,21 @@ import (
 )
 
 type UserRepository interface {
-	AddUser(ctx context.Context, data UserData) (*User, error)
+	AddUser(ctx context.Context, data *UserData) (*User, error)
+	CountById(ctx context.Context, id pgtype.UUID) (int64, error)
+	CountByEmail(ctx context.Context, email string) (int64, error)
+	CountByEmailAndNotId(ctx context.Context, email string, id pgtype.UUID) (int64, error)
 	DeleteUserById(ctx context.Context, id pgtype.UUID) error
 	GetUserAttributes(ctx context.Context, userID pgtype.UUID) ([]*UserAttribute, error)
 	GetUserAuthorities(ctx context.Context, userID pgtype.UUID) ([]*Authority, error)
 	GetUserByEmail(ctx context.Context, email string) (*User, error)
 	GetUserById(ctx context.Context, id pgtype.UUID) (*User, error)
 	SearchUsers(ctx context.Context, criteria *SearchUsersCriteria, pageable *common.Pageable) (*common.Page[*User], error)
-	SetUserAttributes(ctx context.Context, arg UserAttributesData) ([]*UserAttribute, error)
-	SetUserAuthorities(ctx context.Context, arg UserAuthoritiesData) ([]*Authority, error)
+	SetUserAttributes(ctx context.Context, data *UserAttributesData) ([]*UserAttribute, error)
+	SetUserAuthorities(ctx context.Context, data *UserAuthoritiesData) ([]*Authority, error)
+	SetUserConfirmed(ctx context.Context, userID pgtype.UUID, confirmed bool) (*User, error)
+	SetUserEmail(ctx context.Context, userID pgtype.UUID, email string) (*User, error)
+	SetUserEnabled(ctx context.Context, userID pgtype.UUID, enabled bool) (*User, error)
 }
 
 type userRepositoryImpl struct {
@@ -31,7 +37,7 @@ func NewUserRepository(dataSource *db.DataSource) UserRepository {
 	return &userRepositoryImpl{dataSource}
 }
 
-func (u *userRepositoryImpl) AddUser(ctx context.Context, data UserData) (*User, error) {
+func (u *userRepositoryImpl) AddUser(ctx context.Context, data *UserData) (*User, error) {
 	user, err := u.dataSource.Queries.AddUser(ctx, sqlc.AddUserParams{
 		ID:        db2.NewUUID(),
 		CreatedAt: db2.NowUTC(),
@@ -46,6 +52,21 @@ func (u *userRepositoryImpl) AddUser(ctx context.Context, data UserData) (*User,
 	}
 
 	return toUser(&user), nil
+}
+
+func (u *userRepositoryImpl) CountById(ctx context.Context, id pgtype.UUID) (int64, error) {
+	return u.dataSource.Queries.CountUsersById(ctx, id)
+}
+
+func (u *userRepositoryImpl) CountByEmail(ctx context.Context, email string) (int64, error) {
+	return u.dataSource.Queries.CountUsersByEmail(ctx, email)
+}
+
+func (u *userRepositoryImpl) CountByEmailAndNotId(ctx context.Context, email string, id pgtype.UUID) (int64, error) {
+	return u.dataSource.Queries.CountUsersByEmailNotId(ctx, sqlc.CountUsersByEmailNotIdParams{
+		Email: email,
+		ID:    id,
+	})
 }
 
 func (u *userRepositoryImpl) DeleteUserById(ctx context.Context, id pgtype.UUID) error {
@@ -120,17 +141,17 @@ func (u *userRepositoryImpl) SearchUsers(ctx context.Context, criteria *SearchUs
 	return common.NewPage[*User](pageable, totalRows, content), nil
 }
 
-func (u *userRepositoryImpl) SetUserAttributes(ctx context.Context, arg UserAttributesData) ([]*UserAttribute, error) {
+func (u *userRepositoryImpl) SetUserAttributes(ctx context.Context, data *UserAttributesData) ([]*UserAttribute, error) {
 	_, err := u.dataSource.ExecTx(ctx, func(q *sqlc.Queries) (interface{}, error) {
-		err := q.DeleteUserAttributes(ctx, arg.UserID)
+		err := q.DeleteUserAttributes(ctx, data.UserID)
 
 		if err != nil {
 			return nil, err
 		}
 
-		for _, attribute := range arg.Attributes {
+		for _, attribute := range data.Attributes {
 			err = q.AddUserAttribute(ctx, sqlc.AddUserAttributeParams{
-				UserID:      arg.UserID,
+				UserID:      data.UserID,
 				AttributeID: attribute.Attribute.ID,
 				Value:       attribute.Value,
 			})
@@ -147,20 +168,20 @@ func (u *userRepositoryImpl) SetUserAttributes(ctx context.Context, arg UserAttr
 		return nil, err
 	}
 
-	return arg.Attributes, nil
+	return data.Attributes, nil
 }
 
-func (u *userRepositoryImpl) SetUserAuthorities(ctx context.Context, arg UserAuthoritiesData) ([]*Authority, error) {
+func (u *userRepositoryImpl) SetUserAuthorities(ctx context.Context, data *UserAuthoritiesData) ([]*Authority, error) {
 	_, err := u.dataSource.ExecTx(ctx, func(q *sqlc.Queries) (interface{}, error) {
-		err := q.DeleteUserAuthorities(ctx, arg.UserID)
+		err := q.DeleteUserAuthorities(ctx, data.UserID)
 
 		if err != nil {
 			return nil, err
 		}
 
-		for _, authority := range arg.Authorities {
+		for _, authority := range data.Authorities {
 			err = q.AddUserAuthority(ctx, sqlc.AddUserAuthorityParams{
-				UserID:      arg.UserID,
+				UserID:      data.UserID,
 				AuthorityID: authority.ID,
 			})
 
@@ -176,7 +197,46 @@ func (u *userRepositoryImpl) SetUserAuthorities(ctx context.Context, arg UserAut
 		return nil, err
 	}
 
-	return arg.Authorities, nil
+	return data.Authorities, nil
+}
+
+func (u *userRepositoryImpl) SetUserConfirmed(ctx context.Context, userID pgtype.UUID, confirmed bool) (*User, error) {
+	user, err := u.dataSource.Queries.SetUserConfirmed(ctx, sqlc.SetUserConfirmedParams{
+		ID:        userID,
+		Confirmed: confirmed,
+	})
+
+	if err != nil {
+		return nil, err
+	}
+
+	return toUser(&user), nil
+}
+
+func (u *userRepositoryImpl) SetUserEmail(ctx context.Context, userID pgtype.UUID, email string) (*User, error) {
+	user, err := u.dataSource.Queries.SetUserEmail(ctx, sqlc.SetUserEmailParams{
+		ID:    userID,
+		Email: email,
+	})
+
+	if err != nil {
+		return nil, err
+	}
+
+	return toUser(&user), nil
+}
+
+func (u *userRepositoryImpl) SetUserEnabled(ctx context.Context, userID pgtype.UUID, enabled bool) (*User, error) {
+	user, err := u.dataSource.Queries.SetUserEnabled(ctx, sqlc.SetUserEnabledParams{
+		ID:      userID,
+		Enabled: enabled,
+	})
+
+	if err != nil {
+		return nil, err
+	}
+
+	return toUser(&user), nil
 }
 
 func (u *userRepositoryImpl) countUsers(ctx context.Context, criteria *SearchUsersCriteria) (int64, error) {

@@ -17,6 +17,7 @@ type AttributeRepository interface {
 	CountByKey(ctx context.Context, key string) (int64, error)
 	CountByKeyAndNotId(ctx context.Context, key string, id pgtype.UUID) (int64, error)
 	DeleteAttributeById(ctx context.Context, id pgtype.UUID) error
+	GetAllAttributes(ctx context.Context) ([]*Attribute, error)
 	GetAttributeById(ctx context.Context, id pgtype.UUID) (*Attribute, error)
 	GetAttributeByKey(ctx context.Context, key string) (*Attribute, error)
 	SearchAttributes(ctx context.Context, criteria *SearchAttributesCriteria, pageable *common.Pageable) (*common.Page[*Attribute], error)
@@ -63,6 +64,20 @@ func (a *attributeRepositoryImpl) CountByKeyAndNotId(ctx context.Context, key st
 
 func (a *attributeRepositoryImpl) DeleteAttributeById(ctx context.Context, id pgtype.UUID) error {
 	return a.dataSource.Queries.DeleteAttributeById(ctx, id)
+}
+
+func (a *attributeRepositoryImpl) GetAllAttributes(ctx context.Context) ([]*Attribute, error) {
+	attributes, err := a.dataSource.Queries.GetAllAttributes(ctx)
+
+	if err != nil {
+		return nil, err
+	}
+
+	result := make([]*Attribute, len(attributes))
+	for index, attribute := range attributes {
+		result[index] = toAttribute(&attribute)
+	}
+	return result, nil
 }
 
 func (a *attributeRepositoryImpl) GetAttributeById(ctx context.Context, id pgtype.UUID) (*Attribute, error) {

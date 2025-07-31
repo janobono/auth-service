@@ -11,7 +11,7 @@ require (
 	github.com/jackc/pgx/v5 v5.7.5
 	github.com/janobono/go-util/common v1.2.0
 	github.com/janobono/go-util/db v1.1.0
-	github.com/janobono/go-util/security v1.2.0
+	github.com/janobono/go-util/security v1.5.0
 	github.com/joho/godotenv v1.5.1
 	github.com/samborkent/uuidv7 v0.0.0-20231110121620-f2e19d87e48b
 	github.com/stretchr/testify v1.10.0

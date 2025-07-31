@@ -26,7 +26,7 @@ func TestUserRepository_FullFlow(t *testing.T) {
 	assert.NoError(t, err)
 
 	// Add user
-	user, err := userRepository.AddUser(ctx, repository.UserData{
+	user, err := userRepository.AddUser(ctx, &repository.UserData{
 		Email:     "user@example.com",
 		Password:  "securepass",
 		Enabled:   true,
@@ -41,7 +41,7 @@ func TestUserRepository_FullFlow(t *testing.T) {
 	assert.Equal(t, user.ID, fetchedByEmail.ID)
 
 	// Set authorities
-	updatedAuths, err := userRepository.SetUserAuthorities(ctx, repository.UserAuthoritiesData{
+	updatedAuths, err := userRepository.SetUserAuthorities(ctx, &repository.UserAuthoritiesData{
 		UserID:      user.ID,
 		Authorities: []*repository.Authority{auth},
 	})
@@ -50,7 +50,7 @@ func TestUserRepository_FullFlow(t *testing.T) {
 	assert.Equal(t, "ROLE_TEST", updatedAuths[0].Authority)
 
 	// Set attributes
-	updatedAttrs, err := userRepository.SetUserAttributes(ctx, repository.UserAttributesData{
+	updatedAttrs, err := userRepository.SetUserAttributes(ctx, &repository.UserAttributesData{
 		UserID: user.ID,
 		Attributes: []*repository.UserAttribute{
 			{

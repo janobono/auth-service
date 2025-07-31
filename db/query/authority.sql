@@ -24,6 +24,11 @@ delete
 from authority
 where id = $1;
 
+-- name: GetAllAuthorities :many
+select *
+from authority
+order by authority;
+
 -- name: GetAuthorityById :one
 select *
 from authority

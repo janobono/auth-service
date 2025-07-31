@@ -24,6 +24,11 @@ delete
 from attribute
 where id = $1;
 
+-- name: GetAllAttributes :many
+select *
+from attribute
+order by key;
+
 -- name: GetAttributeById :one
 select *
 from attribute

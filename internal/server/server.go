@@ -42,6 +42,7 @@ func (s *Server) Start() {
 	initDefaultCredentials(s.config, dataSource)
 
 	passwordEncoder := security.NewPasswordEncoder(bcrypt.DefaultCost)
+	randomString := security.NewRandomString(s.config.AppConfig.PasswordCharacters, s.config.AppConfig.PasswordLength)
 
 	attributeRepository := repository.NewAttributeRepository(dataSource)
 	authorityRepository := repository.NewAuthorityRepository(dataSource)
@@ -56,7 +57,13 @@ func (s *Server) Start() {
 		AuthorityService: service.NewAuthorityService(authorityRepository),
 		JwkService:       service.NewJwkService(jwkRepository),
 		JwtService:       service.NewJwtService(s.config.SecurityConfig, jwkRepository),
-		UserService:      service.NewUserService(userRepository),
+		UserService: service.NewUserService(
+			passwordEncoder,
+			randomString,
+			attributeRepository,
+			authorityRepository,
+			userRepository,
+		),
 	}
 
 	grpcServer := NewGrpcServer(s.config, services).Start()

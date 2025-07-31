@@ -50,7 +50,12 @@ func (u userController) DeleteUser(ctx *gin.Context) {
 		return
 	}
 
-	err := u.userService.DeleteUser(ctx.Request.Context(), id)
+	userDetail, ok := getUserDetail(ctx)
+	if !ok {
+		return
+	}
+
+	err := u.userService.DeleteUser(ctx.Request.Context(), userDetail, id)
 	if err != nil {
 		slog.Error("Failed to delete user", "id", id, "error", err)
 		RespondWithServiceError(ctx, err)
@@ -106,7 +111,12 @@ func (u userController) SetAttributes(ctx *gin.Context) {
 		return
 	}
 
-	user, err := u.userService.SetAttributes(ctx.Request.Context(), id, &data)
+	userDetail, ok := getUserDetail(ctx)
+	if !ok {
+		return
+	}
+
+	user, err := u.userService.SetAttributes(ctx.Request.Context(), userDetail, id, &data)
 	if err != nil {
 		slog.Error("Failed to update user attributes", "id", id, "error", err)
 		RespondWithServiceError(ctx, err)
@@ -127,7 +137,12 @@ func (u userController) SetAuthorities(ctx *gin.Context) {
 		return
 	}
 
-	user, err := u.userService.SetAuthorities(ctx.Request.Context(), id, &data)
+	userDetail, ok := getUserDetail(ctx)
+	if !ok {
+		return
+	}
+
+	user, err := u.userService.SetAuthorities(ctx.Request.Context(), userDetail, id, &data)
 	if err != nil {
 		slog.Error("Failed to update user authorities", "id", id, "error", err)
 		RespondWithServiceError(ctx, err)
@@ -148,7 +163,12 @@ func (u userController) SetConfirmed(ctx *gin.Context) {
 		return
 	}
 
-	user, err := u.userService.SetConfirmed(ctx.Request.Context(), id, &data)
+	userDetail, ok := getUserDetail(ctx)
+	if !ok {
+		return
+	}
+
+	user, err := u.userService.SetConfirmed(ctx.Request.Context(), userDetail, id, &data)
 	if err != nil {
 		slog.Error("Failed to update user confirmed flag", "id", id, "error", err)
 		RespondWithServiceError(ctx, err)
@@ -178,7 +198,12 @@ func (u userController) SetEmail(ctx *gin.Context) {
 		return
 	}
 
-	user, err := u.userService.SetEmail(ctx.Request.Context(), id, &data)
+	userDetail, ok := getUserDetail(ctx)
+	if !ok {
+		return
+	}
+
+	user, err := u.userService.SetEmail(ctx.Request.Context(), userDetail, id, &data)
 	if err != nil {
 		slog.Error("Failed to update user email", "id", id, "error", err)
 		RespondWithServiceError(ctx, err)
@@ -199,7 +224,12 @@ func (u userController) SetEnabled(ctx *gin.Context) {
 		return
 	}
 
-	user, err := u.userService.SetEnabled(ctx.Request.Context(), id, &data)
+	userDetail, ok := getUserDetail(ctx)
+	if !ok {
+		return
+	}
+
+	user, err := u.userService.SetEnabled(ctx.Request.Context(), userDetail, id, &data)
 	if err != nil {
 		slog.Error("Failed to update user enabled flag", "id", id, "error", err)
 		RespondWithServiceError(ctx, err)

@@ -17,6 +17,7 @@ type AuthorityRepository interface {
 	CountByAuthority(ctx context.Context, authority string) (int64, error)
 	CountByAuthorityAndNotId(ctx context.Context, authority string, id pgtype.UUID) (int64, error)
 	DeleteAuthorityById(ctx context.Context, id pgtype.UUID) error
+	GetAllAuthorities(ctx context.Context) ([]*Authority, error)
 	GetAuthorityById(ctx context.Context, id pgtype.UUID) (*Authority, error)
 	GetAuthorityByAuthority(ctx context.Context, authority string) (*Authority, error)
 	SearchAuthorities(ctx context.Context, criteria *SearchAuthoritiesCriteria, pageable *common.Pageable) (*common.Page[*Authority], error)
@@ -61,6 +62,19 @@ func (a *authorityRepositoryImpl) CountByAuthorityAndNotId(ctx context.Context, 
 
 func (a *authorityRepositoryImpl) DeleteAuthorityById(ctx context.Context, id pgtype.UUID) error {
 	return a.dataSource.Queries.DeleteAuthorityById(ctx, id)
+}
+
+func (a *authorityRepositoryImpl) GetAllAuthorities(ctx context.Context) ([]*Authority, error) {
+	authorities, err := a.dataSource.Queries.GetAllAuthorities(ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	result := make([]*Authority, len(authorities))
+	for index, authority := range authorities {
+		result[index] = toAuthority(&authority)
+	}
+	return result, nil
 }
 
 func (a *authorityRepositoryImpl) GetAuthorityById(ctx context.Context, id pgtype.UUID) (*Authority, error) {
