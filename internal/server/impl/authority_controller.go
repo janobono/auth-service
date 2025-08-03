@@ -10,12 +10,12 @@ import (
 )
 
 type authorityController struct {
-	authorityService service.AuthorityService
+	authorityService *service.AuthorityService
 }
 
 var _ openapi.AuthorityControllerAPI = (*authorityController)(nil)
 
-func NewAuthorityController(authorityService service.AuthorityService) openapi.AuthorityControllerAPI {
+func NewAuthorityController(authorityService *service.AuthorityService) openapi.AuthorityControllerAPI {
 	return &authorityController{authorityService}
 }
 

@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"github.com/janobono/auth-service/generated/proto"
 	"github.com/janobono/auth-service/internal/config"
+	"github.com/janobono/auth-service/internal/db"
 	"github.com/janobono/auth-service/internal/server"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials/insecure"
@@ -14,6 +15,29 @@ import (
 	"testing"
 	"time"
 )
+
+type testInitializer struct {
+	initializer server.Initializer
+}
+
+func (ti *testInitializer) Repositories(dataSource *db.DataSource) *server.Repositories {
+	return ti.initializer.Repositories(dataSource)
+}
+
+func (ti *testInitializer) Utils(serverConfig *config.ServerConfig) *server.Utils {
+	return ti.initializer.Utils(serverConfig)
+}
+
+func (ti *testInitializer) Clients(serverConfig *config.ServerConfig) *server.Clients {
+	return &server.Clients{
+		CaptchaClient: &testCaptchaClient{},
+		MailClient:    &testMailClient{},
+	}
+}
+
+func (ti *testInitializer) Services(serverConfig *config.ServerConfig, repositories *server.Repositories, utils *server.Utils, clients *server.Clients) *server.Services {
+	return ti.initializer.Services(serverConfig, repositories, utils, clients)
+}
 
 func TestIntegrationSomething(t *testing.T) {
 	freePorts, err := getFreePorts(2)
@@ -27,7 +51,16 @@ func TestIntegrationSomething(t *testing.T) {
 		HTTPAddress: (*freePorts)[1],
 		ContextPath: "/api",
 		DbConfig:    DbConfig,
-		MailConfig:  MailConfig,
+		MailConfig: &config.MailConfig{
+			Host:                       "",
+			Port:                       0,
+			User:                       "",
+			Password:                   "",
+			AuthEnabled:                false,
+			TlsEnabled:                 false,
+			MailTemplateUrl:            "",
+			MailTemplateReloadInterval: time.Duration(0),
+		},
 		SecurityConfig: &config.SecurityConfig{
 			ReadAuthorities:          []string{"customer", "manager"},
 			WriteAuthorities:         []string{"admin"},
@@ -50,12 +83,15 @@ func TestIntegrationSomething(t *testing.T) {
 			MaxAge:           12 * time.Hour,
 		},
 		AppConfig: &config.AppConfig{
-			MailConfirmation: true,
-			ConfirmationUrl:  "http://localhost:3000/confirm",
+			CaptchaServiceUrl:  "",
+			MailConfirmation:   true,
+			ConfirmationUrl:    "http://localhost:3000/confirm",
+			PasswordCharacters: "abcdefghijklmnopqrstuvwxyz0123456789",
+			PasswordLength:     8,
 		},
 	}
 
-	s := server.NewServer(serverConfig)
+	s := server.NewServer(serverConfig, &testInitializer{server.NewInitializer()})
 	go s.Start()
 	time.Sleep(500 * time.Millisecond)
 

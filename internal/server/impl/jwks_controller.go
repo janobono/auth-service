@@ -9,12 +9,12 @@ import (
 )
 
 type jwksController struct {
-	jwksService service.JwkService
+	jwksService *service.JwkService
 }
 
 var _ openapi.JwksControllerAPI = (*jwksController)(nil)
 
-func NewJwksController(jwksService service.JwkService) openapi.JwksControllerAPI {
+func NewJwksController(jwksService *service.JwkService) openapi.JwksControllerAPI {
 	return &jwksController{jwksService}
 }
 

@@ -4,10 +4,6 @@ import (
 	"context"
 	"github.com/janobono/auth-service/internal/config"
 	"github.com/janobono/auth-service/internal/db"
-	"github.com/janobono/auth-service/internal/repository"
-	"github.com/janobono/auth-service/internal/service"
-	"github.com/janobono/go-util/security"
-	"golang.org/x/crypto/bcrypt"
 	"log/slog"
 	"os"
 	"os/signal"
@@ -15,22 +11,17 @@ import (
 	"time"
 )
 
-type Services struct {
-	AttributeService service.AttributeService
-	AuthService      service.AuthService
-	AuthorityService service.AuthorityService
-	JwkService       service.JwkService
-	JwtService       *service.JwtService
-	UserService      service.UserService
-}
-
 type Server struct {
-	config *config.ServerConfig
+	config      *config.ServerConfig
+	initializer Initializer
 }
 
-func NewServer(config *config.ServerConfig) *Server {
+func NewServer(config *config.ServerConfig, initializer Initializer) *Server {
 	initSlog(config)
-	return &Server{config}
+	if initializer == nil {
+		initializer = NewInitializer()
+	}
+	return &Server{config, initializer}
 }
 
 func (s *Server) Start() {
@@ -41,30 +32,14 @@ func (s *Server) Start() {
 
 	initDefaultCredentials(s.config, dataSource)
 
-	passwordEncoder := security.NewPasswordEncoder(bcrypt.DefaultCost)
-	randomString := security.NewRandomString(s.config.AppConfig.PasswordCharacters, s.config.AppConfig.PasswordLength)
+	repositories := s.initializer.Repositories(dataSource)
 
-	attributeRepository := repository.NewAttributeRepository(dataSource)
-	authorityRepository := repository.NewAuthorityRepository(dataSource)
-	jwkRepository := repository.NewJwkRepository(dataSource)
-	userRepository := repository.NewUserRepository(dataSource)
+	utils := s.initializer.Utils(s.config)
 
-	jwtService := service.NewJwtService(s.config.SecurityConfig, jwkRepository)
+	clients := s.initializer.Clients(s.config)
+	defer clients.CaptchaClient.Close()
 
-	services := &Services{
-		AttributeService: service.NewAttributeService(attributeRepository),
-		AuthService:      service.NewAuthService(passwordEncoder, jwtService, userRepository),
-		AuthorityService: service.NewAuthorityService(authorityRepository),
-		JwkService:       service.NewJwkService(jwkRepository),
-		JwtService:       service.NewJwtService(s.config.SecurityConfig, jwkRepository),
-		UserService: service.NewUserService(
-			passwordEncoder,
-			randomString,
-			attributeRepository,
-			authorityRepository,
-			userRepository,
-		),
-	}
+	services := s.initializer.Services(s.config, repositories, utils, clients)
 
 	grpcServer := NewGrpcServer(s.config, services).Start()
 	httpServer := NewHttpServer(s.config, services).Start()

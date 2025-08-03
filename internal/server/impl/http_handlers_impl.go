@@ -10,12 +10,12 @@ import (
 
 type httpHandlers struct {
 	jwtService  *service.JwtService
-	userService service.UserService
+	userService *service.UserService
 }
 
 var _ security.HttpHandlers[*openapi.UserDetail] = (*httpHandlers)(nil)
 
-func NewHttpHandlers(jwtService *service.JwtService, userService service.UserService) security.HttpHandlers[*openapi.UserDetail] {
+func NewHttpHandlers(jwtService *service.JwtService, userService *service.UserService) security.HttpHandlers[*openapi.UserDetail] {
 	return &httpHandlers{jwtService, userService}
 }
 

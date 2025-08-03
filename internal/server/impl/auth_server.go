@@ -17,12 +17,12 @@ import (
 
 type authServer struct {
 	proto.UnimplementedAuthServer
-	authService service.AuthService
+	authService *service.AuthService
 }
 
 var _ proto.AuthServer = (*authServer)(nil)
 
-func NewAuthServer(authService service.AuthService) proto.AuthServer {
+func NewAuthServer(authService *service.AuthService) proto.AuthServer {
 	return &authServer{authService: authService}
 }
 

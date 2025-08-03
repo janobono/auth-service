@@ -7,6 +7,6 @@ import (
 
 func main() {
 	serverConfig := config.InitConfig()
-	app := server.NewServer(serverConfig)
+	app := server.NewServer(serverConfig, nil)
 	app.Start()
 }

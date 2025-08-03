@@ -10,12 +10,12 @@ import (
 )
 
 type attributeController struct {
-	attributeService service.AttributeService
+	attributeService *service.AttributeService
 }
 
 var _ openapi.AttributeControllerAPI = (*attributeController)(nil)
 
-func NewAttributeController(attributeService service.AttributeService) openapi.AttributeControllerAPI {
+func NewAttributeController(attributeService *service.AttributeService) openapi.AttributeControllerAPI {
 	return &attributeController{attributeService}
 }
 

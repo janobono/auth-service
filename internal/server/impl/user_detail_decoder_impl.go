@@ -9,12 +9,12 @@ import (
 
 type userDetailDecoder struct {
 	jwtService  *service.JwtService
-	userService service.UserService
+	userService *service.UserService
 }
 
 var _ security.UserDetailDecoder[*openapi.UserDetail] = (*userDetailDecoder)(nil)
 
-func NewUserDetailDecoder(jwtService *service.JwtService, userService service.UserService) security.UserDetailDecoder[*openapi.UserDetail] {
+func NewUserDetailDecoder(jwtService *service.JwtService, userService *service.UserService) security.UserDetailDecoder[*openapi.UserDetail] {
 	return &userDetailDecoder{jwtService, userService}
 }
 

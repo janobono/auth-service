@@ -30,12 +30,14 @@ type DbConfig struct {
 }
 
 type MailConfig struct {
-	Host        string
-	Port        int
-	User        string
-	Password    string
-	AuthEnabled bool
-	TlsEnabled  bool
+	Host                       string
+	Port                       int
+	User                       string
+	Password                   string
+	AuthEnabled                bool
+	TlsEnabled                 bool
+	MailTemplateUrl            string
+	MailTemplateReloadInterval time.Duration
 }
 
 type SecurityConfig struct {
@@ -62,6 +64,7 @@ type CorsConfig struct {
 }
 
 type AppConfig struct {
+	CaptchaServiceUrl  string
 	MailConfirmation   bool
 	ConfirmationUrl    string
 	PasswordCharacters string
@@ -88,12 +91,14 @@ func InitConfig() *ServerConfig {
 			MigrationsUrl:  common.Env("DB_MIGRATIONS_URL"),
 		},
 		MailConfig: &MailConfig{
-			Host:        common.Env("MAIL_HOST"),
-			Port:        common.EnvInt("MAIL_PORT"),
-			User:        common.Env("MAIL_USER"),
-			Password:    common.Env("MAIL_PASSWORD"),
-			AuthEnabled: common.EnvBool("MAIL_AUTH_ENABLED"),
-			TlsEnabled:  common.EnvBool("MAIL_TLS_ENABLED"),
+			Host:                       common.Env("MAIL_HOST"),
+			Port:                       common.EnvInt("MAIL_PORT"),
+			User:                       common.Env("MAIL_USER"),
+			Password:                   common.Env("MAIL_PASSWORD"),
+			AuthEnabled:                common.EnvBool("MAIL_AUTH_ENABLED"),
+			TlsEnabled:                 common.EnvBool("MAIL_TLS_ENABLED"),
+			MailTemplateUrl:            common.Env("MAIL_TEMPLATE_URL"),
+			MailTemplateReloadInterval: time.Duration(common.EnvInt("MAIL_TEMPLATE_RELOAD_INTERVAL")) * time.Minute,
 		},
 		SecurityConfig: &SecurityConfig{
 			ReadAuthorities:          common.EnvSlice("SECURITY_READ_AUTHORITIES"),
@@ -117,6 +122,7 @@ func InitConfig() *ServerConfig {
 			MaxAge:           time.Duration(common.EnvInt("CORS_MAX_AGE")) * time.Hour,
 		},
 		AppConfig: &AppConfig{
+			CaptchaServiceUrl:  common.Env("APP_CAPTCHA_SERVICE_URL"),
 			MailConfirmation:   common.EnvBool("APP_MAIL_CONFIRMATION"),
 			ConfirmationUrl:    common.Env("APP_CONFIRMATION_URL"),
 			PasswordCharacters: common.Env("APP_PASSWORD_CHARACTERS"),

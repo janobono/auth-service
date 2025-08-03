@@ -10,12 +10,12 @@ import (
 )
 
 type authController struct {
-	authService service.AuthService
+	authService *service.AuthService
 }
 
 var _ openapi.AuthControllerAPI = (*authController)(nil)
 
-func NewAuthController(authService service.AuthService) openapi.AuthControllerAPI {
+func NewAuthController(authService *service.AuthService) openapi.AuthControllerAPI {
 	return &authController{authService}
 }
 

@@ -16,12 +16,12 @@ import (
 
 type userServer struct {
 	proto.UnimplementedUserServer
-	userService service.UserService
+	userService *service.UserService
 }
 
 var _ proto.UserServer = (*userServer)(nil)
 
-func NewUserServer(userService service.UserService) proto.UserServer {
+func NewUserServer(userService *service.UserService) proto.UserServer {
 	return &userServer{userService: userService}
 }
 

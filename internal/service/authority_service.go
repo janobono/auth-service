@@ -11,26 +11,16 @@ import (
 	"net/http"
 )
 
-type AuthorityService interface {
-	AddAuthority(ctx context.Context, data *openapi.AuthorityData) (*openapi.AuthorityDetail, error)
-	DeleteAuthority(ctx context.Context, id pgtype.UUID) error
-	GetAuthority(ctx context.Context, id pgtype.UUID) (*openapi.AuthorityDetail, error)
-	GetAuthorities(ctx context.Context, criteria *SearchAuthorityCriteria, pageable *common.Pageable) (*common.Page[*openapi.AuthorityDetail], error)
-	SetAuthority(ctx context.Context, id pgtype.UUID, data *openapi.AuthorityData) (*openapi.AuthorityDetail, error)
-}
-
-type authorityService struct {
+type AuthorityService struct {
 	authorityRepository repository.AuthorityRepository
 }
 
-var _ AuthorityService = (*authorityService)(nil)
-
-func NewAuthorityService(authorityRepository repository.AuthorityRepository) AuthorityService {
-	return &authorityService{authorityRepository}
+func NewAuthorityService(authorityRepository repository.AuthorityRepository) *AuthorityService {
+	return &AuthorityService{authorityRepository}
 }
 
-func (a *authorityService) AddAuthority(ctx context.Context, data *openapi.AuthorityData) (*openapi.AuthorityDetail, error) {
-	count, err := a.authorityRepository.CountByAuthority(ctx, data.Authority)
+func (as *AuthorityService) AddAuthority(ctx context.Context, data *openapi.AuthorityData) (*openapi.AuthorityDetail, error) {
+	count, err := as.authorityRepository.CountByAuthority(ctx, data.Authority)
 	if err != nil {
 		return nil, err
 	}
@@ -39,7 +29,7 @@ func (a *authorityService) AddAuthority(ctx context.Context, data *openapi.Autho
 		return nil, common.NewServiceError(http.StatusConflict, string(openapi.INVALID_FIELD), "'authority' already exists")
 	}
 
-	authority, err := a.authorityRepository.AddAuthority(ctx, &repository.AuthorityData{
+	authority, err := as.authorityRepository.AddAuthority(ctx, &repository.AuthorityData{
 		Authority: data.Authority,
 	})
 	if err != nil {
@@ -52,8 +42,8 @@ func (a *authorityService) AddAuthority(ctx context.Context, data *openapi.Autho
 	}, nil
 }
 
-func (a *authorityService) DeleteAuthority(ctx context.Context, id pgtype.UUID) error {
-	count, err := a.authorityRepository.CountById(ctx, id)
+func (as *AuthorityService) DeleteAuthority(ctx context.Context, id pgtype.UUID) error {
+	count, err := as.authorityRepository.CountById(ctx, id)
 	if err != nil {
 		return err
 	}
@@ -62,11 +52,11 @@ func (a *authorityService) DeleteAuthority(ctx context.Context, id pgtype.UUID) 
 		return common.NewServiceError(http.StatusNotFound, string(openapi.NOT_FOUND), "authority does not exist")
 	}
 
-	return a.authorityRepository.DeleteAuthorityById(ctx, id)
+	return as.authorityRepository.DeleteAuthorityById(ctx, id)
 }
 
-func (a *authorityService) GetAuthority(ctx context.Context, id pgtype.UUID) (*openapi.AuthorityDetail, error) {
-	authority, err := a.authorityRepository.GetAuthorityById(ctx, id)
+func (as *AuthorityService) GetAuthority(ctx context.Context, id pgtype.UUID) (*openapi.AuthorityDetail, error) {
+	authority, err := as.authorityRepository.GetAuthorityById(ctx, id)
 	if err != nil {
 		return nil, err
 	}
@@ -80,8 +70,8 @@ func (a *authorityService) GetAuthority(ctx context.Context, id pgtype.UUID) (*o
 	}, nil
 }
 
-func (a *authorityService) GetAuthorities(ctx context.Context, criteria *SearchAuthorityCriteria, pageable *common.Pageable) (*common.Page[*openapi.AuthorityDetail], error) {
-	page, err := a.authorityRepository.SearchAuthorities(ctx, &repository.SearchAuthoritiesCriteria{
+func (as *AuthorityService) GetAuthorities(ctx context.Context, criteria *SearchAuthorityCriteria, pageable *common.Pageable) (*common.Page[*openapi.AuthorityDetail], error) {
+	page, err := as.authorityRepository.SearchAuthorities(ctx, &repository.SearchAuthoritiesCriteria{
 		SearchField: criteria.SearchField,
 	}, pageable)
 	if err != nil {
@@ -107,8 +97,8 @@ func (a *authorityService) GetAuthorities(ctx context.Context, criteria *SearchA
 	}, nil
 }
 
-func (a *authorityService) SetAuthority(ctx context.Context, id pgtype.UUID, data *openapi.AuthorityData) (*openapi.AuthorityDetail, error) {
-	count, err := a.authorityRepository.CountById(ctx, id)
+func (as *AuthorityService) SetAuthority(ctx context.Context, id pgtype.UUID, data *openapi.AuthorityData) (*openapi.AuthorityDetail, error) {
+	count, err := as.authorityRepository.CountById(ctx, id)
 	if err != nil {
 		return nil, err
 	}
@@ -117,7 +107,7 @@ func (a *authorityService) SetAuthority(ctx context.Context, id pgtype.UUID, dat
 		return nil, common.NewServiceError(http.StatusNotFound, string(openapi.NOT_FOUND), "authority does not exist")
 	}
 
-	count, err = a.authorityRepository.CountByAuthorityAndNotId(ctx, data.Authority, id)
+	count, err = as.authorityRepository.CountByAuthorityAndNotId(ctx, data.Authority, id)
 	if err != nil {
 		return nil, err
 	}
@@ -126,7 +116,7 @@ func (a *authorityService) SetAuthority(ctx context.Context, id pgtype.UUID, dat
 		return nil, common.NewServiceError(http.StatusConflict, string(openapi.INVALID_FIELD), "'authority' already exists")
 	}
 
-	authority, err := a.authorityRepository.SetAuthority(ctx, id, &repository.AuthorityData{
+	authority, err := as.authorityRepository.SetAuthority(ctx, id, &repository.AuthorityData{
 		Authority: data.Authority,
 	})
 	if err != nil {

@@ -31,44 +31,44 @@ func NewJwtService(securityConfig *config.SecurityConfig, jwkRepository reposito
 	}
 }
 
-func (j *JwtService) GetAccessJwtToken(ctx context.Context) (*security.JwtToken, error) {
-	return j.getJwtToken(
+func (js *JwtService) GetAccessJwtToken(ctx context.Context) (*security.JwtToken, error) {
+	return js.getJwtToken(
 		ctx,
 		"access",
-		j.securityConfig.AccessTokenExpiresIn,
-		j.securityConfig.AccessTokenJwkExpiresIn,
-		&j.accessToken,
+		js.securityConfig.AccessTokenExpiresIn,
+		js.securityConfig.AccessTokenJwkExpiresIn,
+		&js.accessToken,
 	)
 }
 
-func (j *JwtService) GetRefreshJwtToken(ctx context.Context) (*security.JwtToken, error) {
-	return j.getJwtToken(
+func (js *JwtService) GetRefreshJwtToken(ctx context.Context) (*security.JwtToken, error) {
+	return js.getJwtToken(
 		ctx,
 		"refresh",
-		j.securityConfig.RefreshTokenExpiresIn,
-		j.securityConfig.RefreshTokenJwkExpiresIn,
-		&j.refreshToken,
+		js.securityConfig.RefreshTokenExpiresIn,
+		js.securityConfig.RefreshTokenJwkExpiresIn,
+		&js.refreshToken,
 	)
 }
 
-func (j *JwtService) GetConfirmJwtToken(ctx context.Context) (*security.JwtToken, error) {
-	return j.getJwtToken(
+func (js *JwtService) GetConfirmJwtToken(ctx context.Context) (*security.JwtToken, error) {
+	return js.getJwtToken(
 		ctx,
 		"confirm",
-		j.securityConfig.ContentTokenExpiresIn,
-		j.securityConfig.ContentTokenJwkExpiresIn,
-		&j.confirmToken,
+		js.securityConfig.ContentTokenExpiresIn,
+		js.securityConfig.ContentTokenJwkExpiresIn,
+		&js.confirmToken,
 	)
 }
 
-func (j *JwtService) getJwtToken(
+func (js *JwtService) getJwtToken(
 	ctx context.Context,
 	use string,
 	tokenExpiration, jwkExpiration time.Duration,
 	cached **security.JwtToken,
 ) (*security.JwtToken, error) {
-	j.mutex.Lock()
-	defer j.mutex.Unlock()
+	js.mutex.Lock()
+	defer js.mutex.Unlock()
 
 	now := time.Now().UTC()
 
@@ -76,13 +76,13 @@ func (j *JwtService) getJwtToken(
 		return *cached, nil
 	}
 
-	jwk, err := j.jwkRepository.GetActiveJwk(ctx, use)
+	jwk, err := js.jwkRepository.GetActiveJwk(ctx, use)
 
 	if err != nil && !errors.Is(err, pgx.ErrNoRows) {
 		return nil, err
 	}
 	if (err == nil && now.After(jwk.ExpiresAt)) || errors.Is(err, pgx.ErrNoRows) {
-		jwk, err = j.jwkRepository.AddJwk(ctx, repository.JwkData{
+		jwk, err = js.jwkRepository.AddJwk(ctx, repository.JwkData{
 			Use:        use,
 			Expiration: jwkExpiration,
 		})
@@ -97,23 +97,23 @@ func (j *JwtService) getJwtToken(
 		jwk.PrivateKey,
 		jwk.PublicKey,
 		jwk.ID.String(),
-		j.securityConfig.TokenIssuer,
+		js.securityConfig.TokenIssuer,
 		tokenExpiration,
 		jwk.ExpiresAt,
-		j.GetPublicKey,
+		js.GetPublicKey,
 	)
 
 	*cached = token
 	return token, nil
 }
 
-func (j *JwtService) GetPublicKey(ctx context.Context, kid string) (interface{}, error) {
+func (js *JwtService) GetPublicKey(ctx context.Context, kid string) (interface{}, error) {
 	id, err := db2.ParseUUID(kid)
 	if err != nil {
 		return nil, err
 	}
 
-	jwk, err := j.jwkRepository.GetJwk(ctx, id)
+	jwk, err := js.jwkRepository.GetJwk(ctx, id)
 	if err != nil {
 		return nil, err
 	}
@@ -121,7 +121,7 @@ func (j *JwtService) GetPublicKey(ctx context.Context, kid string) (interface{},
 	return jwk.PublicKey, nil
 }
 
-func (j *JwtService) GenerateAuthToken(token *security.JwtToken, id pgtype.UUID, authorities []string) (string, error) {
+func (js *JwtService) GenerateAuthToken(token *security.JwtToken, id pgtype.UUID, authorities []string) (string, error) {
 	claims := jwt.MapClaims{
 		"sub": id.String(),
 		"aud": authorities,
@@ -129,7 +129,7 @@ func (j *JwtService) GenerateAuthToken(token *security.JwtToken, id pgtype.UUID,
 	return token.GenerateToken(claims)
 }
 
-func (j *JwtService) ParseAuthToken(ctx context.Context, jwtToken *security.JwtToken, token string) (pgtype.UUID, []string, error) {
+func (js *JwtService) ParseAuthToken(ctx context.Context, jwtToken *security.JwtToken, token string) (pgtype.UUID, []string, error) {
 	claims, err := jwtToken.ParseToken(ctx, token)
 	if err != nil {
 		return pgtype.UUID{}, nil, err

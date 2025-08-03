@@ -11,26 +11,16 @@ import (
 	"net/http"
 )
 
-type AttributeService interface {
-	AddAttribute(ctx context.Context, data *openapi.AttributeData) (*openapi.AttributeDetail, error)
-	DeleteAttribute(ctx context.Context, id pgtype.UUID) error
-	GetAttribute(ctx context.Context, id pgtype.UUID) (*openapi.AttributeDetail, error)
-	GetAttributes(ctx context.Context, criteria *SearchAttributeCriteria, pageable *common.Pageable) (*common.Page[*openapi.AttributeDetail], error)
-	SetAttribute(ctx context.Context, id pgtype.UUID, data *openapi.AttributeData) (*openapi.AttributeDetail, error)
-}
-
-type attributeService struct {
+type AttributeService struct {
 	attributeRepository repository.AttributeRepository
 }
 
-var _ AttributeService = (*attributeService)(nil)
-
-func NewAttributeService(attributeRepository repository.AttributeRepository) AttributeService {
-	return &attributeService{attributeRepository}
+func NewAttributeService(attributeRepository repository.AttributeRepository) *AttributeService {
+	return &AttributeService{attributeRepository}
 }
 
-func (a *attributeService) AddAttribute(ctx context.Context, data *openapi.AttributeData) (*openapi.AttributeDetail, error) {
-	count, err := a.attributeRepository.CountByKey(ctx, data.Key)
+func (as *AttributeService) AddAttribute(ctx context.Context, data *openapi.AttributeData) (*openapi.AttributeDetail, error) {
+	count, err := as.attributeRepository.CountByKey(ctx, data.Key)
 	if err != nil {
 		return nil, err
 	}
@@ -39,7 +29,7 @@ func (a *attributeService) AddAttribute(ctx context.Context, data *openapi.Attri
 		return nil, common.NewServiceError(http.StatusConflict, string(openapi.INVALID_FIELD), "'key' already exists")
 	}
 
-	attribute, err := a.attributeRepository.AddAttribute(ctx, &repository.AttributeData{
+	attribute, err := as.attributeRepository.AddAttribute(ctx, &repository.AttributeData{
 		Key:      data.Key,
 		Required: data.Required,
 		Hidden:   data.Hidden,
@@ -56,8 +46,8 @@ func (a *attributeService) AddAttribute(ctx context.Context, data *openapi.Attri
 	}, nil
 }
 
-func (a *attributeService) DeleteAttribute(ctx context.Context, id pgtype.UUID) error {
-	count, err := a.attributeRepository.CountById(ctx, id)
+func (as *AttributeService) DeleteAttribute(ctx context.Context, id pgtype.UUID) error {
+	count, err := as.attributeRepository.CountById(ctx, id)
 	if err != nil {
 		return err
 	}
@@ -66,11 +56,11 @@ func (a *attributeService) DeleteAttribute(ctx context.Context, id pgtype.UUID) 
 		return common.NewServiceError(http.StatusNotFound, string(openapi.NOT_FOUND), "attribute does not exist")
 	}
 
-	return a.attributeRepository.DeleteAttributeById(ctx, id)
+	return as.attributeRepository.DeleteAttributeById(ctx, id)
 }
 
-func (a *attributeService) GetAttribute(ctx context.Context, id pgtype.UUID) (*openapi.AttributeDetail, error) {
-	attribute, err := a.attributeRepository.GetAttributeById(ctx, id)
+func (as *AttributeService) GetAttribute(ctx context.Context, id pgtype.UUID) (*openapi.AttributeDetail, error) {
+	attribute, err := as.attributeRepository.GetAttributeById(ctx, id)
 	if err != nil {
 		return nil, err
 	}
@@ -86,8 +76,8 @@ func (a *attributeService) GetAttribute(ctx context.Context, id pgtype.UUID) (*o
 	}, nil
 }
 
-func (a *attributeService) GetAttributes(ctx context.Context, criteria *SearchAttributeCriteria, pageable *common.Pageable) (*common.Page[*openapi.AttributeDetail], error) {
-	page, err := a.attributeRepository.SearchAttributes(ctx, &repository.SearchAttributesCriteria{
+func (as *AttributeService) GetAttributes(ctx context.Context, criteria *SearchAttributeCriteria, pageable *common.Pageable) (*common.Page[*openapi.AttributeDetail], error) {
+	page, err := as.attributeRepository.SearchAttributes(ctx, &repository.SearchAttributesCriteria{
 		SearchField: criteria.SearchField,
 	}, pageable)
 	if err != nil {
@@ -115,8 +105,8 @@ func (a *attributeService) GetAttributes(ctx context.Context, criteria *SearchAt
 	}, nil
 }
 
-func (a *attributeService) SetAttribute(ctx context.Context, id pgtype.UUID, data *openapi.AttributeData) (*openapi.AttributeDetail, error) {
-	count, err := a.attributeRepository.CountById(ctx, id)
+func (as *AttributeService) SetAttribute(ctx context.Context, id pgtype.UUID, data *openapi.AttributeData) (*openapi.AttributeDetail, error) {
+	count, err := as.attributeRepository.CountById(ctx, id)
 	if err != nil {
 		return nil, err
 	}
@@ -125,7 +115,7 @@ func (a *attributeService) SetAttribute(ctx context.Context, id pgtype.UUID, dat
 		return nil, common.NewServiceError(http.StatusNotFound, string(openapi.NOT_FOUND), "attribute does not exist")
 	}
 
-	count, err = a.attributeRepository.CountByKeyAndNotId(ctx, data.Key, id)
+	count, err = as.attributeRepository.CountByKeyAndNotId(ctx, data.Key, id)
 	if err != nil {
 		return nil, err
 	}
@@ -134,7 +124,7 @@ func (a *attributeService) SetAttribute(ctx context.Context, id pgtype.UUID, dat
 		return nil, common.NewServiceError(http.StatusConflict, string(openapi.INVALID_FIELD), "'key' already exists")
 	}
 
-	attribute, err := a.attributeRepository.SetAttribute(ctx, id, &repository.AttributeData{
+	attribute, err := as.attributeRepository.SetAttribute(ctx, id, &repository.AttributeData{
 		Key:      data.Key,
 		Required: data.Required,
 		Hidden:   data.Hidden,

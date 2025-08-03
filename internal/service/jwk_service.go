@@ -8,22 +8,16 @@ import (
 	"math/big"
 )
 
-type JwkService interface {
-	GetJwks(ctx context.Context) (*openapi.Jwks, error)
-}
-
-type jwkService struct {
+type JwkService struct {
 	jwkRepository repository.JwkRepository
 }
 
-var _ JwkService = (*jwkService)(nil)
-
-func NewJwkService(jwkRepository repository.JwkRepository) JwkService {
-	return &jwkService{jwkRepository}
+func NewJwkService(jwkRepository repository.JwkRepository) *JwkService {
+	return &JwkService{jwkRepository}
 }
 
-func (j *jwkService) GetJwks(ctx context.Context) (*openapi.Jwks, error) {
-	activeJwks, err := j.jwkRepository.GetActiveJwks(ctx)
+func (js *JwkService) GetJwks(ctx context.Context) (*openapi.Jwks, error) {
+	activeJwks, err := js.jwkRepository.GetActiveJwks(ctx)
 	if err != nil {
 		return nil, err
 	}

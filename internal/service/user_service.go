@@ -13,19 +13,7 @@ import (
 	"net/http"
 )
 
-type UserService interface {
-	AddUser(ctx context.Context, data *openapi.UserData) (*openapi.UserDetail, error)
-	DeleteUser(ctx context.Context, userDetail *openapi.UserDetail, id pgtype.UUID) error
-	GetUser(ctx context.Context, id pgtype.UUID) (*openapi.UserDetail, error)
-	GetUsers(ctx context.Context, criteria *SearchUserCriteria, pageable *common.Pageable) (*common.Page[*openapi.UserDetail], error)
-	SetAttributes(ctx context.Context, userDetail *openapi.UserDetail, id pgtype.UUID, data *openapi.UserAttributesData) (*openapi.UserDetail, error)
-	SetAuthorities(ctx context.Context, userDetail *openapi.UserDetail, id pgtype.UUID, data *openapi.UserAuthoritiesData) (*openapi.UserDetail, error)
-	SetConfirmed(ctx context.Context, userDetail *openapi.UserDetail, id pgtype.UUID, data *openapi.BooleanValue) (*openapi.UserDetail, error)
-	SetEmail(ctx context.Context, userDetail *openapi.UserDetail, id pgtype.UUID, data *openapi.UserEmailData) (*openapi.UserDetail, error)
-	SetEnabled(ctx context.Context, userDetail *openapi.UserDetail, id pgtype.UUID, data *openapi.BooleanValue) (*openapi.UserDetail, error)
-}
-
-type userService struct {
+type UserService struct {
 	passwordEncoder     *security.PasswordEncoder
 	randomString        *security.RandomString
 	attributeRepository repository.AttributeRepository
@@ -33,16 +21,14 @@ type userService struct {
 	userRepository      repository.UserRepository
 }
 
-var _ UserService = (*userService)(nil)
-
 func NewUserService(
 	passwordEncoder *security.PasswordEncoder,
 	randomString *security.RandomString,
 	attributeRepository repository.AttributeRepository,
 	authorityRepository repository.AuthorityRepository,
 	userRepository repository.UserRepository,
-) UserService {
-	return &userService{
+) *UserService {
+	return &UserService{
 		passwordEncoder,
 		randomString,
 		attributeRepository,
@@ -51,7 +37,7 @@ func NewUserService(
 	}
 }
 
-func (u *userService) AddUser(ctx context.Context, data *openapi.UserData) (*openapi.UserDetail, error) {
+func (u *UserService) AddUser(ctx context.Context, data *openapi.UserData) (*openapi.UserDetail, error) {
 	email := common.ToScDf(data.Email)
 
 	count, err := u.userRepository.CountByEmail(ctx, email)
@@ -86,7 +72,7 @@ func (u *userService) AddUser(ctx context.Context, data *openapi.UserData) (*ope
 	return u.mapUserDetail(ctx, user)
 }
 
-func (u *userService) DeleteUser(ctx context.Context, userDetail *openapi.UserDetail, id pgtype.UUID) error {
+func (u *UserService) DeleteUser(ctx context.Context, userDetail *openapi.UserDetail, id pgtype.UUID) error {
 	err := u.checkUser(ctx, userDetail, id)
 	if err != nil {
 		return err
@@ -95,7 +81,7 @@ func (u *userService) DeleteUser(ctx context.Context, userDetail *openapi.UserDe
 	return u.userRepository.DeleteUserById(ctx, id)
 }
 
-func (u *userService) GetUser(ctx context.Context, id pgtype.UUID) (*openapi.UserDetail, error) {
+func (u *UserService) GetUser(ctx context.Context, id pgtype.UUID) (*openapi.UserDetail, error) {
 	user, err := u.userRepository.GetUserById(ctx, id)
 	if err != nil && !errors.Is(err, pgx.ErrNoRows) {
 		return nil, err
@@ -106,7 +92,7 @@ func (u *userService) GetUser(ctx context.Context, id pgtype.UUID) (*openapi.Use
 	return u.mapUserDetail(ctx, user)
 }
 
-func (u *userService) GetUsers(ctx context.Context, criteria *SearchUserCriteria, pageable *common.Pageable) (*common.Page[*openapi.UserDetail], error) {
+func (u *UserService) GetUsers(ctx context.Context, criteria *SearchUserCriteria, pageable *common.Pageable) (*common.Page[*openapi.UserDetail], error) {
 	page, err := u.userRepository.SearchUsers(ctx, &repository.SearchUsersCriteria{
 		SearchField:   criteria.SearchField,
 		Email:         criteria.Email,
@@ -136,7 +122,7 @@ func (u *userService) GetUsers(ctx context.Context, criteria *SearchUserCriteria
 	}, nil
 }
 
-func (u *userService) SetAttributes(ctx context.Context, userDetail *openapi.UserDetail, id pgtype.UUID, data *openapi.UserAttributesData) (*openapi.UserDetail, error) {
+func (u *UserService) SetAttributes(ctx context.Context, userDetail *openapi.UserDetail, id pgtype.UUID, data *openapi.UserAttributesData) (*openapi.UserDetail, error) {
 	err := u.checkUser(ctx, userDetail, id)
 	if err != nil {
 		return nil, err
@@ -188,7 +174,7 @@ func (u *userService) SetAttributes(ctx context.Context, userDetail *openapi.Use
 	return u.mapUserDetail(ctx, user)
 }
 
-func (u *userService) SetAuthorities(ctx context.Context, userDetail *openapi.UserDetail, id pgtype.UUID, data *openapi.UserAuthoritiesData) (*openapi.UserDetail, error) {
+func (u *UserService) SetAuthorities(ctx context.Context, userDetail *openapi.UserDetail, id pgtype.UUID, data *openapi.UserAuthoritiesData) (*openapi.UserDetail, error) {
 	err := u.checkUser(ctx, userDetail, id)
 	if err != nil {
 		return nil, err
@@ -220,7 +206,7 @@ func (u *userService) SetAuthorities(ctx context.Context, userDetail *openapi.Us
 	return u.mapUserDetail(ctx, user)
 }
 
-func (u *userService) SetConfirmed(ctx context.Context, userDetail *openapi.UserDetail, id pgtype.UUID, data *openapi.BooleanValue) (*openapi.UserDetail, error) {
+func (u *UserService) SetConfirmed(ctx context.Context, userDetail *openapi.UserDetail, id pgtype.UUID, data *openapi.BooleanValue) (*openapi.UserDetail, error) {
 	err := u.checkUser(ctx, userDetail, id)
 	if err != nil {
 		return nil, err
@@ -234,7 +220,7 @@ func (u *userService) SetConfirmed(ctx context.Context, userDetail *openapi.User
 	return u.mapUserDetail(ctx, user)
 }
 
-func (u *userService) SetEmail(ctx context.Context, userDetail *openapi.UserDetail, id pgtype.UUID, data *openapi.UserEmailData) (*openapi.UserDetail, error) {
+func (u *UserService) SetEmail(ctx context.Context, userDetail *openapi.UserDetail, id pgtype.UUID, data *openapi.UserEmailData) (*openapi.UserDetail, error) {
 	err := u.checkUser(ctx, userDetail, id)
 	if err != nil {
 		return nil, err
@@ -259,7 +245,7 @@ func (u *userService) SetEmail(ctx context.Context, userDetail *openapi.UserDeta
 	return u.mapUserDetail(ctx, user)
 }
 
-func (u *userService) SetEnabled(ctx context.Context, userDetail *openapi.UserDetail, id pgtype.UUID, data *openapi.BooleanValue) (*openapi.UserDetail, error) {
+func (u *UserService) SetEnabled(ctx context.Context, userDetail *openapi.UserDetail, id pgtype.UUID, data *openapi.BooleanValue) (*openapi.UserDetail, error) {
 	err := u.checkUser(ctx, userDetail, id)
 	if err != nil {
 		return nil, err
@@ -273,7 +259,7 @@ func (u *userService) SetEnabled(ctx context.Context, userDetail *openapi.UserDe
 	return u.mapUserDetail(ctx, user)
 }
 
-func (u *userService) checkUser(ctx context.Context, userDetail *openapi.UserDetail, id pgtype.UUID) error {
+func (u *UserService) checkUser(ctx context.Context, userDetail *openapi.UserDetail, id pgtype.UUID) error {
 	count, err := u.userRepository.CountById(ctx, id)
 	if err != nil {
 		return err
@@ -289,7 +275,7 @@ func (u *userService) checkUser(ctx context.Context, userDetail *openapi.UserDet
 	return nil
 }
 
-func (u *userService) mapUserDetail(ctx context.Context, user *repository.User) (*openapi.UserDetail, error) {
+func (u *UserService) mapUserDetail(ctx context.Context, user *repository.User) (*openapi.UserDetail, error) {
 	userAttributes, err := u.userRepository.GetUserAttributes(ctx, user.ID)
 	if err != nil {
 		return nil, err

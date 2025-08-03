@@ -10,12 +10,12 @@ import (
 )
 
 type userController struct {
-	userService service.UserService
+	userService *service.UserService
 }
 
 var _ openapi.UserControllerAPI = (*userController)(nil)
 
-func NewUserController(userService service.UserService) openapi.UserControllerAPI {
+func NewUserController(userService *service.UserService) openapi.UserControllerAPI {
 	return &userController{userService}
 }
 

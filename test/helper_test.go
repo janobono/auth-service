@@ -16,28 +16,27 @@ import (
 )
 
 var (
-	DbConfig   *config.DbConfig
-	MailConfig *config.MailConfig
+	DbConfig *config.DbConfig
 )
 
 func TestMain(m *testing.M) {
 	ctx := context.Background()
 
-	postgres, cfg, err := StartPostgresContainer(ctx)
+	postgres, dbConfig, err := startPostgresContainer(ctx)
 	if err != nil {
 		log.Fatalf("could not start container: %v", err)
 	}
-
-	DbConfig = cfg
+	defer func() {
+		_ = postgres.Terminate(ctx)
+	}()
+	DbConfig = dbConfig
 
 	code := m.Run()
-
-	_ = postgres.Terminate(ctx)
 
 	os.Exit(code)
 }
 
-func StartPostgresContainer(ctx context.Context) (tc.Container, *config.DbConfig, error) {
+func startPostgresContainer(ctx context.Context) (tc.Container, *config.DbConfig, error) {
 	req := tc.ContainerRequest{
 		Image:        "public.ecr.aws/docker/library/postgres:alpine",
 		ExposedPorts: []string{"5432/tcp"},
