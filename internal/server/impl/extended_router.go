@@ -2,10 +2,11 @@ package impl
 
 import (
 	"fmt"
+	"net/http"
+
 	"github.com/gin-gonic/gin"
 	"github.com/janobono/auth-service/generated/openapi"
 	"github.com/janobono/go-util/security"
-	"net/http"
 )
 
 type RouterContext struct {

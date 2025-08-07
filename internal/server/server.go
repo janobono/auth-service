@@ -2,13 +2,14 @@ package server
 
 import (
 	"context"
-	"github.com/janobono/auth-service/internal/config"
-	"github.com/janobono/auth-service/internal/db"
 	"log/slog"
 	"os"
 	"os/signal"
 	"syscall"
 	"time"
+
+	"github.com/janobono/auth-service/internal/config"
+	"github.com/janobono/auth-service/internal/db"
 )
 
 type Server struct {

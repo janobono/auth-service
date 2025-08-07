@@ -3,11 +3,12 @@ package test
 import (
 	"context"
 	"fmt"
-	"github.com/janobono/auth-service/internal/config"
 	"log"
 	"os"
 	"testing"
 	"time"
+
+	"github.com/janobono/auth-service/internal/config"
 
 	"github.com/docker/go-connections/nat"
 	_ "github.com/jackc/pgx/v5/stdlib"

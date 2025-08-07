@@ -1,9 +1,10 @@
 package impl
 
 import (
+	"net/http"
+
 	"github.com/gin-gonic/gin"
 	"github.com/janobono/auth-service/generated/openapi"
-	"net/http"
 )
 
 type healthController struct {

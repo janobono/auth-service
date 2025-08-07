@@ -3,9 +3,10 @@ package service
 import (
 	"context"
 	"encoding/base64"
+	"math/big"
+
 	"github.com/janobono/auth-service/generated/openapi"
 	"github.com/janobono/auth-service/internal/repository"
-	"math/big"
 )
 
 type JwkService struct {

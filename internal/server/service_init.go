@@ -1,6 +1,8 @@
 package server
 
 import (
+	"log/slog"
+
 	"github.com/janobono/auth-service/internal/config"
 	"github.com/janobono/auth-service/internal/db"
 	"github.com/janobono/auth-service/internal/repository"
@@ -8,7 +10,6 @@ import (
 	client2 "github.com/janobono/auth-service/internal/service/client"
 	"github.com/janobono/go-util/security"
 	"golang.org/x/crypto/bcrypt"
-	"log/slog"
 )
 
 type Repositories struct {

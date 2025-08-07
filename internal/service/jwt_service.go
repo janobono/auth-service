@@ -3,6 +3,9 @@ package service
 import (
 	"context"
 	"errors"
+	"sync"
+	"time"
+
 	"github.com/golang-jwt/jwt/v5"
 	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgtype"
@@ -10,8 +13,6 @@ import (
 	"github.com/janobono/auth-service/internal/repository"
 	db2 "github.com/janobono/go-util/db"
 	"github.com/janobono/go-util/security"
-	"sync"
-	"time"
 )
 
 type JwtService struct {

@@ -2,12 +2,13 @@ package server
 
 import (
 	"errors"
+	"log/slog"
+	"net/http"
+
 	"github.com/gin-contrib/cors"
 	"github.com/janobono/auth-service/generated/openapi"
 	"github.com/janobono/auth-service/internal/config"
 	"github.com/janobono/auth-service/internal/server/impl"
-	"log/slog"
-	"net/http"
 )
 
 type HttpServer struct {

@@ -5,11 +5,12 @@ import (
 	"crypto/rand"
 	"crypto/rsa"
 	"fmt"
+	"time"
+
 	"github.com/jackc/pgx/v5/pgtype"
 	"github.com/janobono/auth-service/generated/sqlc"
 	"github.com/janobono/auth-service/internal/db"
 	db2 "github.com/janobono/go-util/db"
-	"time"
 )
 
 type JwkRepository interface {

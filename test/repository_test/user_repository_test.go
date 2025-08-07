@@ -2,9 +2,10 @@ package repository_test
 
 import (
 	"context"
+	"testing"
+
 	"github.com/janobono/auth-service/internal/repository"
 	"github.com/stretchr/testify/assert"
-	"testing"
 )
 
 func TestUserRepository_FullFlow(t *testing.T) {

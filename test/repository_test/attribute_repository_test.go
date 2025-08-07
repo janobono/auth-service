@@ -2,11 +2,12 @@ package repository_test
 
 import (
 	"context"
+	"testing"
+	"time"
+
 	"github.com/janobono/auth-service/internal/repository"
 	"github.com/janobono/go-util/common"
 	"github.com/stretchr/testify/assert"
-	"testing"
-	"time"
 
 	_ "github.com/jackc/pgx/v5/stdlib"
 )

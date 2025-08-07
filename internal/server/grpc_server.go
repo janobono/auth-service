@@ -1,13 +1,14 @@
 package server
 
 import (
+	"log/slog"
+	"net"
+
 	"github.com/janobono/auth-service/generated/proto"
 	"github.com/janobono/auth-service/internal/config"
 	"github.com/janobono/auth-service/internal/server/impl"
 	"github.com/janobono/go-util/security"
 	"google.golang.org/grpc"
-	"log/slog"
-	"net"
 )
 
 type GrpcServer struct {

@@ -2,10 +2,11 @@ package repository_test
 
 import (
 	"context"
-	"github.com/janobono/auth-service/internal/repository"
-	"github.com/stretchr/testify/assert"
 	"testing"
 	"time"
+
+	"github.com/janobono/auth-service/internal/repository"
+	"github.com/stretchr/testify/assert"
 )
 
 func TestJwkRepository_CRUD(t *testing.T) {

@@ -2,6 +2,7 @@ package test
 
 import (
 	"context"
+
 	"github.com/janobono/auth-service/generated/proto"
 	client2 "github.com/janobono/auth-service/internal/service/client"
 	"google.golang.org/protobuf/types/known/wrapperspb"

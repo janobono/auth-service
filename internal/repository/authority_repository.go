@@ -3,12 +3,13 @@ package repository
 import (
 	"context"
 	"fmt"
+	"strings"
+
 	"github.com/jackc/pgx/v5/pgtype"
 	"github.com/janobono/auth-service/generated/sqlc"
 	"github.com/janobono/auth-service/internal/db"
 	"github.com/janobono/go-util/common"
 	db2 "github.com/janobono/go-util/db"
-	"strings"
 )
 
 type AuthorityRepository interface {

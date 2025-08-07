@@ -2,10 +2,11 @@ package client
 
 import (
 	"context"
-	"google.golang.org/grpc/credentials/insecure"
-	"google.golang.org/protobuf/types/known/wrapperspb"
 	"log/slog"
 	"time"
+
+	"google.golang.org/grpc/credentials/insecure"
+	"google.golang.org/protobuf/types/known/wrapperspb"
 
 	grpcRetry "github.com/grpc-ecosystem/go-grpc-middleware/retry"
 	"github.com/janobono/auth-service/generated/proto"

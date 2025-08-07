@@ -2,6 +2,7 @@ package impl
 
 import (
 	"context"
+
 	"github.com/janobono/auth-service/generated/openapi"
 	"github.com/janobono/auth-service/internal/service"
 	"github.com/janobono/go-util/security"

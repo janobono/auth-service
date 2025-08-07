@@ -5,10 +5,11 @@ import (
 	"crypto/x509"
 	"encoding/pem"
 	"fmt"
+	"time"
+
 	"github.com/golang-jwt/jwt/v5"
 	"github.com/jackc/pgx/v5/pgtype"
 	"github.com/janobono/auth-service/generated/sqlc"
-	"time"
 )
 
 type Attribute struct {

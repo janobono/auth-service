@@ -3,12 +3,13 @@ package service
 import (
 	"context"
 	"errors"
+	"net/http"
+
 	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgtype"
 	"github.com/janobono/auth-service/generated/openapi"
 	"github.com/janobono/auth-service/internal/repository"
 	"github.com/janobono/go-util/common"
-	"net/http"
 )
 
 type AuthorityService struct {

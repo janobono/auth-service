@@ -4,13 +4,14 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"log/slog"
+
 	"github.com/golang-migrate/migrate/v4/database/postgres"
 	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgxpool"
 	"github.com/jackc/pgx/v5/stdlib"
 	"github.com/janobono/auth-service/generated/sqlc"
 	"github.com/janobono/auth-service/internal/config"
-	"log/slog"
 
 	"github.com/golang-migrate/migrate/v4"
 	_ "github.com/golang-migrate/migrate/v4/database/postgres"

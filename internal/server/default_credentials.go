@@ -3,11 +3,12 @@ package server
 import (
 	"context"
 	"errors"
+	"log/slog"
+
 	"github.com/jackc/pgx/v5"
 	"github.com/janobono/auth-service/generated/sqlc"
 	"github.com/janobono/auth-service/internal/config"
 	"github.com/janobono/auth-service/internal/db"
-	"log/slog"
 
 	janobonodb "github.com/janobono/go-util/db"
 )

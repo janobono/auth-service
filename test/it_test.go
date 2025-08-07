@@ -3,6 +3,11 @@ package test
 import (
 	"context"
 	"fmt"
+	"net"
+	"syscall"
+	"testing"
+	"time"
+
 	"github.com/janobono/auth-service/generated/proto"
 	"github.com/janobono/auth-service/internal/config"
 	"github.com/janobono/auth-service/internal/db"
@@ -10,10 +15,6 @@ import (
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials/insecure"
 	"google.golang.org/grpc/metadata"
-	"net"
-	"syscall"
-	"testing"
-	"time"
 )
 
 type testInitializer struct {

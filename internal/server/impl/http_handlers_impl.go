@@ -1,11 +1,12 @@
 package impl
 
 import (
+	"net/http"
+
 	"github.com/gin-gonic/gin"
 	"github.com/janobono/auth-service/generated/openapi"
 	"github.com/janobono/auth-service/internal/service"
 	"github.com/janobono/go-util/security"
-	"net/http"
 )
 
 type httpHandlers struct {

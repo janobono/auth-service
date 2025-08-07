@@ -3,6 +3,8 @@ package service
 import (
 	"context"
 	"errors"
+	"net/http"
+
 	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgtype"
 	"github.com/janobono/auth-service/generated/openapi"
@@ -10,7 +12,6 @@ import (
 	"github.com/janobono/auth-service/internal/service/client"
 	"github.com/janobono/go-util/common"
 	"github.com/janobono/go-util/security"
-	"net/http"
 )
 
 type AuthService struct {

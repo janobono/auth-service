@@ -1,9 +1,10 @@
 package server
 
 import (
-	"github.com/janobono/auth-service/internal/config"
 	"log/slog"
 	"os"
+
+	"github.com/janobono/auth-service/internal/config"
 )
 
 func initSlog(config *config.ServerConfig) {

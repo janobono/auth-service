@@ -2,11 +2,12 @@ package impl
 
 import (
 	"errors"
-	"github.com/janobono/auth-service/generated/openapi"
-	"github.com/janobono/go-util/common"
 	"log/slog"
 	"net/http"
 	"time"
+
+	"github.com/janobono/auth-service/generated/openapi"
+	"github.com/janobono/go-util/common"
 
 	"github.com/gin-gonic/gin"
 )

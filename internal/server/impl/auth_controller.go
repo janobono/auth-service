@@ -1,12 +1,13 @@
 package impl
 
 import (
+	"log/slog"
+	"net/http"
+
 	"github.com/gin-gonic/gin"
 	"github.com/janobono/auth-service/generated/openapi"
 	"github.com/janobono/auth-service/internal/service"
 	"github.com/janobono/go-util/common"
-	"log/slog"
-	"net/http"
 )
 
 type authController struct {

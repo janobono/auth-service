@@ -3,12 +3,13 @@ package repository_test
 import (
 	"context"
 	"fmt"
-	"github.com/janobono/auth-service/internal/config"
-	"github.com/janobono/auth-service/internal/db"
 	"log"
 	"os"
 	"testing"
 	"time"
+
+	"github.com/janobono/auth-service/internal/config"
+	"github.com/janobono/auth-service/internal/db"
 
 	"github.com/docker/go-connections/nat"
 	_ "github.com/jackc/pgx/v5/stdlib"

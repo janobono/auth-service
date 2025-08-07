@@ -1,11 +1,12 @@
 package impl
 
 import (
+	"log/slog"
+	"net/http"
+
 	"github.com/gin-gonic/gin"
 	"github.com/janobono/auth-service/generated/openapi"
 	"github.com/janobono/auth-service/internal/service"
-	"log/slog"
-	"net/http"
 )
 
 type jwksController struct {

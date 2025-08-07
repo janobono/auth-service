@@ -2,6 +2,8 @@ package impl
 
 import (
 	"context"
+	"log/slog"
+
 	"github.com/janobono/auth-service/generated/openapi"
 	"github.com/janobono/auth-service/generated/proto"
 	"github.com/janobono/auth-service/internal/service"
@@ -9,7 +11,6 @@ import (
 	"google.golang.org/grpc/status"
 	"google.golang.org/protobuf/types/known/emptypb"
 	"google.golang.org/protobuf/types/known/wrapperspb"
-	"log/slog"
 
 	"github.com/janobono/go-util/common"
 	"github.com/janobono/go-util/security"

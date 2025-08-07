@@ -1,6 +1,10 @@
 package impl
 
 import (
+	"net/http"
+	"strconv"
+	"strings"
+
 	"github.com/gin-gonic/gin"
 	"github.com/jackc/pgx/v5/pgtype"
 	"github.com/janobono/auth-service/generated/openapi"
@@ -8,9 +12,6 @@ import (
 	db2 "github.com/janobono/go-util/db"
 	"github.com/janobono/go-util/security"
 	"github.com/samborkent/uuidv7"
-	"net/http"
-	"strconv"
-	"strings"
 )
 
 func parseId(ctx *gin.Context) (pgtype.UUID, bool) {

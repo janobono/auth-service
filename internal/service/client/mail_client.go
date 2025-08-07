@@ -2,13 +2,14 @@ package client
 
 import (
 	"bytes"
-	"github.com/janobono/auth-service/internal/config"
-	"gopkg.in/gomail.v2"
 	"html/template"
 	"log/slog"
 	"os"
 	"sync"
 	"time"
+
+	"github.com/janobono/auth-service/internal/config"
+	"gopkg.in/gomail.v2"
 )
 
 type MailData struct {
