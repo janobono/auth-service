@@ -93,6 +93,8 @@ func (di *defaultInitializer) Services(serverConfig *config.ServerConfig, reposi
 			clients.CaptchaClient,
 			clients.MailClient,
 			jwtService,
+			repositories.AttributeRepository,
+			repositories.AuthorityRepository,
 			repositories.UserRepository,
 		),
 		AuthorityService: service.NewAuthorityService(repositories.AuthorityRepository),

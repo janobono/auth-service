@@ -3,23 +3,28 @@ package service
 import (
 	"context"
 	"errors"
+	"fmt"
 	"net/http"
 
 	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgtype"
 	"github.com/janobono/auth-service/generated/openapi"
+	"github.com/janobono/auth-service/generated/proto"
 	"github.com/janobono/auth-service/internal/repository"
 	"github.com/janobono/auth-service/internal/service/client"
 	"github.com/janobono/go-util/common"
+	db2 "github.com/janobono/go-util/db"
 	"github.com/janobono/go-util/security"
 )
 
 type AuthService struct {
-	passwordEncoder *security.PasswordEncoder
-	captchaClient   client.CaptchaClient
-	mailClient      client.MailClient
-	jwtService      *JwtService
-	userRepository  repository.UserRepository
+	passwordEncoder     *security.PasswordEncoder
+	captchaClient       client.CaptchaClient
+	mailClient          client.MailClient
+	jwtService          *JwtService
+	attributeRepository repository.AttributeRepository
+	authorityRepository repository.AuthorityRepository
+	userRepository      repository.UserRepository
 }
 
 func NewAuthService(
@@ -27,30 +32,182 @@ func NewAuthService(
 	captchaClient client.CaptchaClient,
 	mailClient client.MailClient,
 	jwtService *JwtService,
+	attributeRepository repository.AttributeRepository,
+	authorityRepository repository.AuthorityRepository,
 	userRepository repository.UserRepository,
 ) *AuthService {
 	return &AuthService{
-		passwordEncoder: passwordEncoder,
-		captchaClient:   captchaClient,
-		mailClient:      mailClient,
-		jwtService:      jwtService,
-		userRepository:  userRepository,
+		passwordEncoder:     passwordEncoder,
+		captchaClient:       captchaClient,
+		mailClient:          mailClient,
+		jwtService:          jwtService,
+		attributeRepository: attributeRepository,
+		authorityRepository: authorityRepository,
+		userRepository:      userRepository,
 	}
 }
 
 func (as *AuthService) ChangeEmail(ctx context.Context, userDetail *openapi.UserDetail, data *openapi.ChangeEmail) (*openapi.AuthenticationResponse, error) {
-	//TODO implement me
-	panic("implement me")
+	userId, err := db2.ParseUUID(userDetail.Id)
+	if err != nil {
+		return nil, err
+	}
+
+	user, err := as.userRepository.GetUserById(ctx, userId)
+	if err != nil {
+		return nil, err
+	}
+
+	if err := as.checkCaptcha(ctx, data.CaptchaText, data.CaptchaToken); err != nil {
+		return nil, err
+	}
+
+	count, err := as.userRepository.CountByEmailAndNotId(ctx, data.Email, userId)
+	if err != nil {
+		return nil, err
+	}
+	if count > 0 {
+		return nil, common.NewServiceError(http.StatusBadRequest, string(openapi.EMAIL_ALREADY_EXISTS), "'email' already exists")
+	}
+
+	if err := as.checkEnabled(user); err != nil {
+		return nil, err
+	}
+
+	if err := as.checkPassword(user, data.Password); err != nil {
+		return nil, err
+	}
+
+	user, err = as.userRepository.SetUserEmail(ctx, user.ID, data.Email)
+	if err != nil {
+		return nil, err
+	}
+
+	err = as.sendEmailChangedConfirmation(ctx, user)
+	if err != nil {
+		return nil, err
+	}
+
+	authorities, err := as.getAuthorities(ctx, user.ID)
+	if err != nil {
+		return nil, err
+	}
+
+	return as.createAuthenticationResponse(ctx, user.ID, authorities)
 }
 
 func (as *AuthService) ChangePassword(ctx context.Context, userDetail *openapi.UserDetail, data *openapi.ChangePassword) (*openapi.AuthenticationResponse, error) {
-	//TODO implement me
-	panic("implement me")
+	userId, err := db2.ParseUUID(userDetail.Id)
+	if err != nil {
+		return nil, err
+	}
+
+	user, err := as.userRepository.GetUserById(ctx, userId)
+	if err != nil {
+		return nil, err
+	}
+
+	if err := as.checkCaptcha(ctx, data.CaptchaText, data.CaptchaToken); err != nil {
+		return nil, err
+	}
+
+	if err := as.checkEnabled(user); err != nil {
+		return nil, err
+	}
+
+	if err := as.checkPassword(user, data.OldPassword); err != nil {
+		return nil, err
+	}
+
+	password, err := as.passwordEncoder.Encode(data.NewPassword)
+	if err != nil {
+		return nil, err
+	}
+
+	user, err = as.userRepository.SetUserPassword(ctx, user.ID, password)
+	if err != nil {
+		return nil, err
+	}
+
+	err = as.sendPasswordChangedConfirmation(ctx, user)
+	if err != nil {
+		return nil, err
+	}
+
+	authorities, err := as.getAuthorities(ctx, user.ID)
+	if err != nil {
+		return nil, err
+	}
+
+	return as.createAuthenticationResponse(ctx, user.ID, authorities)
 }
 
 func (as *AuthService) ChangeUserAttributes(ctx context.Context, userDetail *openapi.UserDetail, data *openapi.ChangeUserAttributes) (*openapi.AuthenticationResponse, error) {
-	//TODO implement me
-	panic("implement me")
+	userId, err := db2.ParseUUID(userDetail.Id)
+	if err != nil {
+		return nil, err
+	}
+
+	user, err := as.userRepository.GetUserById(ctx, userId)
+	if err != nil {
+		return nil, err
+	}
+
+	if err := as.checkCaptcha(ctx, data.CaptchaText, data.CaptchaToken); err != nil {
+		return nil, err
+	}
+
+	if err := as.checkEnabled(user); err != nil {
+		return nil, err
+	}
+
+	userAttributeMap := make(map[string]string, len(data.Attributes))
+	for _, userAttribute := range data.Attributes {
+		userAttributeMap[userAttribute.Key] = userAttribute.Value
+	}
+
+	allAttributes, err := as.attributeRepository.GetAllAttributes(ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	userAttributes := make([]*repository.UserAttribute, 0, len(userAttributeMap))
+	for _, attribute := range allAttributes {
+		value, ok := userAttributeMap[attribute.Key]
+
+		if attribute.Required && !attribute.Hidden && !ok {
+			return nil, common.NewServiceError(http.StatusBadRequest, string(openapi.REQUIRED_ATTRIBUTE), fmt.Sprintf("attribute %s is required", attribute.Key))
+		}
+
+		if ok {
+			if common.IsBlank(value) {
+				return nil, common.NewServiceError(http.StatusBadRequest, string(openapi.INVALID_FIELD), "'value' must not be blank")
+			}
+
+			userAttributes = append(userAttributes, &repository.UserAttribute{
+				Attribute: attribute,
+				Value:     value,
+			})
+		}
+	}
+
+	// TODO load saved user attributes
+	// TODO append missing attributes to new user attributes
+
+	_, err = as.userRepository.SetUserAttributes(ctx, &repository.UserAttributesData{
+		UserID:     userId,
+		Attributes: userAttributes,
+	})
+	if err != nil {
+		return nil, err
+	}
+
+	authorities, err := as.getAuthorities(ctx, user.ID)
+	if err != nil {
+		return nil, err
+	}
+
+	return as.createAuthenticationResponse(ctx, user.ID, authorities)
 }
 
 func (as *AuthService) Confirm(ctx context.Context, data *openapi.Confirmation) (*openapi.AuthenticationResponse, error) {
@@ -106,15 +263,11 @@ func (as *AuthService) SignIn(ctx context.Context, data *openapi.SignIn) (*opena
 		return nil, common.NewServiceError(http.StatusNotFound, string(openapi.NOT_FOUND), "user not found")
 	}
 
-	if err := as.checkConfirmed(user); err != nil {
-		return nil, err
-	}
-
 	if err := as.checkEnabled(user); err != nil {
 		return nil, err
 	}
 
-	if err := as.checkPassword(user, data); err != nil {
+	if err := as.checkPassword(user, data.Password); err != nil {
 		return nil, err
 	}
 
@@ -131,10 +284,19 @@ func (as *AuthService) SignUp(ctx context.Context, data *openapi.SignUp) (*opena
 	panic("implement me")
 }
 
-func (as *AuthService) checkConfirmed(user *repository.User) error {
-	if !user.Confirmed {
-		return common.NewServiceError(http.StatusForbidden, string(openapi.USER_NOT_CONFIRMED), "account not confirmed")
+func (as *AuthService) checkCaptcha(ctx context.Context, captchaText string, captchaToken string) error {
+	result, err := as.captchaClient.Validate(ctx, &proto.CaptchaData{
+		Text:  captchaText,
+		Token: captchaToken,
+	})
+	if err != nil {
+		return err
 	}
+
+	if !result.Value {
+		return common.NewServiceError(http.StatusBadRequest, string(openapi.INVALID_CAPTCHA), "invalid captcha")
+	}
+
 	return nil
 }
 
@@ -145,8 +307,8 @@ func (as *AuthService) checkEnabled(user *repository.User) error {
 	return nil
 }
 
-func (as *AuthService) checkPassword(user *repository.User, signIn *openapi.SignIn) error {
-	if err := as.passwordEncoder.Compare(signIn.Password, user.Password); err != nil {
+func (as *AuthService) checkPassword(user *repository.User, password string) error {
+	if err := as.passwordEncoder.Compare(password, user.Password); err != nil {
 		return common.NewServiceError(http.StatusForbidden, string(openapi.INVALID_CREDENTIALS), "wrong password")
 	}
 	return nil
@@ -190,4 +352,14 @@ func (as *AuthService) getAuthorities(ctx context.Context, id pgtype.UUID) ([]st
 		authorities[i] = saAuthority.Authority
 	}
 	return authorities, nil
+}
+
+func (as *AuthService) sendEmailChangedConfirmation(ctx context.Context, user *repository.User) error {
+	// TODO implement me
+	return nil
+}
+
+func (as *AuthService) sendPasswordChangedConfirmation(ctx context.Context, user *repository.User) error {
+	// TODO implement me
+	return nil
 }

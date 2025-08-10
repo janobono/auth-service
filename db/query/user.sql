@@ -57,3 +57,9 @@ update "user"
 set enabled = $2
 where id = $1
 returning *;
+
+-- name: SetUserPassword :one
+update "user"
+set password = $2
+where id = $1
+returning *;

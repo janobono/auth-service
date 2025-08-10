@@ -28,6 +28,7 @@ type UserRepository interface {
 	SetUserConfirmed(ctx context.Context, userID pgtype.UUID, confirmed bool) (*User, error)
 	SetUserEmail(ctx context.Context, userID pgtype.UUID, email string) (*User, error)
 	SetUserEnabled(ctx context.Context, userID pgtype.UUID, enabled bool) (*User, error)
+	SetUserPassword(ctx context.Context, userID pgtype.UUID, password string) (*User, error)
 }
 
 type userRepositoryImpl struct {
@@ -231,6 +232,19 @@ func (u *userRepositoryImpl) SetUserEnabled(ctx context.Context, userID pgtype.U
 	user, err := u.dataSource.Queries.SetUserEnabled(ctx, sqlc.SetUserEnabledParams{
 		ID:      userID,
 		Enabled: enabled,
+	})
+
+	if err != nil {
+		return nil, err
+	}
+
+	return toUser(&user), nil
+}
+
+func (u *userRepositoryImpl) SetUserPassword(ctx context.Context, userID pgtype.UUID, password string) (*User, error) {
+	user, err := u.dataSource.Queries.SetUserPassword(ctx, sqlc.SetUserPasswordParams{
+		ID:       userID,
+		Password: password,
 	})
 
 	if err != nil {
