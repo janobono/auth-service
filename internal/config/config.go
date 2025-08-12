@@ -65,7 +65,6 @@ type CorsConfig struct {
 
 type AppConfig struct {
 	CaptchaServiceUrl        string
-	MailConfirmation         bool
 	ConfirmationUrl          string
 	PasswordCharacters       string
 	PasswordLength           int
@@ -125,7 +124,6 @@ func InitConfig() *ServerConfig {
 		},
 		AppConfig: &AppConfig{
 			CaptchaServiceUrl:        common.Env("APP_CAPTCHA_SERVICE_URL"),
-			MailConfirmation:         common.EnvBool("APP_MAIL_CONFIRMATION"),
 			ConfirmationUrl:          common.Env("APP_CONFIRMATION_URL"),
 			PasswordCharacters:       common.Env("APP_PASSWORD_CHARACTERS"),
 			PasswordLength:           common.EnvInt("APP_PASSWORD_LENGTH"),

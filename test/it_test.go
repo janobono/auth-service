@@ -84,11 +84,12 @@ func TestIntegrationSomething(t *testing.T) {
 			MaxAge:           12 * time.Hour,
 		},
 		AppConfig: &config.AppConfig{
-			CaptchaServiceUrl:  "",
-			MailConfirmation:   true,
-			ConfirmationUrl:    "http://localhost:3000/confirm",
-			PasswordCharacters: "abcdefghijklmnopqrstuvwxyz0123456789",
-			PasswordLength:     8,
+			CaptchaServiceUrl:        "",
+			ConfirmationUrl:          "http://localhost:3000/confirm",
+			PasswordCharacters:       "abcdefghijklmnopqrstuvwxyz0123456789",
+			PasswordLength:           8,
+			MandatoryUserAttributes:  make(map[string]string),
+			MandatoryUserAuthorities: []string{},
 		},
 	}
 

@@ -1,12 +1,14 @@
-# auth-service
+# Auth Service
 
-Auth Service written in Golang.
+Authentication and authorization microservice written in **Go**.
 
-- [openapi contract](contract/openapi/auth-service.yaml)
-- [gRPC contract](contract/proto/auth-service.proto)
-- [sql schema](db/schema.sql)
+- [OpenAPI contract](contract/openapi/auth-service.yaml) – REST API specification
+- [gRPC contract](contract/proto/auth-service.proto) – RPC service definition
+- [SQL schema](db/schema.sql) – Database schema
 
-## build
+---
+
+## 📦 Build
 
 ```bash
 ./build.sh
@@ -14,96 +16,145 @@ Auth Service written in Golang.
 
 or
 
-```shell
+```bash
 docker build -t auth-service:latest .
 ```
 
-## run
+---
 
-```shell
+## ▶ Run
+
+```bash
 docker compose up
 ```
 
-## stop
+Stop with:
 
-```shell
+```bash
 docker compose down
 ```
 
-## make
+---
 
-If you have `make`, `Go`, `node.js` and `protoc` ([How to install the protocol buffer compiler](https://protobuf.dev/installation/)) installed, you can use these prepared targets:
+## ⚙ Local Development
 
-- `tools` - to install all tools and modules
-- `clean` - to delete all generated sources
-- `generate-openapi` - generate source files from openapi (http) into `generated/openapi`
-- `generate-proto` - generate source files from proto (gRPC) into `generated/proto`
-- `generate` - to generate all sources
-- `build` - default target will call generate and build everything
-- `fmt` - format code
-- `test` - run tests
-- `vet` - check code with vet
+1. **Set environment variables**  
+   Create a `.env.local` file or set them manually.
 
-## local run
+2. **Run dependencies**  
+   Start required services (DB, Mail, etc.):
+   ```bash
+   docker compose -f infra.yaml up
+   ```
 
-To start the service locally, follow these steps:
+3. **Run the service**
+   ```bash
+   go run .
+   ```
 
-1. **Set Environment Variables**  
-   Create a `.env.local` file with the required environment variables, or set them manually in your system.
-2. **Run necessary services**  
-   Run necessary services with docker command `docker compose -f infra.yaml up`.
+---
 
-## environment variables
+## 🛠 Make Targets
 
-| Name                                  | Example                                                      | Description                                                                                                   |
-|:--------------------------------------|:-------------------------------------------------------------|:--------------------------------------------------------------------------------------------------------------|
-| PROD                                  | false                                                        | Production mode flag - log level is switched from debug to info                                               |
-| GRPC_ADDRESS                          | :50052                                                       | Service gRPC port                                                                                             |
-| HTTP_ADDRESS                          | :8080                                                        | Service http port                                                                                             |
-| CONTEXT_PATH                          | /api                                                         | Rest api context path                                                                                         |
-|                                       |                                                              |                                                                                                               |
-| DB_URL                                | localhost:5432/app                                           | Database url                                                                                                  |
-| DB_USER                               | app                                                          | Database user                                                                                                 |
-| DB_PASSWORD                           | app                                                          | Database password                                                                                             |
-| DB_MAX_CONNECTIONS                    | 5                                                            | Database connection pooling max connections                                                                   |
-| DB_MIN_CONNECTIONS                    | 2                                                            | Database connection pooling min connections                                                                   |
-| DB_MIGRATIONS_URL                     | file://./migrations                                          | Database migrations directory url                                                                             |
-|                                       |                                                              |                                                                                                               |
-| MAIL_HOST                             | localhost                                                    | SMTP service host                                                                                             |
-| MAIL_PORT                             | 1025                                                         | SMTP service port                                                                                             |
-| MAIL_USER                             | app@auth.org                                                 | Default application mail account                                                                              |
-| MAIL_PASSWORD                         |                                                              | Default application mail account password                                                                     |
-| MAIL_AUTH_ENABLED                     | false                                                        | Enabled/Disable mail authentication                                                                           |
-| MAIL_TLS_ENABLED                      | false                                                        | Enabled/Disable mail TLS                                                                                      |
-| MAIL_TEMPLATE_URL                     |                                                              | Path or URL to the HTML mail template file. If empty, a built-in default template will be used.               |
-| MAIL_TEMPLATE_RELOAD_INTERVAL         | 0                                                            | Interval in minutes for automatically reloading the mail template. A value of 0 disables automatic reloading. |
-|                                       |                                                              |                                                                                                               |
-| SECURITY_READ_AUTHORITIES             | manager,employee                                             | Default read authorities                                                                                      |
-| SECURITY_WRITE_AUTHORITIES            | admin                                                        | Default write authorities                                                                                     |
-| SECURITY_DEFAULT_USERNAME             | simple@auth.org                                              | Default user created at first start - remove after your admin account is created                              |
-| SECURITY_DEFAULT_PASSWORD             | $2a$10$gRKMsjTON2A4b5PDIgjej.EZPvzVaKRj52Mug/9bfQBzAYmVF0Cae | Default user password created at first start                                                                  |
-| SECURITY_TOKEN_ISSUER                 | simple                                                       | token issuer                                                                                                  |
-| SECURITY_ACCESS_TOKEN_EXPIRES_IN      | 30                                                           | access token expiration in minutes                                                                            |
-| SECURITY_ACCESS_TOKEN_JWK_EXPIRES_IN  | 720                                                          | access token jwt key expiration in minutes                                                                    |
-| SECURITY_REFRESH_TOKEN_EXPIRES_IN     | 10080                                                        | refresh token expiration in minutes                                                                           |
-| SECURITY_REFRESH_TOKEN_JWK_EXPIRES_IN | 20160                                                        | refresh token jwt key expiration in minutes                                                                   |
-| SECURITY_CONTENT_TOKEN_EXPIRES_IN     | 10080                                                        | content token expiration in minutes                                                                           |
-| SECURITY_CONTENT_TOKEN_JWK_EXPIRES_IN | 20160                                                        | content token jwt key expiration in minutes                                                                   |
-|                                       |                                                              |                                                                                                               |
-| CORS_ALLOWED_ORIGINS                  | http://localhost:3000                                        | Allowed origins for CORS                                                                                      |
-| CORS_ALLOWED_METHODS                  | GET,POST,PUT,PATCH,DELETE                                    | Allowed HTTP methods                                                                                          |
-| CORS_ALLOWED_HEADERS                  | Origin,Content-Type,Accept,Authorization                     | Allowed HTTP headers                                                                                          |
-| CORS_EXPOSED_HEADERS                  | Content-length                                               | Exposed headers in CORS                                                                                       |
-| CORS_ALLOW_CREDENTIALS                | true                                                         | Whether credentials are allowed in CORS                                                                       |
-| CORS_MAX_AGE                          | 12                                                           | Max age (in hours) for CORS preflight response caching                                                        |
-|                                       |                                                              |                                                                                                               |
-| APP_MAIL_CONFIRMATION                 | true                                                         | Enable/Disable sending confirmation token as a part of the signUp process                                     |
-| APP_CONFIRMATION_URL                  | http://localhost:3000/confirm                                | If confirmation is enabled this url with token si part of the signUp information mail                         |
+If you have **`make`**, **Go**, **Node.js**, and **protoc** ([Install protoc](https://protobuf.dev/installation/))
+installed, you can run:
 
-### Security Warning
+| Target             | Description                                                     |
+|--------------------|-----------------------------------------------------------------|
+| `tools`            | Install tools and modules                                       |
+| `clean`            | Delete generated sources                                        |
+| `generate-openapi` | Generate REST API sources from OpenAPI into `generated/openapi` |
+| `generate-proto`   | Generate gRPC sources from proto into `generated/proto`         |
+| `generate`         | Generate all sources                                            |
+| `build`            | Generate + build everything                                     |
+| `fmt`              | Format code                                                     |
+| `test`             | Run tests                                                       |
+| `vet`              | Run `go vet` checks                                             |
 
-> ⚠️ **Default Credentials**
->
-> The default admin user (`simple@auth.org`) is created automatically on the first run.
-> **Make sure to remove or replace it after your own admin account is created**.
-> Leaving default credentials active in production is a serious security risk.
+---
+
+## 🌍 Environment Variables
+
+### Server
+
+| Name           | Example | Description                                            |
+|----------------|---------|--------------------------------------------------------|
+| `PROD`         | false   | Production mode flag (log level info instead of debug) |
+| `GRPC_ADDRESS` | :50052  | gRPC port                                              |
+| `HTTP_ADDRESS` | :8080   | HTTP port                                              |
+| `CONTEXT_PATH` | /api    | REST API context path                                  |
+
+### Database
+
+| Name                 | Example             | Description              |
+|----------------------|---------------------|--------------------------|
+| `DB_URL`             | localhost:5432/app  | Database URL             |
+| `DB_USER`            | app                 | DB username              |
+| `DB_PASSWORD`        | app                 | DB password              |
+| `DB_MAX_CONNECTIONS` | 5                   | Max DB connections       |
+| `DB_MIN_CONNECTIONS` | 2                   | Min DB connections       |
+| `DB_MIGRATIONS_URL`  | file://./migrations | Migrations directory URL |
+
+### Mail
+
+| Name                            | Example      | Description                                    |
+|---------------------------------|--------------|------------------------------------------------|
+| `MAIL_HOST`                     | localhost    | SMTP host                                      |
+| `MAIL_PORT`                     | 1025         | SMTP port                                      |
+| `MAIL_USER`                     | app@auth.org | SMTP username                                  |
+| `MAIL_PASSWORD`                 | —            | SMTP password                                  |
+| `MAIL_AUTH_ENABLED`             | false        | Enable SMTP auth                               |
+| `MAIL_TLS_ENABLED`              | false        | Enable TLS                                     |
+| `MAIL_TEMPLATE_URL`             | —            | Path/URL to HTML template                      |
+| `MAIL_TEMPLATE_RELOAD_INTERVAL` | 0            | Auto-reload interval (minutes, `0` = disabled) |
+
+### Security & Auth
+
+| Name                                    | Example                                                        | Description                        |
+|-----------------------------------------|----------------------------------------------------------------|------------------------------------|
+| `SECURITY_READ_AUTHORITIES`             | manager,employee                                               | Default read roles                 |
+| `SECURITY_WRITE_AUTHORITIES`            | admin                                                          | Default write roles                |
+| `SECURITY_DEFAULT_USERNAME`             | simple@auth.org                                                | Default admin email                |
+| `SECURITY_DEFAULT_PASSWORD`             | `$2a$10$gRKMsjTON2A4b5PDIgjej.EZPvzVaKRj52Mug/9bfQBzAYmVF0Cae` | Default admin password hash        |
+| `SECURITY_TOKEN_ISSUER`                 | simple                                                         | JWT issuer                         |
+| `SECURITY_ACCESS_TOKEN_EXPIRES_IN`      | 30                                                             | Access token expiry (minutes)      |
+| `SECURITY_ACCESS_TOKEN_JWK_EXPIRES_IN`  | 720                                                            | Access token JWK expiry (minutes)  |
+| `SECURITY_REFRESH_TOKEN_EXPIRES_IN`     | 10080                                                          | Refresh token expiry (minutes)     |
+| `SECURITY_REFRESH_TOKEN_JWK_EXPIRES_IN` | 20160                                                          | Refresh token JWK expiry (minutes) |
+| `SECURITY_CONTENT_TOKEN_EXPIRES_IN`     | 10080                                                          | Content token expiry (minutes)     |
+| `SECURITY_CONTENT_TOKEN_JWK_EXPIRES_IN` | 20160                                                          | Content token JWK expiry (minutes) |
+
+### CORS
+
+| Name                     | Example                                  | Description                     |
+|--------------------------|------------------------------------------|---------------------------------|
+| `CORS_ALLOWED_ORIGINS`   | http://localhost:3000                    | Allowed origins                 |
+| `CORS_ALLOWED_METHODS`   | GET,POST,PUT,PATCH,DELETE                | Allowed HTTP methods            |
+| `CORS_ALLOWED_HEADERS`   | Origin,Content-Type,Accept,Authorization | Allowed headers                 |
+| `CORS_EXPOSED_HEADERS`   | Content-length                           | Exposed headers                 |
+| `CORS_ALLOW_CREDENTIALS` | true                                     | Allow credentials               |
+| `CORS_MAX_AGE`           | 12                                       | Preflight cache max age (hours) |
+
+### Application
+
+| Name                             | Example                              | Description                                 |
+|----------------------------------|--------------------------------------|---------------------------------------------|
+| `APP_CAPTCHA_SERVICE_URL`        | http://localhost:50053               | Captcha gRPC service URL                    |
+| `APP_MAIL_CONFIRMATION`          | http://localhost:3000/confirm        | Email confirmation URL                      |
+| `APP_PASSWORD_CHARACTERS`        | abcdefghijklmnopqrstuvwxyz0123456789 | Allowed password characters                 |
+| `APP_PASSWORD_LENGTH`            | 8                                    | Generated password length                   |
+| `APP_MANDATORY_USER_ATTRIBUTES`  | —                                    | Key=Value pairs of required user attributes |
+| `APP_MANDATORY_USER_AUTHORITIES` | —                                    | Required authorities for new users          |
+
+---
+
+## ⚠ Security Warning
+
+**Default credentials (REMOVE in production):**
+
+```
+Email: simple@auth.org
+Password hash: $2a$10$gRKMsjTON2A4b5PDIgjej.EZPvzVaKRj52Mug/9bfQBzAYmVF0Cae
+```
+
+Leaving these active in production is a serious security risk.
