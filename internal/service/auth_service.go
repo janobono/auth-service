@@ -10,6 +10,7 @@ import (
 	"github.com/jackc/pgx/v5/pgtype"
 	"github.com/janobono/auth-service/generated/openapi"
 	"github.com/janobono/auth-service/generated/proto"
+	"github.com/janobono/auth-service/internal/config"
 	"github.com/janobono/auth-service/internal/repository"
 	"github.com/janobono/auth-service/internal/service/client"
 	"github.com/janobono/go-util/common"
@@ -17,7 +18,15 @@ import (
 	"github.com/janobono/go-util/security"
 )
 
+const (
+	CONFIRMATION_TYPE = "CONFIRMATION_TYPE"
+	ID                = "ID"
+	CONFIRM_USER      = "CONFIRM_USER"
+	RESET_PASSWORD    = "RESET_PASSWORD"
+)
+
 type AuthService struct {
+	appConfig           *config.AppConfig
 	passwordEncoder     *security.PasswordEncoder
 	captchaClient       client.CaptchaClient
 	mailClient          client.MailClient
@@ -28,6 +37,7 @@ type AuthService struct {
 }
 
 func NewAuthService(
+	appConfig *config.AppConfig,
 	passwordEncoder *security.PasswordEncoder,
 	captchaClient client.CaptchaClient,
 	mailClient client.MailClient,
@@ -37,6 +47,7 @@ func NewAuthService(
 	userRepository repository.UserRepository,
 ) *AuthService {
 	return &AuthService{
+		appConfig:           appConfig,
 		passwordEncoder:     passwordEncoder,
 		captchaClient:       captchaClient,
 		mailClient:          mailClient,
@@ -48,17 +59,12 @@ func NewAuthService(
 }
 
 func (as *AuthService) ChangeEmail(ctx context.Context, userDetail *openapi.UserDetail, data *openapi.ChangeEmail) (*openapi.AuthenticationResponse, error) {
+	if err := as.checkCaptcha(ctx, data.CaptchaText, data.CaptchaToken); err != nil {
+		return nil, err
+	}
+
 	userId, err := db2.ParseUUID(userDetail.Id)
 	if err != nil {
-		return nil, err
-	}
-
-	user, err := as.userRepository.GetUserById(ctx, userId)
-	if err != nil {
-		return nil, err
-	}
-
-	if err := as.checkCaptcha(ctx, data.CaptchaText, data.CaptchaToken); err != nil {
 		return nil, err
 	}
 
@@ -68,6 +74,11 @@ func (as *AuthService) ChangeEmail(ctx context.Context, userDetail *openapi.User
 	}
 	if count > 0 {
 		return nil, common.NewServiceError(http.StatusBadRequest, string(openapi.EMAIL_ALREADY_EXISTS), "'email' already exists")
+	}
+
+	user, err := as.userRepository.GetUserById(ctx, userId)
+	if err != nil {
+		return nil, err
 	}
 
 	if err := as.checkEnabled(user); err != nil {
@@ -97,6 +108,10 @@ func (as *AuthService) ChangeEmail(ctx context.Context, userDetail *openapi.User
 }
 
 func (as *AuthService) ChangePassword(ctx context.Context, userDetail *openapi.UserDetail, data *openapi.ChangePassword) (*openapi.AuthenticationResponse, error) {
+	if err := as.checkCaptcha(ctx, data.CaptchaText, data.CaptchaToken); err != nil {
+		return nil, err
+	}
+
 	userId, err := db2.ParseUUID(userDetail.Id)
 	if err != nil {
 		return nil, err
@@ -104,10 +119,6 @@ func (as *AuthService) ChangePassword(ctx context.Context, userDetail *openapi.U
 
 	user, err := as.userRepository.GetUserById(ctx, userId)
 	if err != nil {
-		return nil, err
-	}
-
-	if err := as.checkCaptcha(ctx, data.CaptchaText, data.CaptchaToken); err != nil {
 		return nil, err
 	}
 
@@ -142,7 +153,15 @@ func (as *AuthService) ChangePassword(ctx context.Context, userDetail *openapi.U
 	return as.createAuthenticationResponse(ctx, user.ID, authorities)
 }
 
-func (as *AuthService) ChangeUserAttributes(ctx context.Context, userDetail *openapi.UserDetail, data *openapi.ChangeUserAttributes) (*openapi.AuthenticationResponse, error) {
+func (as *AuthService) ChangeUserAttributes(
+	ctx context.Context,
+	userDetail *openapi.UserDetail,
+	data *openapi.ChangeUserAttributes,
+) (*openapi.AuthenticationResponse, error) {
+	if err := as.checkCaptcha(ctx, data.CaptchaText, data.CaptchaToken); err != nil {
+		return nil, err
+	}
+
 	userId, err := db2.ParseUUID(userDetail.Id)
 	if err != nil {
 		return nil, err
@@ -152,53 +171,29 @@ func (as *AuthService) ChangeUserAttributes(ctx context.Context, userDetail *ope
 	if err != nil {
 		return nil, err
 	}
-
-	if err := as.checkCaptcha(ctx, data.CaptchaText, data.CaptchaToken); err != nil {
-		return nil, err
-	}
-
 	if err := as.checkEnabled(user); err != nil {
 		return nil, err
 	}
 
-	userAttributeMap := make(map[string]string, len(data.Attributes))
-	for _, userAttribute := range data.Attributes {
-		userAttributeMap[userAttribute.Key] = userAttribute.Value
-	}
-
-	allAttributes, err := as.attributeRepository.GetAllAttributes(ctx)
+	savedAttributes, err := as.userRepository.GetUserAttributes(ctx, userId)
 	if err != nil {
 		return nil, err
 	}
 
-	userAttributes := make([]*repository.UserAttribute, 0, len(userAttributeMap))
-	for _, attribute := range allAttributes {
-		value, ok := userAttributeMap[attribute.Key]
-
-		if attribute.Required && !attribute.Hidden && !ok {
-			return nil, common.NewServiceError(http.StatusBadRequest, string(openapi.REQUIRED_ATTRIBUTE), fmt.Sprintf("attribute %s is required", attribute.Key))
-		}
-
-		if ok {
-			if common.IsBlank(value) {
-				return nil, common.NewServiceError(http.StatusBadRequest, string(openapi.INVALID_FIELD), "'value' must not be blank")
-			}
-
-			userAttributes = append(userAttributes, &repository.UserAttribute{
-				Attribute: attribute,
-				Value:     value,
-			})
-		}
+	mandatoryAttributes := make(map[string]string, len(savedAttributes))
+	for _, savedAttribute := range savedAttributes {
+		mandatoryAttributes[savedAttribute.Attribute.Key] = savedAttribute.Value
 	}
 
-	// TODO load saved user attributes
-	// TODO append missing attributes to new user attributes
+	userAttributes, err := as.createAttributes(ctx, data.Attributes, mandatoryAttributes)
+	if err != nil {
+		return nil, err
+	}
 
-	_, err = as.userRepository.SetUserAttributes(ctx, &repository.UserAttributesData{
+	if _, err = as.userRepository.SetUserAttributes(ctx, &repository.UserAttributesData{
 		UserID:     userId,
 		Attributes: userAttributes,
-	})
-	if err != nil {
+	}); err != nil {
 		return nil, err
 	}
 
@@ -211,8 +206,38 @@ func (as *AuthService) ChangeUserAttributes(ctx context.Context, userDetail *ope
 }
 
 func (as *AuthService) Confirm(ctx context.Context, data *openapi.Confirmation) (*openapi.AuthenticationResponse, error) {
-	//TODO implement me
-	panic("implement me")
+	confirmationData, err := as.parseConfirmationToken(ctx, data.Token)
+	if err != nil {
+		return nil, err
+	}
+
+	confirmationType, ok := confirmationData[CONFIRMATION_TYPE]
+	if !ok {
+		return nil, common.NewServiceError(http.StatusBadRequest, string(openapi.INVALID_FIELD), "confirmation type not found")
+	}
+
+	var (
+		user *repository.User
+	)
+
+	switch confirmationType {
+	case CONFIRM_USER:
+		user, err = as.confirmUser(ctx, confirmationData)
+	case RESET_PASSWORD:
+		user, err = as.resetPassword(ctx, confirmationData)
+	default:
+		return nil, common.NewServiceError(http.StatusBadRequest, string(openapi.INVALID_FIELD), "unsupported confirmation type")
+	}
+	if err != nil {
+		return nil, err
+	}
+
+	authorities, err := as.getAuthorities(ctx, user.ID)
+	if err != nil {
+		return nil, err
+	}
+
+	return as.createAuthenticationResponse(ctx, user.ID, authorities)
 }
 
 func (as *AuthService) RefreshToken(ctx context.Context, refreshToken string) (*openapi.AuthenticationResponse, error) {
@@ -243,13 +268,40 @@ func (as *AuthService) RefreshToken(ctx context.Context, refreshToken string) (*
 }
 
 func (as *AuthService) ResendConfirmation(ctx context.Context, data *openapi.ResendConfirmation) error {
-	//TODO implement me
-	panic("implement me")
+	if err := as.checkCaptcha(ctx, data.CaptchaText, data.CaptchaToken); err != nil {
+		return err
+	}
+
+	email := common.ToScDf(data.Email)
+
+	user, err := as.userRepository.GetUserByEmail(ctx, email)
+	if err != nil && !errors.Is(err, pgx.ErrNoRows) {
+		return err
+	}
+
+	return as.resendConfirmation(ctx, user)
 }
 
 func (as *AuthService) ResetPassword(ctx context.Context, data *openapi.ResetPassword) error {
-	//TODO implement me
-	panic("implement me")
+	if err := as.checkCaptcha(ctx, data.CaptchaText, data.CaptchaToken); err != nil {
+		return err
+	}
+
+	email := common.ToScDf(data.Email)
+
+	user, err := as.userRepository.GetUserByEmail(ctx, email)
+	if err != nil && !errors.Is(err, pgx.ErrNoRows) {
+		return err
+	}
+	if errors.Is(err, pgx.ErrNoRows) {
+		return common.NewServiceError(http.StatusNotFound, string(openapi.NOT_FOUND), "user not found")
+	}
+
+	if err := as.checkEnabled(user); err != nil {
+		return err
+	}
+
+	return as.sendResetPasswordMail(ctx, user)
 }
 
 func (as *AuthService) SignIn(ctx context.Context, data *openapi.SignIn) (*openapi.AuthenticationResponse, error) {
@@ -280,8 +332,49 @@ func (as *AuthService) SignIn(ctx context.Context, data *openapi.SignIn) (*opena
 }
 
 func (as *AuthService) SignUp(ctx context.Context, data *openapi.SignUp) (*openapi.AuthenticationResponse, error) {
-	//TODO implement me
-	panic("implement me")
+	if err := as.checkCaptcha(ctx, data.CaptchaText, data.CaptchaToken); err != nil {
+		return nil, err
+	}
+
+	email := common.ToScDf(data.Email)
+	password, err := as.passwordEncoder.Encode(data.Password)
+	if err != nil {
+		return nil, err
+	}
+
+	count, err := as.userRepository.CountByEmail(ctx, email)
+	if err != nil {
+		return nil, err
+	}
+	if count > 0 {
+		return nil, common.NewServiceError(http.StatusBadRequest, string(openapi.EMAIL_ALREADY_EXISTS), "'email' already exists")
+	}
+
+	userAttributes, err := as.createAttributes(ctx, data.Attributes, as.appConfig.MandatoryUserAttributes)
+	if err != nil {
+		return nil, err
+	}
+
+	userAuthorities, err := as.createAuthorities(ctx, as.appConfig.MandatoryUserAuthorities)
+	if err != nil {
+		return nil, err
+	}
+
+	user, err := as.userRepository.AddUserWithAttributesAndAuthorities(ctx, &repository.UserData{
+		Email:     email,
+		Password:  password,
+		Confirmed: false,
+		Enabled:   true,
+	}, userAttributes, userAuthorities)
+	if err != nil {
+		return nil, err
+	}
+
+	authorities := make([]string, len(userAuthorities))
+	for i, saAuthority := range userAuthorities {
+		authorities[i] = saAuthority.Authority
+	}
+	return as.createAuthenticationResponse(ctx, user.ID, authorities)
 }
 
 func (as *AuthService) checkCaptcha(ctx context.Context, captchaText string, captchaToken string) error {
@@ -341,6 +434,142 @@ func (as *AuthService) createAuthenticationResponse(ctx context.Context, id pgty
 	}, nil
 }
 
+func (as *AuthService) createAttributes(
+	ctx context.Context,
+	attributes []openapi.AttributeValueData,
+	mandatoryAttributes map[string]string,
+) ([]*repository.UserAttribute, error) {
+
+	userAttributeMap := make(map[string]string, len(attributes))
+	for _, attribute := range attributes {
+		userAttributeMap[attribute.Key] = attribute.Value
+	}
+
+	userAttributes := make([]*repository.UserAttribute, 0, len(userAttributeMap)+len(mandatoryAttributes))
+
+	allAttributesMap, err := as.getAllAttributesMap(ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	for k, v := range userAttributeMap {
+		attr, ok := allAttributesMap[k]
+		if !ok {
+			return nil, common.NewServiceError(
+				http.StatusBadRequest, string(openapi.INVALID_FIELD),
+				fmt.Sprintf("unknown attribute key '%s'", k),
+			)
+		}
+		if attr.Hidden {
+			return nil, common.NewServiceError(
+				http.StatusBadRequest, string(openapi.INVALID_FIELD),
+				fmt.Sprintf("attribute '%s' is not settable", k),
+			)
+		}
+		if common.IsBlank(v) {
+			return nil, common.NewServiceError(
+				http.StatusBadRequest, string(openapi.INVALID_FIELD),
+				fmt.Sprintf("attribute '%s' value must not be blank", k),
+			)
+		}
+		userAttributes = append(userAttributes, &repository.UserAttribute{Attribute: attr, Value: v})
+	}
+
+	for k, v := range mandatoryAttributes {
+		attr, ok := allAttributesMap[k]
+		if !ok {
+			return nil, common.NewServiceError(
+				http.StatusInternalServerError, string(openapi.INVALID_FIELD),
+				fmt.Sprintf("mandatory attribute '%s' is not defined", k),
+			)
+		}
+		if _, has := userAttributeMap[k]; !has {
+			if common.IsBlank(v) {
+				return nil, common.NewServiceError(
+					http.StatusBadRequest, string(openapi.INVALID_FIELD),
+					fmt.Sprintf("mandatory attribute '%s' value must not be blank", k),
+				)
+			}
+			userAttributes = append(userAttributes, &repository.UserAttribute{Attribute: attr, Value: v})
+		}
+	}
+
+	for k, attr := range allAttributesMap {
+		if attr.Required && !attr.Hidden {
+			if _, inUser := userAttributeMap[k]; !inUser {
+				if _, inMandatory := mandatoryAttributes[k]; !inMandatory {
+					return nil, common.NewServiceError(
+						http.StatusBadRequest, string(openapi.REQUIRED_ATTRIBUTE),
+						fmt.Sprintf("attribute '%s' is required", k),
+					)
+				}
+			}
+		}
+	}
+
+	return userAttributes, nil
+}
+
+func (as *AuthService) createAuthorities(
+	ctx context.Context,
+	mandatoryAuthorities []string,
+) ([]*repository.Authority, error) {
+	allAuthoritiesMap, err := as.getAllAuthoritiesMap(ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	userAuthorities := make([]*repository.Authority, 0, len(mandatoryAuthorities))
+
+	for _, k := range mandatoryAuthorities {
+		if common.IsBlank(k) {
+			return nil, common.NewServiceError(
+				http.StatusBadRequest, string(openapi.INVALID_FIELD),
+				"mandatory authority must not be blank",
+			)
+		}
+
+		authority, ok := allAuthoritiesMap[k]
+		if !ok {
+			return nil, common.NewServiceError(
+				http.StatusInternalServerError, string(openapi.INVALID_FIELD),
+				fmt.Sprintf("mandatory authority '%s' is not defined", k),
+			)
+		}
+		userAuthorities = append(userAuthorities, authority)
+	}
+
+	return userAuthorities, nil
+}
+
+func (as *AuthService) getAllAttributesMap(ctx context.Context) (map[string]*repository.Attribute, error) {
+	allAttributes, err := as.attributeRepository.GetAllAttributes(ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	allAttributesMap := make(map[string]*repository.Attribute, len(allAttributes))
+	for _, attribute := range allAttributes {
+		allAttributesMap[attribute.Key] = attribute
+	}
+
+	return allAttributesMap, nil
+}
+
+func (as *AuthService) getAllAuthoritiesMap(ctx context.Context) (map[string]*repository.Authority, error) {
+	allAuthorities, err := as.authorityRepository.GetAllAuthorities(ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	allAuthoritiesMap := make(map[string]*repository.Authority, len(allAuthorities))
+	for _, authority := range allAuthorities {
+		allAuthoritiesMap[authority.Authority] = authority
+	}
+
+	return allAuthoritiesMap, nil
+}
+
 func (as *AuthService) getAuthorities(ctx context.Context, id pgtype.UUID) ([]string, error) {
 	userAuthorities, err := as.userRepository.GetUserAuthorities(ctx, id)
 	if err != nil {
@@ -356,10 +585,35 @@ func (as *AuthService) getAuthorities(ctx context.Context, id pgtype.UUID) ([]st
 
 func (as *AuthService) sendEmailChangedConfirmation(ctx context.Context, user *repository.User) error {
 	// TODO implement me
-	return nil
+	panic("implement me")
 }
 
 func (as *AuthService) sendPasswordChangedConfirmation(ctx context.Context, user *repository.User) error {
 	// TODO implement me
-	return nil
+	panic("implement me")
+}
+
+func (as *AuthService) parseConfirmationToken(ctx context.Context, token string) (map[string]string, error) {
+	// TODO implement me
+	panic("implement me")
+}
+
+func (as *AuthService) confirmUser(ctx context.Context, confirmData map[string]string) (*repository.User, error) {
+	// TODO implement me
+	panic("implement me")
+}
+
+func (as *AuthService) resetPassword(ctx context.Context, confirmData map[string]string) (*repository.User, error) {
+	// TODO implement me
+	panic("implement me")
+}
+
+func (as *AuthService) resendConfirmation(ctx context.Context, user *repository.User) error {
+	// TODO implement me
+	panic("implement me")
+}
+
+func (as *AuthService) sendResetPasswordMail(ctx context.Context, user *repository.User) error {
+	// TODO implement me
+	panic("implement me")
 }

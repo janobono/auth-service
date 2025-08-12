@@ -89,6 +89,7 @@ func (di *defaultInitializer) Services(serverConfig *config.ServerConfig, reposi
 	return &Services{
 		AttributeService: service.NewAttributeService(repositories.AttributeRepository),
 		AuthService: service.NewAuthService(
+			serverConfig.AppConfig,
 			utils.PasswordEncoder,
 			clients.CaptchaClient,
 			clients.MailClient,

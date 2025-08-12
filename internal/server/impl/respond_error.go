@@ -13,13 +13,22 @@ import (
 )
 
 func AbortWithStatus(ctx *gin.Context, statusCode int) {
-	slog.Error("Abort with status", "status", statusCode)
+	if statusCode >= 500 {
+		slog.Error("Abort with status", "status", statusCode)
+	} else {
+		slog.Warn("Abort with status", "status", statusCode)
+	}
 	ctx.AbortWithStatus(statusCode)
 }
 
 func RespondWithError(ctx *gin.Context, statusCode int, code openapi.ErrorCode, message string) {
-	slog.Error("Error occurred", "code", code, "error", message)
-	ctx.JSON(statusCode, openapi.ErrorMessage{
+	if statusCode >= 500 {
+		slog.Error("Server error", "status", statusCode, "error_code", code, "message", message)
+	} else {
+		slog.Warn("Client error", "status", statusCode, "error_code", code, "message", message)
+	}
+
+	ctx.AbortWithStatusJSON(statusCode, openapi.ErrorMessage{
 		Code:      code,
 		Message:   message,
 		Timestamp: time.Now().UTC(),
@@ -27,10 +36,12 @@ func RespondWithError(ctx *gin.Context, statusCode int, code openapi.ErrorCode, 
 }
 
 func RespondWithServiceError(ctx *gin.Context, err error) {
-	var serviceErr *common.ServiceError
-	if errors.Is(err, serviceErr) {
-		RespondWithError(ctx, serviceErr.Status, openapi.ErrorCode(serviceErr.Code), serviceErr.Error())
+	var serviceError *common.ServiceError
+	if errors.As(err, &serviceError) {
+		RespondWithError(ctx, serviceError.Status, openapi.ErrorCode(serviceError.Code), serviceError.Error())
 		return
 	}
-	RespondWithError(ctx, http.StatusInternalServerError, openapi.UNKNOWN, err.Error())
+
+	slog.Error("Unhandled error", "error", err)
+	RespondWithError(ctx, http.StatusInternalServerError, openapi.UNKNOWN, "unexpected server error")
 }

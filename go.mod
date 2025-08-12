@@ -10,7 +10,7 @@ require (
 	github.com/golang-migrate/migrate/v4 v4.18.3
 	github.com/grpc-ecosystem/go-grpc-middleware v1.4.0
 	github.com/jackc/pgx/v5 v5.7.5
-	github.com/janobono/go-util/common v1.2.0
+	github.com/janobono/go-util/common v1.3.0
 	github.com/janobono/go-util/db v1.1.0
 	github.com/janobono/go-util/security v1.5.0
 	github.com/joho/godotenv v1.5.1

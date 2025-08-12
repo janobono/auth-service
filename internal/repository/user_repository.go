@@ -14,6 +14,7 @@ import (
 
 type UserRepository interface {
 	AddUser(ctx context.Context, data *UserData) (*User, error)
+	AddUserWithAttributesAndAuthorities(ctx context.Context, userData *UserData, userAttributes []*UserAttribute, userAuthorities []*Authority) (*User, error)
 	CountById(ctx context.Context, id pgtype.UUID) (int64, error)
 	CountByEmail(ctx context.Context, email string) (int64, error)
 	CountByEmailAndNotId(ctx context.Context, email string, id pgtype.UUID) (int64, error)
@@ -54,6 +55,54 @@ func (u *userRepositoryImpl) AddUser(ctx context.Context, data *UserData) (*User
 	}
 
 	return toUser(&user), nil
+}
+
+func (u *userRepositoryImpl) AddUserWithAttributesAndAuthorities(ctx context.Context, userData *UserData, userAttributes []*UserAttribute, userAuthorities []*Authority) (*User, error) {
+	user, err := u.dataSource.ExecTx(ctx, func(q *sqlc.Queries) (interface{}, error) {
+		user, err := q.AddUser(ctx, sqlc.AddUserParams{
+			ID:        db2.NewUUID(),
+			CreatedAt: db2.NowUTC(),
+			Email:     userData.Email,
+			Password:  userData.Password,
+			Enabled:   userData.Enabled,
+			Confirmed: userData.Confirmed,
+		})
+
+		if err != nil {
+			return nil, err
+		}
+
+		for _, attribute := range userAttributes {
+			err = q.AddUserAttribute(ctx, sqlc.AddUserAttributeParams{
+				UserID:      user.ID,
+				AttributeID: attribute.Attribute.ID,
+				Value:       attribute.Value,
+			})
+
+			if err != nil {
+				return nil, err
+			}
+		}
+
+		for _, authority := range userAuthorities {
+			err = q.AddUserAuthority(ctx, sqlc.AddUserAuthorityParams{
+				UserID:      user.ID,
+				AuthorityID: authority.ID,
+			})
+
+			if err != nil {
+				return nil, err
+			}
+		}
+
+		return &user, nil
+	})
+
+	if err != nil {
+		return nil, err
+	}
+
+	return toUser(user.(*sqlc.User)), nil
 }
 
 func (u *userRepositoryImpl) CountById(ctx context.Context, id pgtype.UUID) (int64, error) {
