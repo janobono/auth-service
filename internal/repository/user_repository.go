@@ -370,25 +370,45 @@ func (u *userRepositoryImpl) buildSearchQueryParts(criteria *SearchUsersCriteria
 	conditions = []string{}
 	parameters = []interface{}{}
 
+	// Email filter (separate from the general search)
 	if cond, params := u.buildEmailFilterCondition(criteria.Email, paramIndex); cond != "" {
 		conditions = append(conditions, cond)
 		parameters = append(parameters, params...)
 	}
 
+	// Split search terms
 	searchValues := common.SplitWithoutBlank(common.ToScDf(criteria.SearchField), " ")
-	if len(searchValues) > 0 {
-		if cond, params := u.buildEmailSearchConditions(searchValues, paramIndex); cond != "" {
-			conditions = append(conditions, cond)
-			parameters = append(parameters, params...)
-		}
+	if len(searchValues) == 0 {
+		return joinBuilder.String(), conditions, parameters
+	}
 
-		attributeKeys := common.Deduplicate(common.FilterBlank(criteria.AttributeKeys))
-		if len(attributeKeys) > 0 {
-			joins, attrConditions, params := u.buildAttributeJoinsAndConditions(attributeKeys, searchValues, paramIndex)
-			joinBuilder.WriteString(joins)
-			conditions = append(conditions, attrConditions...)
-			parameters = append(parameters, params...)
-		}
+	// Email search part (u.email LIKE %term% OR ...)
+	emailSearchCond, emailSearchParams := u.buildEmailSearchConditions(searchValues, paramIndex)
+
+	// Attribute search part (per key: a.key = $X AND (unaccent(ua.value) ILIKE %term% OR ...))
+	attributeKeys := common.Deduplicate(common.FilterBlank(criteria.AttributeKeys))
+	var attrConds []string
+	var attrParams []interface{}
+	if len(attributeKeys) > 0 {
+		joinsStr, attrConditions, params := u.buildAttributeJoinsAndConditions(attributeKeys, searchValues, paramIndex)
+		joinBuilder.WriteString(joinsStr)
+		attrConds = attrConditions
+		attrParams = params
+	}
+
+	// Combine email+attribute search with OR
+	switch {
+	case emailSearchCond != "" && len(attrConds) > 0:
+		combined := fmt.Sprintf("(%s or (%s))", emailSearchCond, strings.Join(attrConds, " and "))
+		conditions = append(conditions, combined)
+		parameters = append(parameters, emailSearchParams...)
+		parameters = append(parameters, attrParams...)
+	case emailSearchCond != "":
+		conditions = append(conditions, emailSearchCond)
+		parameters = append(parameters, emailSearchParams...)
+	case len(attrConds) > 0:
+		conditions = append(conditions, strings.Join(attrConds, " and "))
+		parameters = append(parameters, attrParams...)
 	}
 
 	return joinBuilder.String(), conditions, parameters

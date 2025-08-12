@@ -10,5 +10,39 @@ services:
     volumes:
       - pg-data:/var/lib/postgresql/data
 
+  smtp:
+    image: maildev/maildev:latest
+    ports:
+      - "8081:1080"
+      - "1025:1025"
+
+  captcha-service:
+    image: captcha-service:latest
+    ports:
+      - "50053:50052"
+      - "8082:8080"
+    environment:
+      - PROD=true
+      - GRPC_ADDRESS=:50052
+      - HTTP_ADDRESS=:8080
+      - CONTEXT_PATH=/api
+      - CAPTCHA_CHARACTERS=abcdefghijklmnopqrstuvwxyz0123456789
+      - CAPTCHA_TEXT_LENGTH=8
+      - CAPTCHA_IMAGE_WIDTH=200
+      - CAPTCHA_IMAGE_HEIGHT=70
+      - CAPTCHA_NOISE_LINES=8
+      - CAPTCHA_FONT='/usr/share/fonts/dejavu/DejaVuSans-Bold.ttf'
+      - CAPTCHA_FONT_SIZE=32
+      - CAPTCHA_TOKEN_ISSUER=captcha
+      - CAPTCHA_TOKEN_EXPIRES_IN=30
+      - CAPTCHA_TOKEN_JWK_EXPIRES_IN=720
+      - CORS_ALLOWED_ORIGINS=http://localhost:5173
+      - CORS_ALLOWED_METHODS=GET,POST,PUT,PATCH,DELETE
+      - CORS_ALLOWED_HEADERS=Origin,Content-Type,Accept,Authorization
+      - CORS_EXPOSED_HEADERS=Content-length
+      - CORS_ALLOW_CREDENTIALS=true
+      - CORS_MAX_AGE=12
+    restart: unless-stopped
+
 volumes:
   pg-data:

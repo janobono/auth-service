@@ -38,6 +38,8 @@ docker compose down
 
 ## ⚙ Local Development
 
+At first, you will need to build [captcha-service](https://github.com/janobono/captcha-service).
+
 1. **Set environment variables**  
    Create a `.env.local` file or set them manually.
 
