@@ -167,12 +167,7 @@ func (u *UserService) SetAttributes(ctx context.Context, userDetail *openapi.Use
 		return nil, err
 	}
 
-	user, err := u.userRepository.GetUserById(ctx, id)
-	if err != nil {
-		return nil, err
-	}
-
-	return u.mapUserDetail(ctx, user)
+	return u.GetUser(ctx, id)
 }
 
 func (u *UserService) SetAuthorities(ctx context.Context, userDetail *openapi.UserDetail, id pgtype.UUID, data *openapi.UserAuthoritiesData) (*openapi.UserDetail, error) {
@@ -199,12 +194,7 @@ func (u *UserService) SetAuthorities(ctx context.Context, userDetail *openapi.Us
 		return nil, err
 	}
 
-	user, err := u.userRepository.GetUserById(ctx, id)
-	if err != nil {
-		return nil, err
-	}
-
-	return u.mapUserDetail(ctx, user)
+	return u.GetUser(ctx, id)
 }
 
 func (u *UserService) SetConfirmed(ctx context.Context, userDetail *openapi.UserDetail, id pgtype.UUID, data *openapi.BooleanValue) (*openapi.UserDetail, error) {

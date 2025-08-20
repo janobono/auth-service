@@ -30,14 +30,16 @@ type DbConfig struct {
 }
 
 type MailConfig struct {
-	Host                       string
-	Port                       int
-	User                       string
-	Password                   string
-	AuthEnabled                bool
-	TlsEnabled                 bool
-	MailTemplateUrl            string
-	MailTemplateReloadInterval time.Duration
+	Host                         string
+	Port                         int
+	User                         string
+	Password                     string
+	AuthEnabled                  bool
+	TlsEnabled                   bool
+	SignUpMailSubject            string
+	SignUpMailTemplateUrl        string
+	ResetPasswordMailSubject     string
+	ResetPasswordMailTemplateUrl string
 }
 
 type SecurityConfig struct {
@@ -64,12 +66,14 @@ type CorsConfig struct {
 }
 
 type AppConfig struct {
-	CaptchaServiceUrl        string
-	ConfirmationUrl          string
-	PasswordCharacters       string
-	PasswordLength           int
-	MandatoryUserAttributes  map[string]string
-	MandatoryUserAuthorities []string
+	CaptchaServiceUrl             string
+	ConfirmationWebUrl            string
+	ConfirmationPath              string
+	SignUpConfirmationMailEnabled bool
+	PasswordCharacters            string
+	PasswordLength                int
+	MandatoryUserAttributes       map[string]string
+	MandatoryUserAuthorities      []string
 }
 
 func InitConfig() *ServerConfig {
@@ -92,14 +96,16 @@ func InitConfig() *ServerConfig {
 			MigrationsUrl:  common.Env("DB_MIGRATIONS_URL"),
 		},
 		MailConfig: &MailConfig{
-			Host:                       common.Env("MAIL_HOST"),
-			Port:                       common.EnvInt("MAIL_PORT"),
-			User:                       common.Env("MAIL_USER"),
-			Password:                   common.Env("MAIL_PASSWORD"),
-			AuthEnabled:                common.EnvBool("MAIL_AUTH_ENABLED"),
-			TlsEnabled:                 common.EnvBool("MAIL_TLS_ENABLED"),
-			MailTemplateUrl:            common.Env("MAIL_TEMPLATE_URL"),
-			MailTemplateReloadInterval: time.Duration(common.EnvInt("MAIL_TEMPLATE_RELOAD_INTERVAL")) * time.Minute,
+			Host:                         common.Env("MAIL_HOST"),
+			Port:                         common.EnvInt("MAIL_PORT"),
+			User:                         common.Env("MAIL_USER"),
+			Password:                     common.Env("MAIL_PASSWORD"),
+			AuthEnabled:                  common.EnvBool("MAIL_AUTH_ENABLED"),
+			TlsEnabled:                   common.EnvBool("MAIL_TLS_ENABLED"),
+			SignUpMailSubject:            common.Env("MAIL_SIGN_UP_MAIL_SUBJECT"),
+			SignUpMailTemplateUrl:        common.Env("MAIL_SIGN_UP_MAIL_TEMPLATE_URL"),
+			ResetPasswordMailSubject:     common.Env("MAIL_RESET_PASSWORD_MAIL_SUBJECT"),
+			ResetPasswordMailTemplateUrl: common.Env("MAIL_RESET_PASSWORD_MAIL_TEMPLATE_URL"),
 		},
 		SecurityConfig: &SecurityConfig{
 			ReadAuthorities:          common.EnvSlice("SECURITY_READ_AUTHORITIES"),
@@ -123,12 +129,14 @@ func InitConfig() *ServerConfig {
 			MaxAge:           time.Duration(common.EnvInt("CORS_MAX_AGE")) * time.Hour,
 		},
 		AppConfig: &AppConfig{
-			CaptchaServiceUrl:        common.Env("APP_CAPTCHA_SERVICE_URL"),
-			ConfirmationUrl:          common.Env("APP_CONFIRMATION_URL"),
-			PasswordCharacters:       common.Env("APP_PASSWORD_CHARACTERS"),
-			PasswordLength:           common.EnvInt("APP_PASSWORD_LENGTH"),
-			MandatoryUserAttributes:  common.EnvMap("APP_MANDATORY_USER_ATTRIBUTES"),
-			MandatoryUserAuthorities: common.EnvSlice("APP_MANDATORY_USER_AUTHORITIES"),
+			CaptchaServiceUrl:             common.Env("APP_CAPTCHA_SERVICE_URL"),
+			ConfirmationWebUrl:            common.Env("APP_CONFIRMATION_WEB_URL"),
+			ConfirmationPath:              common.Env("APP_CONFIRMATION_PATH"),
+			SignUpConfirmationMailEnabled: common.EnvBool("APP_SIGN_UP_MAIL_CONFIRMATION"),
+			PasswordCharacters:            common.Env("APP_PASSWORD_CHARACTERS"),
+			PasswordLength:                common.EnvInt("APP_PASSWORD_LENGTH"),
+			MandatoryUserAttributes:       common.EnvMap("APP_MANDATORY_USER_ATTRIBUTES"),
+			MandatoryUserAuthorities:      common.EnvSlice("APP_MANDATORY_USER_AUTHORITIES"),
 		},
 	}
 }

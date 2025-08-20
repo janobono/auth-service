@@ -12,7 +12,7 @@ require (
 	github.com/jackc/pgx/v5 v5.7.5
 	github.com/janobono/go-util/common v1.3.0
 	github.com/janobono/go-util/db v1.1.0
-	github.com/janobono/go-util/security v1.5.0
+	github.com/janobono/go-util/security v1.6.0
 	github.com/joho/godotenv v1.5.1
 	github.com/samborkent/uuidv7 v0.0.0-20231110121620-f2e19d87e48b
 	github.com/sony/gobreaker v1.0.0

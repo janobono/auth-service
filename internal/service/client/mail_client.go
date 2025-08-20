@@ -1,12 +1,8 @@
 package client
 
 import (
-	"bytes"
-	"html/template"
 	"log/slog"
 	"os"
-	"sync"
-	"time"
 
 	"github.com/janobono/auth-service/internal/config"
 	"gopkg.in/gomail.v2"
@@ -18,19 +14,15 @@ type MailData struct {
 	Recipients  []string
 	Cc          []string
 	Subject     string
-	Content     *MailContentData
+	ContentType string
+	Body        string
 	Attachments map[string]string // filename -> file path
 }
 
-type MailContentData struct {
-	Title string
-	Lines []string
-	Link  *MailLinkData
-}
-
-type MailLinkData struct {
-	Href string
-	Text string
+func NewMailData() *MailData {
+	return &MailData{
+		ContentType: "text/html",
+	}
 }
 
 type MailClient interface {
@@ -38,23 +30,13 @@ type MailClient interface {
 }
 
 type mailClient struct {
-	mailConfig   *config.MailConfig
-	mailTemplate *template.Template
-	mu           sync.RWMutex
+	mailConfig *config.MailConfig
 }
 
 var _ MailClient = (*mailClient)(nil)
 
 func NewMailClient(mailConfig *config.MailConfig) MailClient {
-	ms := &mailClient{mailConfig: mailConfig}
-
-	ms.loadTemplate()
-
-	if ms.mailConfig.MailTemplateReloadInterval > 0 {
-		go ms.startReloadLoop()
-	}
-
-	return ms
+	return &mailClient{mailConfig: mailConfig}
 }
 
 func (mc *mailClient) SendEmail(data *MailData) {
@@ -74,12 +56,7 @@ func (mc *mailClient) SendEmail(data *MailData) {
 
 		message.SetHeader("Subject", data.Subject)
 
-		body, err := mc.format(data)
-		if err != nil {
-			slog.Error("Template formatting failed", "error", err)
-			return
-		}
-		message.SetBody("text/html", body)
+		message.SetBody(data.ContentType, data.Body)
 
 		for name, path := range data.Attachments {
 			message.Attach(path, gomail.Rename(name))
@@ -103,64 +80,6 @@ func (mc *mailClient) cleanUp(data *MailData) {
 	for _, path := range data.Attachments {
 		if err := os.Remove(path); err != nil {
 			slog.Error("Failed to delete attachment", "error", err)
-		}
-	}
-}
-
-func (mc *mailClient) format(data *MailData) (string, error) {
-	mc.mu.RLock()
-	tmpl := mc.mailTemplate
-	mc.mu.RUnlock()
-
-	var buf bytes.Buffer
-	if err := tmpl.Execute(&buf, data.Content); err != nil {
-		return "", err
-	}
-	return buf.String(), nil
-}
-
-func (mc *mailClient) loadTemplate() {
-	const defaultTpl = `
-		<h1>{{.Title}}</h1>
-		{{range .Lines}}<p>{{.}}</p>{{end}}
-		{{if .MailLink}}<a href="{{.MailLink.Href}}">{{.MailLink.Text}}</a>{{end}}
-	`
-
-	var tplContent string
-	if mc.mailConfig.MailTemplateUrl != "" {
-		data, err := os.ReadFile(mc.mailConfig.MailTemplateUrl)
-		if err != nil {
-			slog.Error("Failed to load mail template from file, using default", "error", err)
-			tplContent = defaultTpl
-		} else {
-			tplContent = string(data)
-		}
-	} else {
-		tplContent = defaultTpl
-	}
-
-	tmpl, err := template.New("mail").Parse(tplContent)
-	if err != nil {
-		slog.Error("Failed to parse mail template, using default", "error", err)
-		tmpl, _ = template.New("mail").Parse(defaultTpl)
-	}
-
-	// Lock before replacing
-	mc.mu.Lock()
-	mc.mailTemplate = tmpl
-	mc.mu.Unlock()
-
-	slog.Info("Mail template reloaded successfully")
-}
-
-func (mc *mailClient) startReloadLoop() {
-	ticker := time.NewTicker(mc.mailConfig.MailTemplateReloadInterval)
-	defer ticker.Stop()
-
-	for {
-		select {
-		case <-ticker.C:
-			mc.loadTemplate()
 		}
 	}
 }

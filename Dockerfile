@@ -4,14 +4,14 @@ FROM public.ecr.aws/docker/library/node:lts-alpine AS openapi
 RUN apk add openjdk17-jre && npm install @openapitools/openapi-generator-cli -g
 
 WORKDIR /src
-COPY contract/openapi ./openapi
+COPY contract/openapi/auth-service.yaml ./auth-service.yaml
 
 RUN openapi-generator-cli generate \
     --generator-name go-gin-server \
-    --input-spec openapi/auth-service.yaml \
-    --output gen/openapi \
-    --additional-properties=interfaceOnly=true,packageName=authrest,generateMetadata=false,generateGoMod=false &&\
-    mkdir -p gen/authrest && cp -r gen/openapi/go/* gen/authrest/ && rm -rf gen/openapi
+    --input-spec auth-service.yaml \
+    --output generated/openapi-gen \
+    --additional-properties=interfaceOnly=true,packageName=openapi,generateMetadata=false,generateGoMod=false &&\
+    mkdir -p generated/openapi && cp -r generated/openapi-gen/go/* generated/openapi/ && rm -rf generated/openapi-gen
 
 # Stage2: gRPC code generation
 FROM public.ecr.aws/docker/library/golang:alpine AS proto
@@ -24,11 +24,11 @@ RUN go install google.golang.org/protobuf/cmd/protoc-gen-go@latest && \
 WORKDIR /src
 COPY contract/proto ./proto
 
-RUN mkdir -p gen/authgrpc && \
+RUN mkdir -p generated/proto && \
     for file in proto/*.proto; do \
         protoc -I=proto \
-            --go_out=gen/authgrpc --go_opt=paths=source_relative \
-            --go-grpc_out=gen/authgrpc --go-grpc_opt=paths=source_relative \
+            --go_out=generated/proto --go_opt=paths=source_relative \
+            --go-grpc_out=generated/proto --go-grpc_opt=paths=source_relative \
             "$file"; \
     done
 
@@ -38,10 +38,9 @@ FROM public.ecr.aws/docker/library/golang:alpine AS sqlc
 RUN go install github.com/sqlc-dev/sqlc/cmd/sqlc@latest
 
 WORKDIR /src
-COPY db/sqlc.yaml .
 COPY db db/
 
-RUN mkdir -p gen/db/repository && sqlc generate
+RUN mkdir -p generated/sqlc && sqlc generate -f db/sqlc.yaml
 
 # Stage4: build
 FROM public.ecr.aws/docker/library/golang:alpine AS builder
@@ -52,9 +51,9 @@ COPY go.mod go.sum ./
 RUN go mod download
 
 COPY . .
-COPY --from=openapi /src/gen/authrest ./gen/authrest
-COPY --from=proto /src/gen/authgrpc ./gen/authgrpc
-COPY --from=sqlc /src/gen/db ./gen/db
+COPY --from=openapi /src/generated/openapi ./generated/openapi
+COPY --from=proto /src/generated/proto ./generated/proto
+COPY --from=sqlc /src/generated/sqlc ./generated/sqlc
 
 RUN CGO_ENABLED=0 GOOS=linux go build -o bin/auth-service ./cmd/auth-service
 
@@ -65,7 +64,8 @@ WORKDIR /app
 
 # Copy binary from builder
 COPY --from=builder /app/bin/auth-service .
-COPY migrations db/migrations
+COPY migrations /app/migrations
+COPY templates /app/templates
 
 # Default command
 ENTRYPOINT ["/app/auth-service"]

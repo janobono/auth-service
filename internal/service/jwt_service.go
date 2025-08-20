@@ -136,7 +136,7 @@ func (js *JwtService) ParseAuthToken(ctx context.Context, jwtToken *security.Jwt
 		return pgtype.UUID{}, nil, err
 	}
 
-	idString, ok := (*claims)["sub"].(string)
+	idString, ok := (claims)["sub"].(string)
 
 	if !ok {
 		return pgtype.UUID{}, nil, errors.New("invalid access token")
@@ -148,7 +148,7 @@ func (js *JwtService) ParseAuthToken(ctx context.Context, jwtToken *security.Jwt
 	}
 
 	var authorities []string
-	if aud, ok := (*claims)["aud"].([]interface{}); ok {
+	if aud, ok := (claims)["aud"].([]interface{}); ok {
 		for _, a := range aud {
 			if aStr, ok := a.(string); ok {
 				authorities = append(authorities, aStr)

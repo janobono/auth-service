@@ -90,7 +90,9 @@ func (di *defaultInitializer) Services(serverConfig *config.ServerConfig, reposi
 		AttributeService: service.NewAttributeService(repositories.AttributeRepository),
 		AuthService: service.NewAuthService(
 			serverConfig.AppConfig,
+			serverConfig.MailConfig,
 			utils.PasswordEncoder,
+			utils.RandomString,
 			clients.CaptchaClient,
 			clients.MailClient,
 			jwtService,

@@ -99,16 +99,18 @@ installed, you can run:
 
 ### Mail
 
-| Name                            | Example      | Description                                    |
-|---------------------------------|--------------|------------------------------------------------|
-| `MAIL_HOST`                     | localhost    | SMTP host                                      |
-| `MAIL_PORT`                     | 1025         | SMTP port                                      |
-| `MAIL_USER`                     | app@auth.org | SMTP username                                  |
-| `MAIL_PASSWORD`                 | —            | SMTP password                                  |
-| `MAIL_AUTH_ENABLED`             | false        | Enable SMTP auth                               |
-| `MAIL_TLS_ENABLED`              | false        | Enable TLS                                     |
-| `MAIL_TEMPLATE_URL`             | —            | Path/URL to HTML template                      |
-| `MAIL_TEMPLATE_RELOAD_INTERVAL` | 0            | Auto-reload interval (minutes, `0` = disabled) |
+| Name                                    | Example                                | Description                                        |
+|-----------------------------------------|----------------------------------------|----------------------------------------------------|
+| `MAIL_HOST`                             | localhost                              | SMTP host                                          |
+| `MAIL_PORT`                             | 1025                                   | SMTP port                                          |
+| `MAIL_USER`                             | app@auth.org                           | SMTP username                                      |
+| `MAIL_PASSWORD`                         | —                                      | SMTP password                                      |
+| `MAIL_AUTH_ENABLED`                     | false                                  | Enable SMTP auth                                   |
+| `MAIL_TLS_ENABLED`                      | false                                  | Enable TLS                                         |
+| `MAIL_SIGN_UP_MAIL_SUBJECT`             | Sign Up Confirmation                   | Sign Up Confirmation mail subject                  |
+| `MAIL_SIGN_UP_MAIL_TEMPLATE_URL`        | file://./templates/sign_up.html        | Sign Up mail template file URL                     |
+| `MAIL_RESET_PASSWORD_MAIL_SUBJECT`      | Reset Password Confirmation            | Reset Password Confirmation mail subject           |
+| `MAIL_RESET_PASSWORD_MAIL_TEMPLATE_URL` | file://./templates/reset_password.html | Reset Password Confirmation mail template file URL |
 
 ### Security & Auth
 
@@ -142,7 +144,9 @@ installed, you can run:
 | Name                             | Example                              | Description                                 |
 |----------------------------------|--------------------------------------|---------------------------------------------|
 | `APP_CAPTCHA_SERVICE_URL`        | http://localhost:50053               | Captcha gRPC service URL                    |
-| `APP_MAIL_CONFIRMATION`          | http://localhost:3000/confirm        | Email confirmation URL                      |
+| `APP_CONFIRMATION_WEB_URL`       | http://localhost:3000                | Confirmation web URL                        |
+| `APP_CONFIRMATION_PATH`          | /confirm?token=                      | Confirmation path                           |
+| `APP_SIGN_UP_MAIL_CONFIRMATION`  | true                                 | Sign up mail confirmation enabled/disabled  |
 | `APP_PASSWORD_CHARACTERS`        | abcdefghijklmnopqrstuvwxyz0123456789 | Allowed password characters                 |
 | `APP_PASSWORD_LENGTH`            | 8                                    | Generated password length                   |
 | `APP_MANDATORY_USER_ATTRIBUTES`  | —                                    | Key=Value pairs of required user attributes |

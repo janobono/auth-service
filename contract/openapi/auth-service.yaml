@@ -795,6 +795,7 @@ components:
         - INVALID_FIELD
         - INVALID_CAPTCHA
         - INVALID_CREDENTIALS
+        - INVALID_TOKEN
         - USER_NOT_ENABLED
         - USER_NOT_CONFIRMED
         - EMAIL_ALREADY_EXISTS
